@@ -1,3 +1,5 @@
+@if(Auth::check())
+
 @extends('layouts.mainLayout')
 
 @section('content')
@@ -5,6 +7,8 @@
 <div class="transparent" onclick="hideAll(event)"></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @include('partials.sideNav')
+
+<x-messages />
 
 <div class="shortcut-report">
     <div class="md-4">
@@ -177,3 +181,9 @@
     </div>
 </div>
 @stop
+
+@else
+
+<span>Login to access this resource!</span>
+
+@endif

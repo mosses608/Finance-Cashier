@@ -688,3 +688,16 @@
     border-radius: 4px;
     color: #FFF;
 }
+
+
+@media(max-width: 768px){
+    .container{
+        width: 98% !important;
+    }
+
+    .alert{
+        top: 2% !important;
+        left: 5% !important;
+        width: 90% !important;
+    }
+}

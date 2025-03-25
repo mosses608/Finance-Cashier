@@ -3,7 +3,7 @@
     <div class="profile">
     <img src="{{ asset('assets/images/user-icon.jpg') }}" alt="Profile">
     <h5 class="left-card" style="float: right; cursor: pointer; color: red;">&times;</h5>
-        <h5>Shane Watson</h5>
+        <h5>{{ Auth::guard('web')->user()->name }}</h5>
         <span>Admin User</span>
     </div>
 
