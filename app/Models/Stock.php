@@ -9,7 +9,7 @@ class Stock extends Model
     //
     protected $fillable = [
         'storage_item_id',
-        'stock_code_combine',
+        // 'stock_code_combine',
         'remarks',
         'quantity_in',
         'quantity_out',

@@ -7,17 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     //
-    public function scopeFilter($query, array $filters){
-        if($filters['search'] ?? false){
-            $query->where('item_name', 'like', '%' . request('search') . '%')
-            ->orwhere('item_specs', 'like' , '%' . request('search') . '%')
-            ->orwhere('item_category' , 'like' , '%' . request('search') . '%')
-            ->orwhere('item_quantity_unit' , 'like' , '%' . request('search') . '%');
-        }
-    }
-
     protected $fillable = [
-        'item_name','item_specs','item_quantity_unit','item_category','item_pic','item_prefix','store_id'
+        'name','sku','description','cost_price','selling_price','store_id','item_pic','soft_delete',
     ];
 
     public static function find($id){

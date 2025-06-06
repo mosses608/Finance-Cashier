@@ -1,0 +1,787 @@
+<?php
+
+namespace App\Http\Controllers\Invoice;
+
+use Illuminate\Support\Str;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Crypt;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Validation\ValidationException;
+
+class InvoiceController extends Controller
+{
+    //
+    public function storeInvoice(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|array',
+            'product_id.*' => 'required|integer',
+
+            'available_quantity' => 'required|array',
+            'available_quantity.*' => 'required',
+
+            'selling_price' => 'required|array',
+            'selling_price.*' => 'required',
+
+            'quantity_sell' => 'required|array',
+            'quantity_sell.*' => 'required|integer|min:1',
+
+            'discount' => 'nullable|array',
+            'discount.*' => 'nullable|numeric',
+
+            'customer_id' => 'nullable|integer',
+            'TIN' => 'nullable|string',
+            'name' => 'nullable|string|max:255',
+            'phone' => 'nullable|string',
+            'address' => 'nullable|string',
+            'amount' => 'required',
+        ]);
+        // dd($request->all());
+        $amount = str_replace(',', '', $request->amount);
+        $customerId = $request->customer_id;
+
+        // Create new customer if TIN is provided
+        if ($request->filled('TIN')) {
+            $existingCustomer = DB::table('customer')->where('TIN', $request->TIN)->first();
+            if ($existingCustomer) {
+                return redirect()->back()->with('error_msg', 'Customer information already exists in our database!');
+            }
+
+            $customerId = DB::table('customer')->insertGetId([
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'TIN' => $request->TIN,
+                'address' => $request->address,
+            ]);
+        }
+
+        // Insert main invoice record
+        $invoiceId = DB::table('invoice')->insertGetId([
+            'customer_id' => $customerId,
+            'billId' => null,
+            'amount' => $amount,
+        ]);
+
+        foreach ($request->product_id as $index => $productId) {
+            $quantitySell = $request->quantity_sell[$index] ?? 0;
+            $availableQty = $request->available_quantity[$index] ?? 0;
+
+            $existingStock = DB::table('stocks')->where('storage_item_id', $productId)->first();
+            if ($quantitySell > $existingStock->quantity_total) {
+                return redirect()->back()->with('error_msg', "Quantity for product ID $productId is greater than available.");
+            }
+
+            DB::table('invoice_items')->insert([
+                'invoice_id' => $invoiceId,
+                'item_id' => $productId,
+                'amount' => $amount,
+                'quantity' => $quantitySell,
+                'discount' => $request->discount[$index] ?? null,
+            ]);
+        }
+
+        return redirect()->route('invoice.list')->with('success_msg', 'Invoice created successfully!');
+    }
+
+    public function invoiceList()
+    {
+        $invoices = DB::table('invoice AS i')
+            ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
+            ->join('customer AS C', 'I.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'I.amount AS amountPaid',
+                'IST.name AS invoiceStatus',
+                'I.created_at AS invoiceDate',
+                'I.id AS invoiceId'
+            ])
+            ->where('I.soft_delete', 0)
+            ->where('C.soft_delete', 0)
+            ->where('I.status', 1)
+            ->where('I.is_profoma', 0)
+            ->orderBy('I.id', 'DESC')
+            ->get();
+
+        $paidinvoices = DB::table('invoice AS i')
+            ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
+            ->join('customer AS C', 'I.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'I.amount AS amountPaid',
+                'IST.name AS invoiceStatus',
+                'I.created_at AS invoiceDate',
+                'I.id AS invoiceId'
+            ])
+            ->where('I.soft_delete', 0)
+            ->where('C.soft_delete', 0)
+            ->where('I.status', 3)
+            ->where('I.is_profoma', 0)
+            ->orderBy('I.id', 'DESC')
+            ->get();
+
+        $cancelledinvoices = DB::table('invoice AS i')
+            ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
+            ->join('customer AS C', 'I.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'I.amount AS amountPaid',
+                'IST.name AS invoiceStatus',
+                'I.updated_at AS cancelledDate',
+                'I.id AS invoiceId'
+            ])
+            ->where('I.soft_delete', 0)
+            ->where('C.soft_delete', 0)
+            ->where('I.status', 2)
+            ->where('I.is_profoma', 0)
+            ->orderBy('I.id', 'DESC')
+            ->get();
+
+        $totalInvoices = $invoices->count() + $paidinvoices->count() + $cancelledinvoices->count();
+        $paidInvoice = $paidinvoices->count();
+        $unpaidInvoice = $invoices->count();
+        $cancelledInvoice = $cancelledinvoices->count();
+        // dd($invoices);
+
+        return view('inc.invoice-list', compact(
+            'invoices',
+            'paidinvoices',
+            'cancelledinvoices',
+            'totalInvoices',
+            'paidInvoice',
+            'unpaidInvoice',
+            'cancelledInvoice',
+        ));
+    }
+
+    public function viewInvoice($encryptedInvoiceId)
+    {
+        try {
+            $invoiceId = Crypt::decrypt($encryptedInvoiceId);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $invoiceItems = DB::table('invoice_items AS ITM')
+            ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
+            ->join('invoice AS I', 'ITM.invoice_id', '=', 'I.id')
+            ->select([
+                'PR.name AS itemName',
+                'PR.selling_price AS unitPrice',
+                'ITM.quantity AS quantity',
+                'ITM.amount AS invoiceAmount',
+                'ITM.discount AS discount'
+            ])
+            ->where('I.id', $invoiceId)
+            ->where('I.soft_delete', 0)
+            ->where('ITM.soft_delete', 0)
+            ->get();
+        // dd($invoiceItems);
+
+        return view('inc.view-invoice', compact('invoiceId', 'invoiceItems'));
+    }
+
+    public function cancelInvoice(Request $request)
+    {
+        $request->validate([
+            'invoice_id' => 'required|integer',
+        ]);
+
+        $invoiceId = $request->invoice_id;
+        // dd($invoiceId);
+
+        $invoiceExists = DB::table('invoice')->where('id', $invoiceId)->first();
+
+        if ($invoiceExists) {
+            DB::table('invoice')->where('id', $invoiceId)->update([
+                'status' => 2,
+            ]);
+        }
+
+        return redirect()->route('invoice.list')->with('success_msg', 'Invoice with ID' . ' ' . $invoiceId . ' ' . 'cancelled successfully!');
+
+        // dd($invoiceId);
+    }
+
+    public function createProfomaInvoice(Request $request)
+    {
+        // dd($request->all());
+
+        try {
+            $validated = $request->validate([
+                'product_id' => 'required|array',
+                'product_id.*' => 'required|integer',
+
+                'available_quantity' => 'required|array',
+                'available_quantity.*' => 'required|numeric|min:0',
+
+                'selling_price' => 'required|array',
+                'selling_price.*' => 'required|numeric|min:0',
+
+                'quantity_sell' => 'required|array',
+                'quantity_sell.*' => 'required|integer|min:1',
+
+                'discount' => 'nullable|array',
+                'discount.*' => 'nullable|numeric|min:0',
+
+                'category_id' => 'nullable|integer',
+                'profoma_status' => 'nullable|string',
+
+                'customer_id' => 'nullable|integer',
+
+                'TIN' => 'nullable|string',
+                'name' => 'nullable|string|max:255',
+                'phone' => 'nullable|string',
+                'address' => 'nullable|string',
+
+                'amount' => 'required|numeric|min:0',
+            ]);
+
+            // dd($validated);
+
+        } catch (ValidationException $e) {
+            dd($e->errors());
+        }
+
+        $amount = str_replace(',', '', $request->amount);
+        $customerId = $request->customer_id;
+
+        DB::beginTransaction();
+
+        try {
+            if ($request->filled('TIN')) {
+                $existingCustomer = DB::table('customer')->where('TIN', $request->TIN)->first();
+                if ($existingCustomer) {
+                    return back()->with('error_msg', 'Customer information already exists!');
+                }
+
+                $customerId = DB::table('customer')->insertGetId([
+                    'name' => $request->name,
+                    'phone' => $request->phone,
+                    'TIN' => $request->TIN,
+                    'address' => $request->address,
+                ]);
+            }
+
+            $invoiceId = DB::table('invoice')->insertGetId([
+                'customer_id' => $customerId,
+                'billId' => null,
+                'amount' => $amount,
+            ]);
+
+            foreach ($request->product_id as $index => $productId) {
+                $quantitySell = $request->quantity_sell[$index] ?? 0;
+                $availableQty = $request->available_quantity[$index] ?? 0;
+
+                $existingStock = DB::table('stocks')->where('storage_item_id', $productId)->first();
+
+                if (!$existingStock || $quantitySell > $existingStock->quantity_total) {
+                    return back()->with('error_msg', "Quantity for product ID $productId is greater than available.");
+                }
+
+                $itemId = DB::table('invoice_items')->insertGetId([
+                    'invoice_id' => $invoiceId,
+                    'item_id' => $productId,
+                    'amount' => $request->selling_price[$index] * $quantitySell,
+                    'quantity' => $quantitySell,
+                    'discount' => $request->discount[$index] ?? 0,
+                ]);
+            }
+
+            DB::table('profoma_invoice')->insert([
+                'invoice_id' => $invoiceId,
+                'category_id' => $request->category_id,
+                'invoice_item_id' => $itemId,
+                'profoma_status' => $request->profoma_status,
+                'customer_id' => $customerId,
+                'amount' => $amount,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+
+            DB::commit();
+            return redirect()->route('profoma.invoice')->with('success_msg', 'Profoma Invoice created successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error_msg', 'Failed to create invoice: ' . $e->getMessage());
+        }
+    }
+
+    public function profomaOutStore(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'product_name' => 'required|array',
+                'product_name.*' => 'required|string|max:255',
+
+                'order_status' => 'required|string',
+                // 'order_status.*' => 'required|string|max:255',
+
+                'quantity' => 'required|array',
+                'quantity.*' => 'required|integer',
+
+                'amountPay' => 'required|array',
+                'amountPay.*' => 'required|numeric',
+
+                'discount' => 'nullable|array',
+                'discount.*' => 'nullable|numeric|min:0',
+
+                'customer_id' => 'nullable|integer',
+
+                'TIN' => 'nullable|string',
+                'name' => 'nullable|string|max:255',
+                'phone' => 'nullable|string',
+                'address' => 'nullable|string',
+
+                'amount' => 'required|numeric|min:0',
+            ]);
+
+            // dd($validated);
+
+        } catch (ValidationException $e) {
+            dd($e->errors());
+        }
+
+        $amount = str_replace(',', '', $request->amount);
+        $customerId = $request->customer_id;
+
+        // dd($customerId);
+
+        DB::beginTransaction();
+
+        try {
+            if ($request->filled('TIN')) {
+                $existingCustomer = DB::table('customer')->where('TIN', $request->TIN)->first();
+                if ($existingCustomer) {
+                    return back()->with('error_msg', 'Customer information already exists!');
+                }
+
+                $customerId = DB::table('customer')->insertGetId([
+                    'name' => $request->name,
+                    'phone' => $request->phone,
+                    'TIN' => $request->TIN,
+                    'address' => $request->address,
+                ]);
+            }
+
+            $invoiceId = DB::table('invoice')->insertGetId([
+                'customer_id' => $customerId,
+                'billId' => null,
+                'amount' => $amount,
+                'is_profoma' => 1,
+            ]);
+
+            // dd($invoiceId);
+
+            foreach ($request->product_name as $index => $productName) {
+
+                // $itemId = DB::table('invoice_items')->insertGetId([
+                //     'invoice_id' => $invoiceId,
+                //     'item_id' => $productId,
+                //     'amount' => $request->selling_price[$index] * $quantitySell,
+                //     'quantity' => $quantitySell,
+                //     'discount' => $request->discount[$index] ?? 0,
+                // ]);
+
+                DB::table('profoma_out_store')->insert([
+                    'invoice_id' => $invoiceId,
+                    'product_name' => $request->product_name[$index],
+                    'order_status' => $request->order_status,
+                    'customer_id' => $customerId,
+                    'amountPay' => $request->amountPay[$index],
+                    'discount' => $request->discount[$index],
+                    'quantity' => $request->quantity[$index],
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+            // dd('Mohammed is genius!');
+
+
+            DB::commit();
+            return redirect()->route('profoma.invoice')->with('success_msg', 'Profoma Invoice created successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error_msg', 'Failed to create invoice: ' . $e->getMessage());
+        }
+    }
+
+    public function profomaInvoice()
+    {
+        $prodomaInvoiceFromStore = DB::table('profoma_invoice AS PI')
+            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'PI.amount AS amount',
+                'PI.profoma_status AS statusInvoice',
+                'PI.created_at AS dateCreated',
+                'PI.id AS profomaId'
+            ])
+            ->where('PI.category_id', 1)
+            ->where('PI.soft_delete', 0)
+            ->orderByDesc('PI.id')
+            ->get();
+
+        $profomaInvoiceOutOfStore = DB::table('profoma_out_store AS POS')
+            ->join('invoice AS I', 'POS.invoice_id', '=', 'I.id')
+            ->join('customer AS C', 'POS.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'I.amount AS amount',
+                'POS.order_status AS profomaStatus',
+                'POS.created_at AS dateCreated',
+                'POS.id AS autoId',
+            ])
+            ->where('I.soft_delete', 0)
+            ->where('POS.soft_delete', 0)
+            ->where('C.soft_delete', 0)
+            ->orderByDesc('POS.id')
+            ->get();
+
+        $profomaOutStore = $profomaInvoiceOutOfStore->count();
+
+        // dd($profomaInvoiceOutOfStore);
+
+        $acceptedProfomaInvoice = DB::table('profoma_invoice AS PI')
+            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'PI.amount AS amount',
+                'PI.profoma_status AS statusInvoice',
+                'PI.created_at AS dateCreated',
+                'PI.id AS profomaId'
+            ])
+            ->where('PI.category_id', 1)
+            ->where('PI.soft_delete', 0)
+            ->where('PI.profoma_status', 'Accepted')
+            ->orderByDesc('PI.id')
+            ->count();
+
+        $pendingProfomaInvoice = DB::table('profoma_invoice AS PI')
+            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'PI.amount AS amount',
+                'PI.profoma_status AS statusInvoice',
+                'PI.created_at AS dateCreated',
+                'PI.id AS profomaId'
+            ])
+            ->where('PI.category_id', 1)
+            ->where('PI.soft_delete', 0)
+            ->where('PI.profoma_status', 'Pending')
+            ->orderByDesc('PI.id')
+            ->count();
+
+        $rejectedProfomaInvoice = DB::table('profoma_invoice AS PI')
+            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'PI.amount AS amount',
+                'PI.profoma_status AS statusInvoice',
+                'PI.created_at AS dateCreated',
+                'PI.id AS profomaId'
+            ])
+            ->where('PI.category_id', 1)
+            ->where('PI.soft_delete', 0)
+            ->where('PI.profoma_status', 'Rejected')
+            ->orderByDesc('PI.id')
+            ->count();
+
+        $totalProfomaInvoice = $rejectedProfomaInvoice + $pendingProfomaInvoice + $acceptedProfomaInvoice;
+        // dd($prodomaInvoiceFromStore);
+        return view('inc.profoma-invoice', compact(
+            'prodomaInvoiceFromStore',
+            'totalProfomaInvoice',
+            'rejectedProfomaInvoice',
+            'pendingProfomaInvoice',
+            'acceptedProfomaInvoice',
+            'profomaInvoiceOutOfStore',
+            'profomaOutStore',
+        ));
+    }
+
+    public function viewProfoma($encryptedInvoiceId)
+    {
+        try {
+            $profomaInvoiceId = Crypt::decrypt($encryptedInvoiceId);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $profomaInvoiceItems = DB::table('invoice_items AS ITM')
+            ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
+            ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
+            ->select([
+                'PR.name AS itemName',
+                'PR.selling_price AS unitPrice',
+                'ITM.quantity AS quantity',
+                'ITM.amount AS invoiceAmount',
+                'ITM.discount AS discount'
+            ])
+            ->where('PI.id', $profomaInvoiceId)
+            ->where('PI.soft_delete', 0)
+            ->where('ITM.soft_delete', 0)
+            ->get();
+        // dd($profomaInvoiceItems);
+
+        return view('inc.view-profoma', compact('profomaInvoiceItems', 'profomaInvoiceId',));
+    }
+
+    public function cancelProfoma(Request $request)
+    {
+        $request->validate([
+            'profoma_invoice_id' => 'required|integer',
+        ]);
+
+        $profomaId = $request->profoma_invoice_id;
+        // dd($profomaId);
+
+        $profomaInvoice = DB::table('profoma_invoice')
+            ->where('id', $profomaId)->first();
+
+        DB::table('profoma_invoice')->where('id', $profomaId)
+            ->update([
+                'soft_delete' => 1,
+            ]);
+
+        return redirect()->route('profoma.invoice')->with('success_msg', 'Profoma invoice cancelled successfully!');
+    }
+
+    public function downloadProfoma($encryptedPrpfomaId)
+    {
+        try {
+            $profomaInvoiceId = Crypt::decrypt($encryptedPrpfomaId);
+        } catch (\Throwable $th) {
+            return response()->json(['error' => 'Invalid Invoice ID'], 400);
+        }
+
+        $profomaInvoiceItems = DB::table('invoice_items AS ITM')
+            ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
+            ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
+            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'PI.created_at AS issuedDate',
+                'PR.name AS itemName',
+                'PR.selling_price AS unitPrice',
+                'ITM.quantity AS quantity',
+                'ITM.amount AS invoiceAmount',
+                'ITM.discount AS discount'
+            ])
+            ->where('PI.id', $profomaInvoiceId)
+            ->where('PI.soft_delete', 0)
+            ->where('ITM.soft_delete', 0)
+            ->get();
+
+        $issuesDate = DB::table('profoma_invoice')
+            ->where('id', $profomaInvoiceId)->first();
+
+        // dd($profomaInvoiceItems);
+
+        if ($profomaInvoiceItems->isEmpty()) {
+            return response()->json(['error' => 'No invoice items found.'], 404);
+        }
+
+        $qrText = "Invoice ID: $profomaInvoiceId\n";
+        $totalDiscount = 0;
+        $totalAmountWithoutDiscount = 0;
+
+        foreach ($profomaInvoiceItems as $item) {
+            $totalDiscount += $item->quantity * $item->discount;
+            $totalAmountWithoutDiscount = $item->unitPrice * $item->quantity;
+            $qrText .= "Item: {$item->itemName}, Qty: {$item->quantity}, Price: {$item->unitPrice}\n";
+        }
+
+        $qrText .= "Total Price: TSH " . number_format($totalAmountWithoutDiscount - $totalDiscount, 2);
+
+        // Use SVG instead of PNG
+        $qrSvg = QrCode::format('svg')->size(150)->generate($qrText);
+        $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
+
+        return Pdf::loadView('inc.download-profoma', [
+            'profomaInvoiceId' => $profomaInvoiceId,
+            'profomaInvoiceItems' => $profomaInvoiceItems,
+            'qrImageBase64' => $qrBase64,
+            'issuesDate' => $issuesDate,
+        ])->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+        ])->download("Profoma-Invoice-$profomaInvoiceId.pdf");
+    }
+
+    public function viewProfomaOutStore($encryptedInvoiceuto)
+    {
+        try {
+            $profomaAutoId = Crypt::decrypt($encryptedInvoiceuto);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $profomaInvoiceItems = DB::table('profoma_out_store AS POS')
+            ->select([
+                'POS.product_name AS itemName',
+                'POS.amountPay as unitPrice',
+                'POS.quantity AS quantity',
+                'POS.discount AS discount',
+            ])
+            ->where('POS.id', $profomaAutoId)
+            ->get();
+        // dd($profomaInvoiceItems);
+
+        return view('inc.out-store-profoma', compact('profomaAutoId', 'profomaInvoiceItems'));
+        // dd($profomaAutoId);
+    }
+
+    public function downloadInvoiceProfoma($encryptedPrpfomaAutoId)
+    {
+        try {
+            $invoiceProfomaOutId = Crypt::decrypt($encryptedPrpfomaAutoId);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $profomaInvoiceItems = DB::table('profoma_out_store AS POS')
+            ->select([
+                'POS.product_name AS itemName',
+                'POS.amountPay as unitPrice',
+                'POS.quantity AS quantity',
+                'POS.discount AS discount',
+            ])
+            ->where('POS.id', $invoiceProfomaOutId)
+            ->get();
+
+        $issuesDate = DB::table('profoma_out_store')
+            ->where('id', $invoiceProfomaOutId)->first();
+
+        // dd($profomaInvoiceItems);
+
+        if ($profomaInvoiceItems->isEmpty()) {
+            return response()->json(['error' => 'No invoice items found.'], 404);
+        }
+
+        $qrText = "Invoice ID: $invoiceProfomaOutId\n";
+        $totalDiscount = 0;
+        $totalAmountWithoutDiscount = 0;
+
+        foreach ($profomaInvoiceItems as $item) {
+            $totalDiscount += $item->quantity * $item->discount;
+            $totalAmountWithoutDiscount = $item->unitPrice * $item->quantity;
+            $qrText .= "Item: {$item->itemName}, Qty: {$item->quantity}, Price: {$item->unitPrice}\n";
+        }
+
+        $qrText .= "Total Price: TSH " . number_format($totalAmountWithoutDiscount - $totalDiscount, 2);
+
+        // Use SVG instead of PNG
+        $qrSvg = QrCode::format('svg')->size(150)->generate($qrText);
+        $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
+
+        return Pdf::loadView('inc.download-profoma-out', [
+            'profomaInvoiceId' => $invoiceProfomaOutId,
+            'profomaInvoiceItems' => $profomaInvoiceItems,
+            'qrImageBase64' => $qrBase64,
+            'issuesDate' => $issuesDate,
+        ])->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+        ])->download("Profoma-Invoice-$invoiceProfomaOutId.pdf");
+    }
+
+    public function invoiceDownload($encryptedAutoId)
+    {
+        try {
+            $invoiceAutoId = Crypt::decrypt($encryptedAutoId);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $profomaInvoiceItems = DB::table('invoice_items AS ITM')
+            ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
+            ->join('invoice AS I', 'ITM.invoice_id', '=', 'I.id')
+            ->select([
+                'PR.name AS itemName',
+                'PR.selling_price AS unitPrice',
+                'ITM.quantity AS quantity',
+                'ITM.amount AS invoiceAmount',
+                'ITM.discount AS discount',
+                'I.id AS invoiceId',
+            ])
+            ->where('I.id', $invoiceAutoId)
+            ->where('I.soft_delete', 0)
+            ->where('ITM.soft_delete', 0)
+            ->get();
+
+        $customerDetails = DB::table('customer AS C')
+            ->join('invoice AS I', 'I.customer_id', '=', 'C.id')
+            ->select([
+                'C.name AS customerName',
+                'C.phone AS phoneNumber',
+                'C.address AS address',
+                'C.TIN as TIN',
+            ])
+            ->where('I.id', $invoiceAutoId)
+            ->first();
+            // dd($customerDetails);
+
+        $issuesDate = DB::table('invoice')
+            ->where('id', $invoiceAutoId)->first();
+
+
+        // dd($profomaInvoiceItems);
+
+        if ($profomaInvoiceItems->isEmpty()) {
+            return response()->json(['error' => 'No invoice items found.'], 404);
+        }
+
+        $qrText = "Invoice ID: $invoiceAutoId\n";
+        $totalDiscount = 0;
+        $totalAmountWithoutDiscount = 0;
+
+        foreach ($profomaInvoiceItems as $item) {
+            $totalDiscount += $item->quantity * $item->discount;
+            $totalAmountWithoutDiscount = $item->unitPrice * $item->quantity;
+            $qrText .= "Item: {$item->itemName}, Qty: {$item->quantity}, Price: {$item->unitPrice}\n";
+        }
+
+        $qrText .= "Total Price: TSH " . number_format($totalAmountWithoutDiscount - $totalDiscount, 2);
+
+        // Use SVG instead of PNG
+        $qrSvg = QrCode::format('svg')->size(150)->generate($qrText);
+        $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
+
+        return Pdf::loadView('inc.download-invoice', [
+            'profomaInvoiceId' => $invoiceAutoId,
+            'profomaInvoiceItems' => $profomaInvoiceItems,
+            'qrImageBase64' => $qrBase64,
+            'issuesDate' => $issuesDate,
+            'customerDetails' => $customerDetails,
+        ])->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+        ])->download("Profoma-Invoice-$invoiceAutoId.pdf");
+    }
+
+    public function createInvoice(){
+        $stockProducts = DB::table('products as PR')
+            ->join('stocks AS STK', 'PR.id', '=', 'STK.storage_item_id')
+            ->select([
+                'PR.id AS productId',
+                'PR.name AS productName',
+                'STK.quantity_total AS availableQuantity',
+                'STK.item_price AS sellingPrice',
+            ])
+            ->where('PR.soft_delete', 0)
+            ->where('STK.soft_delete', 0)
+            ->orderBy('PR.name', 'ASC')
+            ->get();
+
+        $customers = DB::table('customer')
+            ->select('id', 'name')
+            ->where('soft_delete', 0)
+            ->orderBy('name','ASC')
+            ->get();
+        return view('inc.create-invoice', compact('stockProducts', 'customers'));
+    }
+}

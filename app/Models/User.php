@@ -26,6 +26,10 @@ class User extends Authenticatable
                 ->orwhere('phone', 'like', '%' . request('search') . '%');
         }
      }
+
+     protected $table = 'users';
+     protected $primaryKey = 'id';
+     public $incrementing = true;
     
     protected $fillable = [
         'name',
@@ -35,7 +39,9 @@ class User extends Authenticatable
         'department_id',
         'username',
         'password',
-        'image'
+        'image',
+        'login_attempts',
+        'blocked_at',
     ];
 
     /**

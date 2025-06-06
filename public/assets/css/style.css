@@ -238,8 +238,9 @@
 
 .sidebar {
     animation:  slideFromLeft 0.5s ease-in;
-    display: none;
+    /* display: none; */
     width: 25%;
+    z-index: 9;
     height: 100vh;
     background: white;
     padding: 20px;

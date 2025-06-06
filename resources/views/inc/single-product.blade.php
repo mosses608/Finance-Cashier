@@ -14,7 +14,7 @@
     <div class="md-4">
         <h3>{{ $product->item_name }}</h3>
         @if($product->item_pic)
-        <a href="{{ asset('storage/' . $product->item_pic) }}" id="stock-inn"> <i class="fa fa-eye"></i> Image</a>
+        <a href="{{ asset('storage/' . $product->item_pic) }}" target="_blank" id="stock-inn"> <i class="fa fa-eye"></i> Image</a>
         @else
         <a href="#" id="stock-inn"> <i class="fa fa-eye"></i> Image</a>
         @endif
