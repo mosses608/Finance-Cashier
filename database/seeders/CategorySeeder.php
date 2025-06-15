@@ -14,19 +14,24 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         //
-        Category::create([
-            'name' => 'Solid',
-            'slug' => 'Solid',
-        ]);
+        // Category::create([
+        //     'name' => 'Solid',
+        //     'slug' => 'Solid',
+        // ]);
+
+        // Category::create([
+        //     'name' => 'Liquid',
+        //     'slug' => 'Liquid',
+        // ]);
+
+        // Category::create([
+        //     'name' => 'Gas',
+        //     'slug' => 'Gas',
+        // ]);
 
         Category::create([
-            'name' => 'Liquid',
-            'slug' => 'Liquid',
-        ]);
-
-        Category::create([
-            'name' => 'Gas',
-            'slug' => 'Gas',
+            'name' => 'Service',
+            'slug' => 'Service',
         ]);
     }
 }

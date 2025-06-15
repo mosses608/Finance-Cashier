@@ -45,6 +45,9 @@ Route::post('/import-product', [App\Http\Controllers\Products\ProductController:
 Route::get('/stock-out', [App\Http\Controllers\Stock\StockController::class, 'stockOut'])->name('stock.out');
 Route::delete('/destroy', [App\Http\Controllers\Products\ProductController::class, 'destroyProduct'])->name('products.destroy');
 Route::put('/stockIn-quantity', [App\Http\Controllers\Stock\StockController::class, 'stockInQuantity'])->name('stockIn.Quantity');
+Route::post('/stockOut', [App\Http\Controllers\Stock\StockController::class, 'stockOutProduct'])->name('stock.out.product');
+Route::get('/stock-out-receipt/{encryptedId}', [App\Http\Controllers\Stock\StockController::class, 'stockOutReceipt'])->name('stock.out.receipt');
+
 
 // INVOICES
 Route::post('/create-invoice', [App\Http\Controllers\Invoice\InvoiceController::class, 'storeInvoice'])->name('create.invoice');
@@ -70,6 +73,13 @@ Route::post('/store-sales', [App\Http\Controllers\Sales\SalesController::class, 
 Route::get('/sales-receipt/{encryptedSaleId}', [App\Http\Controllers\Sales\SalesController::class, 'viewReceipt'])->name('sale.receipt');
 Route::get('/download-receipt/{encryptedReceiptId}', [App\Http\Controllers\Sales\SalesController::class, 'downloadReceipt'])->name('download.receipt');
 
+// SERVICES
+Route::get('/services', [App\Http\Controllers\Services\ServiceController::class, 'servicePage'])->name('service.page');
+Route::post('/store-services', [App\Http\Controllers\Services\ServiceController::class, 'storeServices'])->name('store.service');
+Route::post('/service-profoma', [App\Http\Controllers\Services\ServiceController::class, 'serviceProfomaInvoice'])->name('service.profoma.invoice');
+
+
+
 // LEDGER
 Route::get('/ledger', [App\Http\Controllers\Ledger\LedgerController::class, 'ledgers'])->name('create.ledger')->middleware('auth');
 Route::post('/ledgers', [App\Http\Controllers\Ledger\LedgerController::class, 'storeLedger'])->name('store.ledgers')->middleware('auth');
@@ -94,5 +104,8 @@ Route::get('/trial-balance', [App\Http\Controllers\Reports\ReportController::cla
 // USERS
 Route::post('/authenticate', [App\Http\Controllers\Authenticates\AuthenticateController::class, 'authentication'])->name('auth0n');
 Route::get('/logout', [App\Http\Controllers\Authenticates\AuthenticateController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/users', [App\Http\Controllers\Pages\PageController::class, 'usersManager'])->name('users.management');
+Route::post('/customer-groupd', [App\Http\Controllers\Pages\PageController::class, 'customerGroupd'])->name('customer.group');
+Route::post('/stakeholder-create', [App\Http\Controllers\Pages\PageController::class, 'storeStakeholder'])->name('stakeholder.create');
 
 Route::get('/test-page', [App\Http\Controllers\Pages\PageController::class, 'testPage']);

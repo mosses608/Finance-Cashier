@@ -1,6 +1,7 @@
 @extends('layouts.part')
 @include('partials.nav-bar')
 @section('content')
+
     <div class="container mb-5">
         <div class="page-inner">
             <div class="row">
@@ -10,57 +11,69 @@
                             <x-messages />
                             <div class="nav nav-tabs" id="nav-tab" role="tablist">
                                 <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab"
-                                    data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-home"
-                                    aria-selected="true">Stock Out List</button>
+                                    data-bs-target="#nav-service-list" type="button" role="tab"
+                                    aria-controls="nav-home" aria-selected="true">Service List</button>
                                 <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab"
-                                    data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile"
-                                    aria-selected="false">Stock Out Products</button>
-                                {{-- <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab"
+                                    data-bs-target="#nav-create-service" type="button" role="tab"
+                                    aria-controls="nav-profile" aria-selected="false">Create Service</button>
+                                <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab"
                                     data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact"
-                                    aria-selected="false">Profoma Out From Store</button> --}}
+                                    aria-selected="false">Service Profoma Invoice</button>
                             </div>
                         </div>
                         <div class="card-body">
                             <div class="tab-content mt-3" id="nav-tabContent">
-                                {{-- Stock Out List --}}
-                                <div class="tab-pane fade show active" id="nav-list" role="tabpanel"
-                                    aria-labelledby="nav-profile-tab">
-                                    {{-- <h4>Today's Stock Outs</h4> --}}
+                                <!-- Invoice Tab -->
+                                <div class="tab-pane fade show active" id="nav-service-list" role="tabpanel"
+                                    aria-labelledby="nav-home-tab">
                                     <div class="table-responsive">
                                         <table id="basic-datatables" class="display table table-striped table-hover">
                                             <thead>
                                                 <tr>
                                                     <th>S/N</th>
-                                                    <th>Product Name</th>
-                                                    <th>Quantity Out</th>
-                                                    <th>User</th>
-                                                    <th>Due Date</th>
+                                                    <th>Service Name</th>
+                                                    <th>Price</th>
+                                                    <th>Category</th>
+                                                    <th>Status</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                               @foreach ($todayStockOuts as $stock)
-                                                   <tr>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $stock->productName }}</td>
-                                                    <td>{{ number_format($stock->quantityOut, 0) }}</td>
-                                                    <td>{{ $stock->userName }}</td>
-                                                    <td>{{ \Carbon\Carbon::parse($stock->dueDate)->format('M d, Y') }}</td>
-                                                    @php
-                                                        $encryptedId = Crypt::encrypt($stock->autoId)
-                                                    @endphp
-                                                    <td class="text-center"><a href="{{ route('stock.out.receipt', $encryptedId) }}" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a></td>
-                                                   </tr>
-                                               @endforeach
+                                                @foreach ($services as $service)
+                                                    <tr>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $service->name }}</td>
+                                                        <td>{{ number_format($service->price, 2) }}</td>
+                                                        <td>{{ $service->category ?? 'Unavaillable' }}</td>
+                                                        <td>
+                                                            @if ($service->active == true)
+                                                                <i class="fa fa-circle"></i> {{ __('Active') }}
+                                                            @else
+                                                            <i class="fa fa-circle text-secondary"></i> {{ __('Inactive') }}
+                                                            @endif
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <a href="#" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
-                                {{-- Stock out product --}}
-                                <div class="tab-pane fade" id="nav-profile" role="tabpanel"
+
+                                <!-- Profoma Invoice Tab -->
+                                <div class="tab-pane fade" id="nav-create-service" role="tabpanel"
                                     aria-labelledby="nav-profile-tab">
-                                    <form action="{{ route('stock.out.product') }}" method="POST">
-                                        @include('partials.stock-out')
+                                    <form action="{{ route('store.service') }}" method="POST">
+                                        @include('partials.create-service')
+                                    </form>
+                                </div>
+
+                                <div class="tab-pane fade" id="nav-contact" role="tabpanel"
+                                    aria-labelledby="nav-contact-tab">
+                                    <form action="{{ route('service.profoma.invoice') }}" method="POST">
+                                        @include('partials.service-profoma')
                                     </form>
                                 </div>
                             </div>

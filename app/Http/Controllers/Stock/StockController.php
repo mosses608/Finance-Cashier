@@ -6,6 +6,9 @@ use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 
 class StockController extends Controller
 {
@@ -117,10 +120,65 @@ class StockController extends Controller
         $customers = DB::table('customer')
             ->select('id', 'name')
             ->where('soft_delete', 0)
-            ->orderBy('name','ASC')
+            ->orderBy('name', 'ASC')
             ->get();
 
-        // dd($customers);
-        return view('inc.stock-out', compact('stockProducts', 'customers'));
+        $todayStockOuts = DB::table('stock_out_transaction AS SOUT')
+            ->join('products AS PR', 'SOUT.product_id', '=', 'PR.id')
+            ->join('users AS U', 'SOUT.user_id', '=', 'U.id')
+            ->select([
+                'PR.name AS productName',
+                'SOUT.stockout_quantity AS quantityOut',
+                'U.name AS userName',
+                'SOUT.created_at AS dueDate',
+                'SOUT.id AS autoId'
+            ])
+            ->where('SOUT.soft_delete', 0)
+            ->where('PR.soft_delete', 0)
+            ->where('U.soft_delete', 0)
+            ->whereDate('SOUT.created_at', Carbon::today())
+            ->orderBy('SOUT.id', 'DESC')
+            ->get();
+
+        // dd($todayStockOuts);
+
+        return view('inc.stock-out', compact('stockProducts', 'customers','todayStockOuts'));
+    }
+
+    public function stockOutProduct(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|array',
+            'product_id.*' => 'required|integer',
+
+            'stockout_quantity' => 'required|array',
+            'stockout_quantity.*' => 'required|integer',
+        ]);
+
+        $userId = Auth::user()->id;
+
+        foreach ($request->product_id as $key => $productId) {
+            DB::table('stock_out_transaction')->insert([
+                'user_id' => $userId,
+                'product_id' => $request->product_id[$key],
+                'stockout_quantity' => $request->stockout_quantity[$key],
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+        }
+        return redirect()->back()->with('success_msg', 'Products stock out successfully done!');
+        // dd($request->all());
+    }
+
+    public function stockOutReceipt($encryptedId){
+        try{
+            $stockId = Crypt::decrypt($encryptedId);
+        }
+        catch(\Throwable $th){
+            return $th->getMessage();
+        }
+
+        // dd($encryptedId);
+        return view('inc.stock-out-receipt');
     }
 }

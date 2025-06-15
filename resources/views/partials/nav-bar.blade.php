@@ -162,6 +162,32 @@
                     </div>
                 </li>
                 <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#service">
+                        <i class="fas fa-concierge-bell"></i>
+                        <p>Services</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="service">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('service.page') }}">
+                                    <span class="sub-item">Create Sevices</span>
+                                </a>
+                            </li>
+                            {{-- <li>
+                                <a href="{{ route('invoice.list') }}">
+                                    <span class="sub-item">Sevice Invoice Lists</span>
+                                </a>
+                            </li> --}}
+                            {{-- <li>
+                                <a href="{{ route('profoma.invoice') }}">
+                                    <span class="sub-item">Profoma Invoice Lists</span>
+                                </a>
+                            </li> --}}
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
                     <a data-bs-toggle="collapse" href="#sales">
                         <i class="fas fa-dollar-sign"></i>
                         <p>Sales Management</p>
@@ -187,161 +213,7 @@
                         </ul>
                     </div>
                 </li>
-                {{-- <li class="nav-item">
-                    <a data-bs-toggle="collapse" href="#payments">
-                        <i class="fa-solid fa-money-check-dollar"></i>
-                        <p>Payments</p>
-                        <span class="caret"></span>
-                    </a>
-                    <div class="collapse" id="payments">
-                        <ul class="nav nav-collapse">
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Cash Payment</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Bank Payment</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a data-bs-toggle="collapse" href="#ledger">
-                        <i class="fas fa-book"></i>
-                        <p>Ledgers</p>
-                        <span class="caret"></span>
-                    </a>
-                    <div class="collapse" id="ledger">
-                        <ul class="nav nav-collapse">
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Create Ledger</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Ledgers List</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a data-bs-toggle="collapse" href="#voucher">
-                        <i class="fa-solid fa-ticket"></i>
-                        <p>Vouchers</p>
-                        <span class="caret"></span>
-                    </a>
-                    <div class="collapse" id="voucher">
-                        <ul class="nav nav-collapse">
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Contra</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Receipt</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Sales</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Purcahes</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Journal</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a data-bs-toggle="collapse" href="#bank">
-                        <i class="fa-solid fa-building-columns"></i>
-                        <p>Banks</p>
-                        <span class="caret"></span>
-                    </a>
-                    <div class="collapse" id="bank">
-                        <ul class="nav nav-collapse">
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Bank Lists</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Transfer Lists</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a data-bs-toggle="collapse" href="#reports">
-                        <i class="far fa-chart-bar"></i>
-                        <p>Reports</p>
-                        <span class="caret"></span>
-                    </a>
-                    <div class="collapse" id="reports">
-                        <ul class="nav nav-collapse">
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Account Balance</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Balance Sheet</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Expenses</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Income</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Profit & Loss</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Stock Report</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Sales Report</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Trial Balance</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#">
-                                    <span class="sub-item">Transactions</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li> --}}
+                
                 <li class="nav-item">
                     <a href="#">
                         <i class="fa-solid fa-money-bill"></i>
@@ -349,12 +221,39 @@
                         <span class="badge badge-success">4</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="#">
+                {{-- <li class="nav-item">
+                    <a href="{{ route('users.management') }}">
                         <i class="fas fa-users"></i>
-                        <p>Users</p>
+                        <p>Users Management</p>
                         <span class="badge badge-secondary">20</span>
                     </a>
+                </li> --}}
+
+                <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#users">
+                        <i class="fas fa-users"></i>
+                        <p>Stakeholders Management</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="users">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('users.management') }}">
+                                    <span class="sub-item">New Stakeholder</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">New Bank</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Stakeholders Report</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
 
                 <li class="nav-item">

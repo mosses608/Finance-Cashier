@@ -125,7 +125,7 @@
                                                 @foreach ($prodomaInvoiceFromStore as $profomaInvoice)
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
-                                                        <td>{{ $profomaInvoice->customerName }}</td>
+                                                        <td>{{ $profomaInvoice->customerName ?? 'Unknown' }}</td>
                                                         <td>{{ number_format($profomaInvoice->amount, 2) }}</td>
                                                         <td><i class="fas fa-spinner fa-spin text-warning me-2"></i>
                                                             {{ $profomaInvoice->statusInvoice }}

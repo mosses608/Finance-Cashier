@@ -5,41 +5,26 @@
             <!-- First Product Entry -->
             <div class="row g-2 mb-3 custom-product-group">
                 <div class="col-12 mb-2">
-                    <label class="input-label p-2"><strong>Product Name</strong></label>
-                    <select class="form-control select2 custom-product-select" name="product_id[]" style="width: 100%;">
-                        <option value="" selected disabled>--select product--</option>
-                        @foreach ($stockProducts as $stockPrd)
-                            <option value="{{ $stockPrd->productId }}"
-                                data-available-quantity="{{ $stockPrd->availableQuantity }}"
-                                data-selling-price="{{ $stockPrd->sellingPrice }}">
-                                {{ $stockPrd->productName }}
+                    <label class="input-label p-2"><strong>Service Name</strong></label>
+                    <select class="form-control select2 custom-product-select" name="service_id[]" style="width: 100%;">
+                        <option value="" selected disabled>--select service--</option>
+                        @foreach ($services as $service)
+                            <option value="{{ $service->id }}" data-selling-price="{{ $service->price }}">
+                                {{ $service->name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
                 <div class="col-6">
-                    <input type="number" name="available_quantity[]" class="form-control custom-available-quantity"
-                        placeholder="Available Quantity" readonly>
+                    <input type="text" name="price[]" class="form-control custom-selling-price" placeholder="Price"
+                        readonly>
                 </div>
 
-                <div class="col-6">
-                    <input type="text" name="selling_price[]" class="form-control custom-selling-price"
-                        placeholder="Selling Price" readonly>
-                </div>
-
-                <input type="hidden" name="category_id" value="1">
-                <input type="hidden" name="profoma_status" value="pending">
+                <input type="hidden" name="category_id" value="7">
 
                 <div class="col-6">
-                    <label class="input-label p-2"><strong>Quantity to sale</strong></label>
-                    <input type="number" name="quantity_sell[]" class="form-control" placeholder="Quantity">
-                </div>
-
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Item Discount</strong></label>
-                    <input type="text" name="discount[]" class="form-control"
-                        placeholder="Sale At Discount @ eg 2.5">
+                    <input type="text" name="discount[]" class="form-control" placeholder="Discount @ eg 2.5">
                 </div>
             </div>
         </div>
@@ -65,7 +50,6 @@
         </div>
 
         <div class="row">
-
             <div class="col-6" id="custom-name" style="display:none;">
                 <label class="input-label p-2"><strong>Customer Name</strong></label>
                 <input type="text" name="name" class="form-control" placeholder="Customer Name">
@@ -85,13 +69,12 @@
                 <label class="input-label p-2"><strong>Address</strong></label>
                 <input type="text" name="address" class="form-control" placeholder="Customer Address">
             </div>
-
         </div>
 
         <!-- Action Buttons -->
         <div class="col-6 mt-3 w-100">
             <button type="button" id="custom-preview-btn" class="btn btn-warning">
-                Preview Profoma
+                Preview Data
             </button>
             <button type="button" class="btn btn-primary float-end" id="custom-add-btn">
                 <i class="fa fa-plus"></i>
@@ -99,14 +82,14 @@
         </div>
 
         <div class="col-6 mt-3" id="custom-submit-container" style="display: none;">
-            <button type="submit" class="btn btn-success w-100 float-start">Save Invoice</button>
+            <button type="submit" class="btn btn-success w-100 float-start">Save Data</button>
         </div>
     </div>
 
     <!-- Invoice Preview -->
     <div class="w-50">
         <div class="border p-2 bg-light rounded mt-4" id="custom-invoice-preview">
-            <p class="text-center p-5 blink">Invoice Preview will appear here!</p>
+            <p class="text-center p-5 blink">Invoice Preview </p>
         </div>
     </div>
 </div>
@@ -138,39 +121,35 @@
     document.getElementById('custom-add-btn').addEventListener('click', function() {
         const container = document.getElementById('custom-product-container');
 
-        const productOptions = `@foreach ($stockProducts as $stockPrd)
-            <option value="{{ $stockPrd->productId }}"
-                data-available-quantity="{{ $stockPrd->availableQuantity }}"
-                data-selling-price="{{ $stockPrd->sellingPrice }}">
-                {{ $stockPrd->productName }}
-            </option>
-        @endforeach`;
+        const productOptions = `@foreach ($services as $service)
+                            <option value="{{ $service->id }}" data-selling-price="{{ $service->price }}">
+                                {{ $service->name }}
+                            </option>
+                        @endforeach`;
 
         const newGroup = document.createElement('div');
         newGroup.classList.add('row', 'g-2', 'mb-3', 'custom-product-group');
         newGroup.innerHTML = `
             <hr class="mt-3" style="width: 95%; margin-left:2.5%;">
             <div class="col-12 mb-2">
-                <label class="input-label p-2"><strong>Product Name</strong></label>
-                <select class="form-control select2 custom-product-select" name="product_id[]" style="width: 100%;">
-                    <option value="" selected disabled>--select product--</option>
+                <label class="input-label p-2"><strong>Service Name</strong></label>
+                <select class="form-control select2 custom-product-select" name="servce_id[]" style="width: 100%;">
+                    <option value="" selected disabled>--select service--</option>
                     ${productOptions}
                 </select>
             </div>
-            <div class="col-6">
-                <input type="number" name="available_quantity[]" class="form-control custom-available-quantity" placeholder="Available Quantity" readonly>
-            </div>
-            <div class="col-6">
-                <input type="text" name="selling_price[]" class="form-control custom-selling-price" placeholder="Selling Price" readonly>
-            </div>
-            <div class="col-6">
-                <label class="input-label p-2"><strong>Quantity to sale</strong></label>
-                <input type="number" name="quantity_sell[]" class="form-control" placeholder="Quantity">
-            </div>
-            <div class="col-6">
-                <label class="input-label p-2"><strong>Item Discount</strong></label>
-                <input type="text" name="discount[]" class="form-control" placeholder="Sale At Discount @ eg 2.5">
-            </div>
+            
+                <div class="col-6">
+                    <input type="text" name="price[]" class="form-control custom-selling-price" placeholder="Price"
+                        readonly>
+                </div>
+
+                <input type="hidden" name="category_id" value="7">
+
+                <div class="col-6">
+                    <input type="text" name="discount[]" class="form-control"
+                        placeholder="Discount @ eg 2.5">
+                </div>
         `;
         container.appendChild(newGroup);
         $('.select2').select2();
@@ -193,29 +172,27 @@
 
         productGroups.forEach(group => {
             const select = group.querySelector('.custom-product-select');
-            const quantityInput = group.querySelector('[name="quantity_sell[]"]');
+            const quantityInput = group.querySelector('[name="price[]"]');
             const priceInput = group.querySelector('.custom-selling-price');
             const discountInput = group.querySelector('[name="discount[]"]');
 
-            if (!select || !quantityInput || !priceInput || !discountInput) return;
+            if (!select || !priceInput || !discountInput) return;
 
-            const productName = select.options[select.selectedIndex]?.text || '';
+            const serviceName = select.options[select.selectedIndex]?.text || '';
             const quantity = parseFloat(quantityInput.value || 0);
             const price = parseFloat(priceInput.value || 0);
             const discount = parseFloat(discountInput.value || 0);
 
             if (!select.value || !quantity) return;
 
-            const totalPrice = price * quantity;
-            const discountPrice = discount * quantity;
+            const totalPrice = price;
+            const discountPrice = discount * price;
             const finalTotal = totalPrice - discountPrice;
             grandTotal += finalTotal;
 
             rowsHtml += `
                 <tr>
-                    <td>${productName}</td>
-                    <td>${quantity}</td>
-                    <td>${price.toLocaleString()}</td>
+                    <td>${serviceName}</td>
                     <td>${totalPrice.toLocaleString()}</td>
                     <td>${discount || '0'}</td>
                     <td>${discountPrice.toLocaleString()}</td>
@@ -224,7 +201,7 @@
         });
 
         if (!rowsHtml) {
-            alert("Please select at least one product and quantity before preview.");
+            alert("Please select at least one service before preview.");
             return;
         }
 
@@ -237,10 +214,8 @@
                     <table class="table table-bordered mb-0">
                         <thead class="table-secondary">
                             <tr>
-                                <th>Item Name</th>
-                                <th>Quantity</th>
-                                <th>Unit Price</th>
-                                <th>Total Price</th>
+                                <th>Service Name</th>
+                                <th>Price</th>
                                 <th>Discount Unit</th>
                                 <th>Discount Price</th>
                                 <th>Final Total</th>
@@ -251,9 +226,9 @@
                         </tbody>
                         <tfoot>
                             <tr class="table-success">
-                                <th colspan="6" class="text-end">Total Amount</th>
+                                <th colspan="4" class="text-end">Total Amount</th>
                                 <th>
-                                    <input type="hidden" value="${grandTotal}" name="amount">
+                                    <input type="hidden" value="${grandTotal}" name="amountTotal">
                                     ${grandTotal.toLocaleString()}
                                 </th>
                             </tr>

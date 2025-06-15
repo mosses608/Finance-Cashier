@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Kaiadmin - Bootstrap 5 Admin Dashboard</title>
+    <title>{{ __('Accounting & ERP') }}</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
 
@@ -30,7 +30,6 @@
     </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"> --}}
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}" />
@@ -49,7 +48,7 @@
                         <!-- Logo Header -->
                         <div class="logo-header" data-background-color="dark">
                             <a href="index.html" class="logo">
-                                <img src="{{ asset('assets/img/kaiadmin/logo_light.svg') }}" alt="navbar brand"
+                                <img src="{{ asset('/assets/img/kaiadmin/logo_light.svg') }}" alt="navbar brand"
                                     class="navbar-brand" height="20" />
                             </a>
                             <div class="nav-toggle">
@@ -115,7 +114,7 @@
                                                 <div class="notif-center">
                                                     <a href="#">
                                                         <div class="notif-img">
-                                                            <img src="assets/img/jm_denis.jpg" alt="Img Profile" />
+                                                            <img src="{{ asset('/assets/img/talha.jpg') }}" alt="Img Profile" />
                                                         </div>
                                                         <div class="notif-content">
                                                             <span class="subject">Jimmy Denis</span>
@@ -125,7 +124,7 @@
                                                     </a>
                                                     <a href="#">
                                                         <div class="notif-img">
-                                                            <img src="assets/img/chadengle.jpg" alt="Img Profile" />
+                                                            <img src="{{ asset('/assets/img/talha.jpg') }}" alt="Img Profile" />
                                                         </div>
                                                         <div class="notif-content">
                                                             <span class="subject">Chad</span>
@@ -135,7 +134,7 @@
                                                     </a>
                                                     <a href="#">
                                                         <div class="notif-img">
-                                                            <img src="assets/img/mlane.jpg" alt="Img Profile" />
+                                                            <img src="{{ asset('/assets/img/talha.jpg') }}" alt="Img Profile" />
                                                         </div>
                                                         <div class="notif-content">
                                                             <span class="subject">Jhon Doe</span>
@@ -147,7 +146,7 @@
                                                     </a>
                                                     <a href="#">
                                                         <div class="notif-img">
-                                                            <img src="assets/img/talha.jpg" alt="Img Profile" />
+                                                            <img src="{{ asset('/assets/img/talha.jpg') }}" alt="Img Profile" />
                                                         </div>
                                                         <div class="notif-content">
                                                             <span class="subject">Talha</span>
@@ -373,7 +372,6 @@
 
 <!-- Datatables -->
 <script src="{{ asset('assets/js/plugin/datatables/datatables.min.js') }}"></script>
-{{-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script> --}}
 
 
 <!-- Bootstrap Notify -->

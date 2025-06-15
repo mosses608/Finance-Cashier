@@ -24,18 +24,16 @@
                 </div>
 
                 <div class="col-6">
-                    <input type="number" name="quantity_sell[]" class="form-control" placeholder="Stock out quantity">
+                    <input type="number" name="stockout_quantity[]" class="form-control" placeholder="Stock out quantity">
                 </div>
             </div>
         </div>
 
-        <!-- Reason -->
         <div class="col-12 mb-2">
             <label class="input-label p-2"><strong>Reason for stock out</strong></label>
             <textarea class="form-control" name="reasons" placeholder="State reasons for stock out"></textarea>
         </div>
 
-        <!-- Action Buttons -->
         <div class="col-6 mt-3 w-100">
             <button type="button" id="custom-preview-btn" class="btn btn-warning">Preview Data</button>
             <button type="button" class="btn btn-primary float-end" id="custom-add-btn">
@@ -48,7 +46,6 @@
         </div>
     </div>
 
-    <!-- Invoice Preview -->
     <div class="w-50">
         <div class="border p-2 bg-light rounded mt-4" id="custom-invoice-preview">
             <p class="text-center p-5 blink">Stock out preview will appear here!</p>
@@ -92,7 +89,7 @@
                 <input type="number" name="available_quantity[]" class="form-control custom-available-quantity" placeholder="Available Quantity" readonly>
             </div>
             <div class="col-6">
-                <input type="number" name="quantity_sell[]" class="form-control" placeholder="Stock out quantity">
+                <input type="number" name="stockout_quantity[]" class="form-control" placeholder="Stock out quantity">
             </div>
         `;
         container.appendChild(newGroup);
@@ -106,7 +103,7 @@
 
         productGroups.forEach(group => {
             const select = group.querySelector('.custom-product-select');
-            const quantityInput = group.querySelector('[name="quantity_sell[]"]');
+            const quantityInput = group.querySelector('[name="stockout_quantity[]"]');
 
             if (!select || !quantityInput) return;
 
@@ -146,7 +143,6 @@
                             <tr class="table-success">
                                 <th class="text-end">Total Quantity</th>
                                 <th>
-                                    <input type="hidden" value="${totalQuantity}" name="total_quantity">
                                     ${totalQuantity.toLocaleString()}
                                 </th>
                             </tr>

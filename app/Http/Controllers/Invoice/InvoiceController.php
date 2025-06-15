@@ -420,7 +420,7 @@ class InvoiceController extends Controller
                 'PI.created_at AS dateCreated',
                 'PI.id AS profomaId'
             ])
-            ->where('PI.category_id', 1)
+            // ->where('PI.category_id', 1)
             ->where('PI.soft_delete', 0)
             ->orderByDesc('PI.id')
             ->get();
@@ -454,7 +454,7 @@ class InvoiceController extends Controller
                 'PI.created_at AS dateCreated',
                 'PI.id AS profomaId'
             ])
-            ->where('PI.category_id', 1)
+            // ->where('PI.category_id', 1)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Accepted')
             ->orderByDesc('PI.id')
@@ -469,7 +469,7 @@ class InvoiceController extends Controller
                 'PI.created_at AS dateCreated',
                 'PI.id AS profomaId'
             ])
-            ->where('PI.category_id', 1)
+            // ->where('PI.category_id', 1)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Pending')
             ->orderByDesc('PI.id')
@@ -484,7 +484,7 @@ class InvoiceController extends Controller
                 'PI.created_at AS dateCreated',
                 'PI.id AS profomaId'
             ])
-            ->where('PI.category_id', 1)
+            // ->where('PI.category_id', 1)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Rejected')
             ->orderByDesc('PI.id')
@@ -511,6 +511,22 @@ class InvoiceController extends Controller
             return $th->getMessage();
         }
 
+        $serviceProfomas = DB::table('invoice_items AS ITM')
+            ->join('service AS SV', 'ITM.item_id', '=', 'SV.id')
+            ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
+            ->select([
+                'SV.name AS itemName',
+                'SV.price AS unitPrice',
+                'ITM.quantity AS quantity',
+                'ITM.amount AS invoiceAmount',
+                'ITM.discount AS discount'
+            ])
+            ->where('PI.id', $profomaInvoiceId)
+            ->where('PI.soft_delete', 0)
+            ->where('ITM.soft_delete', 0)
+            ->get();
+            // dd($serviceProfomas);
+
         $profomaInvoiceItems = DB::table('invoice_items AS ITM')
             ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
             ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
@@ -527,7 +543,7 @@ class InvoiceController extends Controller
             ->get();
         // dd($profomaInvoiceItems);
 
-        return view('inc.view-profoma', compact('profomaInvoiceItems', 'profomaInvoiceId',));
+        return view('inc.view-profoma', compact('profomaInvoiceItems', 'profomaInvoiceId', 'serviceProfomas'));
     }
 
     public function cancelProfoma(Request $request)
@@ -723,7 +739,7 @@ class InvoiceController extends Controller
             ])
             ->where('I.id', $invoiceAutoId)
             ->first();
-            // dd($customerDetails);
+        // dd($customerDetails);
 
         $issuesDate = DB::table('invoice')
             ->where('id', $invoiceAutoId)->first();
@@ -763,7 +779,8 @@ class InvoiceController extends Controller
         ])->download("Profoma-Invoice-$invoiceAutoId.pdf");
     }
 
-    public function createInvoice(){
+    public function createInvoice()
+    {
         $stockProducts = DB::table('products as PR')
             ->join('stocks AS STK', 'PR.id', '=', 'STK.storage_item_id')
             ->select([
@@ -780,7 +797,7 @@ class InvoiceController extends Controller
         $customers = DB::table('customer')
             ->select('id', 'name')
             ->where('soft_delete', 0)
-            ->orderBy('name','ASC')
+            ->orderBy('name', 'ASC')
             ->get();
         return view('inc.create-invoice', compact('stockProducts', 'customers'));
     }
