@@ -91,7 +91,7 @@ class InvoiceController extends Controller
     {
         $invoices = DB::table('invoice AS i')
             ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
-            ->join('customer AS C', 'I.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'I.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'I.amount AS amountPaid',
@@ -103,12 +103,12 @@ class InvoiceController extends Controller
             ->where('C.soft_delete', 0)
             ->where('I.status', 1)
             ->where('I.is_profoma', 0)
-            ->orderBy('I.id', 'DESC')
+            ->orderBy('I.updated_at', 'DESC')
             ->get();
 
         $paidinvoices = DB::table('invoice AS i')
             ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
-            ->join('customer AS C', 'I.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'I.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'I.amount AS amountPaid',
@@ -125,7 +125,7 @@ class InvoiceController extends Controller
 
         $cancelledinvoices = DB::table('invoice AS i')
             ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
-            ->join('customer AS C', 'I.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'I.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'I.amount AS amountPaid',
@@ -168,20 +168,65 @@ class InvoiceController extends Controller
         $invoiceItems = DB::table('invoice_items AS ITM')
             ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
             ->join('invoice AS I', 'ITM.invoice_id', '=', 'I.id')
+            ->join('stakeholders AS STH', 'I.customer_id', '=', 'STH.id')
             ->select([
                 'PR.name AS itemName',
                 'PR.selling_price AS unitPrice',
                 'ITM.quantity AS quantity',
                 'ITM.amount AS invoiceAmount',
-                'ITM.discount AS discount'
+                'ITM.discount AS discount',
+                'STH.tin AS tin',
+                'STH.vrn AS vrn',
             ])
             ->where('I.id', $invoiceId)
             ->where('I.soft_delete', 0)
             ->where('ITM.soft_delete', 0)
             ->get();
-        // dd($invoiceItems);
 
-        return view('inc.view-invoice', compact('invoiceId', 'invoiceItems'));
+        $invoiceServiceItems = DB::table('invoive_service_items AS ITM')
+            ->join('service AS SV', 'ITM.service_id', '=', 'SV.id')
+            ->join('invoice AS I', 'ITM.invoice_id', '=', 'I.id')
+            ->join('stakeholders AS STH', 'I.customer_id', '=', 'STH.id')
+            ->select([
+                'SV.name AS itemName',
+                'SV.price AS unitPrice',
+                'SV.description AS description',
+                'ITM.quantity AS quantity',
+                'ITM.amount AS invoiceAmount',
+                'ITM.discount AS discount',
+                'STH.tin AS tin',
+                'STH.vrn AS vrn',
+            ])
+            ->where('SV.active', 1)
+            ->where('I.id', $invoiceId)
+            ->where('I.soft_delete', 0)
+            ->where('ITM.soft_delete', 0)
+            ->get();
+
+        $itemsOutOfStore = DB::table('profoma_out_store AS POS')
+            ->join('invoice AS INV', 'POS.invoice_id', '=', 'INV.id')
+            ->join('stakeholders AS STH', 'INV.customer_id', '=', 'STH.id')
+            ->select([
+                'POS.product_name AS itemName',
+                'POS.amountPay AS unitPrice',
+                'POS.quantity AS quantity',
+                'POS.amountPay AS invoiceAmount',
+                'POS.discount AS discount',
+                'STH.tin AS tin',
+                'STH.vrn AS vrn',
+            ])
+            ->where('INV.id', $invoiceId)
+            ->where('INV.soft_delete', 0)
+            ->get();
+
+        // dd($itemsOutOfStore);
+
+        return view('inc.view-invoice', compact([
+            'invoiceId', 
+            'invoiceItems', 
+            'invoiceServiceItems',
+            'itemsOutOfStore'
+        ]));
     }
 
     public function cancelInvoice(Request $request)
@@ -412,22 +457,24 @@ class InvoiceController extends Controller
     public function profomaInvoice()
     {
         $prodomaInvoiceFromStore = DB::table('profoma_invoice AS PI')
-            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'PI.amount AS amount',
                 'PI.profoma_status AS statusInvoice',
                 'PI.created_at AS dateCreated',
-                'PI.id AS profomaId'
+                'PI.id AS profomaId',
             ])
             // ->where('PI.category_id', 1)
             ->where('PI.soft_delete', 0)
             ->orderByDesc('PI.id')
             ->get();
 
+        // dd($prodomaInvoiceFromStore);
+
         $profomaInvoiceOutOfStore = DB::table('profoma_out_store AS POS')
             ->join('invoice AS I', 'POS.invoice_id', '=', 'I.id')
-            ->join('customer AS C', 'POS.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'POS.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'I.amount AS amount',
@@ -446,7 +493,7 @@ class InvoiceController extends Controller
         // dd($profomaInvoiceOutOfStore);
 
         $acceptedProfomaInvoice = DB::table('profoma_invoice AS PI')
-            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'PI.amount AS amount',
@@ -461,7 +508,7 @@ class InvoiceController extends Controller
             ->count();
 
         $pendingProfomaInvoice = DB::table('profoma_invoice AS PI')
-            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'PI.amount AS amount',
@@ -476,7 +523,7 @@ class InvoiceController extends Controller
             ->count();
 
         $rejectedProfomaInvoice = DB::table('profoma_invoice AS PI')
-            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'PI.amount AS amount',
@@ -511,37 +558,45 @@ class InvoiceController extends Controller
             return $th->getMessage();
         }
 
-        $serviceProfomas = DB::table('invoice_items AS ITM')
-            ->join('service AS SV', 'ITM.item_id', '=', 'SV.id')
+        $serviceProfomas = DB::table('invoive_service_items AS ITM')
+            ->join('service AS SV', 'ITM.service_id', '=', 'SV.id')
             ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
+            ->join('stakeholders AS STK', 'STK.id', '=', 'PI.customer_id')
             ->select([
                 'SV.name AS itemName',
                 'SV.price AS unitPrice',
                 'ITM.quantity AS quantity',
                 'ITM.amount AS invoiceAmount',
-                'ITM.discount AS discount'
+                'ITM.discount AS discount',
+                'STK.tin AS tin',
+                'STK.vrn AS vrn'
             ])
             ->where('PI.id', $profomaInvoiceId)
             ->where('PI.soft_delete', 0)
             ->where('ITM.soft_delete', 0)
             ->get();
-            // dd($serviceProfomas);
+
+        // dd($serviceProfomas);
 
         $profomaInvoiceItems = DB::table('invoice_items AS ITM')
             ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
             ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
+            ->join('stakeholders AS STK', 'STK.id', '=', 'PI.customer_id')
             ->select([
                 'PR.name AS itemName',
                 'PR.selling_price AS unitPrice',
                 'ITM.quantity AS quantity',
                 'ITM.amount AS invoiceAmount',
-                'ITM.discount AS discount'
+                'ITM.discount AS discount',
+                'STK.tin AS tin',
+                'STK.vrn AS vrn'
             ])
             ->where('PI.id', $profomaInvoiceId)
             ->where('PI.soft_delete', 0)
             ->where('ITM.soft_delete', 0)
             ->get();
-        // dd($profomaInvoiceItems);
+
+        // dd($profomaInvoiceId);
 
         return view('inc.view-profoma', compact('profomaInvoiceItems', 'profomaInvoiceId', 'serviceProfomas'));
     }
@@ -794,7 +849,7 @@ class InvoiceController extends Controller
             ->orderBy('PR.name', 'ASC')
             ->get();
 
-        $customers = DB::table('customer')
+        $customers = DB::table('stakeholders')
             ->select('id', 'name')
             ->where('soft_delete', 0)
             ->orderBy('name', 'ASC')

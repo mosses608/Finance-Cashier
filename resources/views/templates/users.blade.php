@@ -53,14 +53,14 @@
                                                 @foreach ($stakeholders as $stakeholder)
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
-                                                        <td>{{ $stakeholder->name }}</td>
-                                                        <td>{{ $stakeholder->phone }}</td>
-                                                        <td>{{ $stakeholder->address }}</td>
-                                                        <td>{{ substr($stakeholder->email, 0, 1) . str_repeat('*', strpos($stakeholder->email, '@') - 2) . substr($stakeholder->email, 1, 1) . substr($stakeholder->email, strpos($stakeholder->email, '@')) }}
+                                                        <td class="text-nowrap">{{ $stakeholder->name }}</td>
+                                                        <td class="text-nowrap">{{ $stakeholder->phone }}</td>
+                                                        <td class="text-nowrap">{{ $stakeholder->address }}</td>
+                                                        <td class="text-nowrap">{{ substr($stakeholder->email, 0, 1) . str_repeat('*', strpos($stakeholder->email, '@') - 2) . substr($stakeholder->email, 1, 1) . substr($stakeholder->email, strpos($stakeholder->email, '@')) }}
                                                         </td>
-                                                        <td>{{ $stakeholder->tin }}</td>
-                                                        <td>{{ $stakeholder->vrn }}</td>
-                                                        <td>{{ $stakeholder->region }}</td>
+                                                        <td class="text-nowrap">{{ $stakeholder->tin }}</td>
+                                                        <td class="text-nowrap">{{ $stakeholder->vrn }}</td>
+                                                        <td class="text-nowrap">{{ $stakeholder->region }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
@@ -76,9 +76,9 @@
                                             <thead>
                                                 <tr>
                                                     <th>S/N</th>
-                                                    <th>Group Name</th>
-                                                    <th>Total Customers</th>
-                                                    <th>Action</th>
+                                                    <th class="text-nowrap">Group Name</th>
+                                                    <th class="text-nowrap">Total Customers</th>
+                                                    <th class="text-nowrap">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -115,7 +115,7 @@
                                                     <input type="text" class="form-control"
                                                         aria-label="Sizing example input" name="name"
                                                         aria-describedby="inputGroup-sizing-default"
-                                                        placeholder="xxx company" required>
+                                                        placeholder="xxxxxxxxx" required>
                                                 </div>
                                             </div>
                                             <div class="col-4 mb-3">
@@ -155,7 +155,7 @@
                                                     <input type="text" class="form-control" id="tin"
                                                         aria-label="TIN Number" name="tin"
                                                         aria-describedby="inputGroup-sizing-default" maxlength="11"
-                                                        placeholder="xxx-xxx-xxx" required>
+                                                        placeholder="xxx-xxx-xxx">
                                                 </div>
                                             </div>
                                             <div class="col-4 mb-3">

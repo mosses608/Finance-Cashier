@@ -207,7 +207,7 @@
             if (!select.value || !quantity) return;
 
             const totalPrice = price * quantity;
-            const discountPrice = discount * quantity;
+            const discountPrice = discount * price;
             const finalTotal = totalPrice - discountPrice;
             grandTotal += finalTotal;
 

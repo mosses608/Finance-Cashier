@@ -3,20 +3,26 @@
         @csrf
         <!-- First Product Entry -->
         <div class="row g-2 mb-3 order-product-group">
-            <div class="row w-100">
-                <div class="col-4">
+            <div class="row">
+                <div class="col-3">
                     <label class="input-label p-2"><strong>Service Name</strong></label>
                     <input type="text" class="form-control order-product-select" name="service_name[]"
-                        placeholder="Service Name">
+                        placeholder="service name">
                 </div>
 
-                <div class="col-4">
-                    <label class="input-label p-2"><strong>Service Cost / Price</strong></label>
+                <div class="col-3">
+                    <label class="input-label p-2"><strong>Service Price</strong></label>
                     <input type="text" name="amount[]" class="form-control order-selling-price"
-                        placeholder="Service Cost">
+                        placeholder="service price">
                 </div>
 
-                <div class="col-4">
+                <div class="col-3">
+                    <label class="input-label p-2"><strong>Quantity</strong></label>
+                    <input type="text" name="quantity[]" class="form-control order-selling-price"
+                        placeholder="quantity">
+                </div>
+
+                <div class="col-3">
                     <label class="input-label p-2"><strong>Category</strong></label>
                     <select type="number" name="category[]" class="form-control">
                         <option value="" selected disabled>--select--</option>
@@ -56,19 +62,26 @@
             newGroup.classList.add('row', 'g-2', 'mb-3', 'order-product-group');
 
             newGroup.innerHTML = `
-        <div class="row w-100">
-            <div class="col-4">
+        <div class="row">
+            <div class="col-3">
                 <label class="input-label p-2"><strong>Service Name</strong></label>
-                <input type="text" class="form-control order-product-select" name="service_name[]" placeholder="Service Name">
+                <input type="text" class="form-control order-product-select" name="service_name[]" placeholder="service name">
             </div>
-            <div class="col-4">
-                <label class="input-label p-2"><strong>Service Cost / Price</strong></label>
-                <input type="text" name="amount[]" class="form-control order-selling-price" placeholder="Service Cost">
+            <div class="col-3">
+                <label class="input-label p-2"><strong>Service Price</strong></label>
+                <input type="text" name="amount[]" class="form-control order-selling-price" placeholder="service price">
             </div>
-            <div class="col-4">
+            <div class="col-3">
+                    <label class="input-label p-2"><strong>Quantity</strong></label>
+                    <input type="text" name="quantity[]" class="form-control order-selling-price"
+                        placeholder="quantity">
+                </div>
+            <div class="col-3">
                 <label class="input-label p-2"><strong>Category</strong></label>
                 <select name="category[]" class="form-control">
                     <option value="" selected disabled>--select--</option>
+                    <option value="Commercial">Commercial</option>
+                    <option value="Residential">Residential</option>
                 </select>
             </div>
         </div>

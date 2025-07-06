@@ -14,20 +14,19 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         //
-        Department::create([
-            'name' => 'IT',
-        ]);
+        $departments = [
+            ['name' => 'Human Resources', 'code' => 'HR'],
+            ['name' => 'Procurement', 'code' => 'PROC'],
+            ['name' => 'Inventory', 'code' => 'INV'],
+            ['name' => 'Finance', 'code' => 'FIN'],
+            ['name' => 'IT Support', 'code' => 'IT'],
+            ['name' => 'Logistics', 'code' => 'LOG'],
+            ['name' => 'Sales and Marketing', 'code' => 'SALES'],
+            ['name' => 'Audit & Compliance', 'code' => 'AUD'],
+        ];
 
-        Department::create([
-            'name' => 'Finance',
-        ]);
-
-        Department::create([
-            'name' => 'Storage',
-        ]);
-
-        Department::create([
-            'name' => 'Service',
-        ]);
+        foreach ($departments as $dept) {
+            Department::firstOrCreate($dept);
+        }
     }
 }

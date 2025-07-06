@@ -137,6 +137,11 @@
                                     <span class="sub-item">Profoma Invoice Lists</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('accept.profoma') }}">
+                                    <span class="sub-item">Accept Profoma Invoice</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>
@@ -174,19 +179,54 @@
                                     <span class="sub-item">Create Sevices</span>
                                 </a>
                             </li>
-                            {{-- <li>
-                                <a href="{{ route('invoice.list') }}">
-                                    <span class="sub-item">Sevice Invoice Lists</span>
-                                </a>
-                            </li> --}}
-                            {{-- <li>
-                                <a href="{{ route('profoma.invoice') }}">
-                                    <span class="sub-item">Profoma Invoice Lists</span>
-                                </a>
-                            </li> --}}
                         </ul>
                     </div>
                 </li>
+
+                <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#expenses">
+                        <i class="fa-solid fa-calculator"></i>
+                        <p>Expenses</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="expenses">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('record.expenses') }}">
+                                    <span class="sub-item">Record Expenses</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#payroll">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <p>Payroll Management</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="payroll">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('assign.budget.code') }}">
+                                    <span class="sub-item">Staff Budget Codes</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Sales Receipt</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Sales Report</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
                 <li class="nav-item">
                     <a data-bs-toggle="collapse" href="#sales">
                         <i class="fas fa-dollar-sign"></i>
@@ -213,21 +253,38 @@
                         </ul>
                     </div>
                 </li>
-                
+
                 <li class="nav-item">
-                    <a href="#">
-                        <i class="fa-solid fa-money-bill"></i>
-                        <p>Billings</p>
-                        <span class="badge badge-success">4</span>
+                    <a data-bs-toggle="collapse" href="#budget">
+                        <i class="fas fa-money-bill"></i>
+                        <p>Budget Management</p>
+                        <span class="caret"></span>
                     </a>
+                    <div class="collapse" id="budget">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('new.budget') }}">
+                                    <span class="sub-item">New Budget</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('budget.review') }}">
+                                    <span class="sub-item">Budget Review</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('budget.roll.out') }}">
+                                    <span class="sub-item">Budget Roll Out</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('budget.reports') }}">
+                                    <span class="sub-item">Budget Report</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
-                {{-- <li class="nav-item">
-                    <a href="{{ route('users.management') }}">
-                        <i class="fas fa-users"></i>
-                        <p>Users Management</p>
-                        <span class="badge badge-secondary">20</span>
-                    </a>
-                </li> --}}
 
                 <li class="nav-item">
                     <a data-bs-toggle="collapse" href="#users">
@@ -243,13 +300,97 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="{{ route('new.bank') }}">
                                     <span class="sub-item">New Bank</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="{{ route('stakeholder.reports') }}">
                                     <span class="sub-item">Stakeholders Report</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#human-resource">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <p>Human Resources</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="human-resource">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('staff.management') }}">
+                                    <span class="sub-item">Staff management</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('salary.advance') }}">
+                                    <span class="sub-item">Salary Advance</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('stakeholder.reports') }}">
+                                    <span class="sub-item">Leave Application</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('stakeholder.reports') }}">
+                                    <span class="sub-item">Payroll Commitment</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('stakeholder.reports') }}">
+                                    <span class="sub-item">Create Allowances</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('stakeholder.reports') }}">
+                                    <span class="sub-item">Reports</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#leave-mgt">
+                        <i class="fas fa-umbrella-beach"></i>
+                        <p>Leave Management</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="leave-mgt">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('register.leave.type') }}">
+                                    <span class="sub-item">Leave Registration</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('apply.leave') }}">
+                                    <span class="sub-item">Apply For Leave</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('leave.applications') }}">
+                                    <span class="sub-item">Leave Applications</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('leave.adjustments') }}">
+                                    <span class="sub-item">Leave Adjustments</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('approve.leave.adjustments') }}">
+                                    <span class="sub-item">Aprove Leave Adjustments</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('staff.leave.reports') }}">
+                                    <span class="sub-item">Reports</span>
                                 </a>
                             </li>
                         </ul>

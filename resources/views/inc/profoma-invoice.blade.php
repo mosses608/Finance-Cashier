@@ -127,8 +127,15 @@
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{ $profomaInvoice->customerName ?? 'Unknown' }}</td>
                                                         <td>{{ number_format($profomaInvoice->amount, 2) }}</td>
-                                                        <td><i class="fas fa-spinner fa-spin text-warning me-2"></i>
-                                                            {{ $profomaInvoice->statusInvoice }}
+                                                        <td>
+                                                            @if ($profomaInvoice->statusInvoice == 'Pending')
+                                                                <i class="fas fa-spinner fa-spin text-warning me-2"></i>
+                                                                {{ $profomaInvoice->statusInvoice }}
+                                                            @else
+                                                                <span class="text-primary"><i class="fas fa-check-circle"></i>
+                                                                    {{ $profomaInvoice->statusInvoice }}</span>
+                                                            @endif
+
                                                         </td>
                                                         <td>{{ \Carbon\Carbon::parse($profomaInvoice->dateCreated)->format('M d, Y') }}
                                                         </td>

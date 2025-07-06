@@ -95,6 +95,9 @@ class StorageController extends Controller
             )
             ->orderBy('ST.store_name', 'ASC')
             ->get();
+
+            // dd($stores);
+
         return view('inc.store-list', compact(['stores']));
     }
 

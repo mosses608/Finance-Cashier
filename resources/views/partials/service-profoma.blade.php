@@ -16,14 +16,18 @@
                     </select>
                 </div>
 
-                <div class="col-6">
+                <div class="col-4">
                     <input type="text" name="price[]" class="form-control custom-selling-price" placeholder="Price"
                         readonly>
                 </div>
 
                 <input type="hidden" name="category_id" value="7">
 
-                <div class="col-6">
+                <div class="col-4">
+                    <input type="number" name="quantity[]" class="form-control" placeholder="quantity">
+                </div>
+
+                <div class="col-4">
                     <input type="text" name="discount[]" class="form-control" placeholder="Discount @ eg 2.5">
                 </div>
             </div>
@@ -139,14 +143,18 @@
                 </select>
             </div>
             
-                <div class="col-6">
+                <div class="col-4">
                     <input type="text" name="price[]" class="form-control custom-selling-price" placeholder="Price"
                         readonly>
                 </div>
 
                 <input type="hidden" name="category_id" value="7">
 
-                <div class="col-6">
+                <div class="col-4">
+                    <input type="number" name="quantity[]" class="form-control" placeholder="quantity">
+                </div>
+
+                <div class="col-4">
                     <input type="text" name="discount[]" class="form-control"
                         placeholder="Discount @ eg 2.5">
                 </div>
@@ -175,6 +183,7 @@
             const quantityInput = group.querySelector('[name="price[]"]');
             const priceInput = group.querySelector('.custom-selling-price');
             const discountInput = group.querySelector('[name="discount[]"]');
+            const qtyInput = group.querySelector('[name="quantity[]"]');
 
             if (!select || !priceInput || !discountInput) return;
 
@@ -182,12 +191,13 @@
             const quantity = parseFloat(quantityInput.value || 0);
             const price = parseFloat(priceInput.value || 0);
             const discount = parseFloat(discountInput.value || 0);
+            const quant = parseFloat(qtyInput.value || 0);
 
             if (!select.value || !quantity) return;
 
             const totalPrice = price;
             const discountPrice = discount * price;
-            const finalTotal = totalPrice - discountPrice;
+            const finalTotal = totalPrice * quant - discountPrice;
             grandTotal += finalTotal;
 
             rowsHtml += `
@@ -196,6 +206,7 @@
                     <td>${totalPrice.toLocaleString()}</td>
                     <td>${discount || '0'}</td>
                     <td>${discountPrice.toLocaleString()}</td>
+                    <td>${quant.toLocaleString()}</td>
                     <td>${finalTotal.toLocaleString()}</td>
                 </tr>`;
         });
@@ -218,7 +229,8 @@
                                 <th>Price</th>
                                 <th>Discount Unit</th>
                                 <th>Discount Price</th>
-                                <th>Final Total</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -226,11 +238,11 @@
                         </tbody>
                         <tfoot>
                             <tr class="table-success">
-                                <th colspan="4" class="text-end">Total Amount</th>
-                                <th>
+                                <td colspan="5" class="text-start">Total Amount</td>
+                                <td>
                                     <input type="hidden" value="${grandTotal}" name="amountTotal">
                                     ${grandTotal.toLocaleString()}
-                                </th>
+                                </td>
                             </tr>
                         </tfoot>
                     </table>

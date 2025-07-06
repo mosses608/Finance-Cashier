@@ -58,7 +58,7 @@
                         </div>
                     </div>
                     <div class="card-action">
-                        <button type=""submit class="btn btn-success">Save Data</button>
+                        <button type=""submit class="btn btn-primary">Save Data</button>
                         {{-- <button class="btn btn-danger">Cancel</button> --}}
                     </div>
                 </form>

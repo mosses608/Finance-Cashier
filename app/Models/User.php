@@ -18,30 +18,27 @@ class User extends Authenticatable
      * @var list<string>
      */
 
-     public function scopeFilter($query, array $filters){
-        if($filters['search'] ?? false){
-            $query->where('name', 'like' , '%' . request('search') . '%')
-                ->orwhere('username', 'like' , '%' . request('search') . '%')
-                ->orwhere('email', 'like', '%' . request('search') . '%')
-                ->orwhere('phone', 'like', '%' . request('search') . '%');
-        }
-     }
+    //  public function scopeFilter($query, array $filters){
+    //     if($filters['search'] ?? false){
+    //         $query->where('name', 'like' , '%' . request('search') . '%')
+    //             ->orwhere('username', 'like' , '%' . request('search') . '%')
+    //             ->orwhere('email', 'like', '%' . request('search') . '%')
+    //             ->orwhere('phone', 'like', '%' . request('search') . '%');
+    //     }
+    //  }
 
-     protected $table = 'users';
+     protected $table = 'auth';
      protected $primaryKey = 'id';
      public $incrementing = true;
     
     protected $fillable = [
-        'name',
-        'role_id',
-        'email',
-        'phone',
-        'department_id',
+        'user_id',
         'username',
         'password',
-        'image',
+        'role_id',
         'login_attempts',
         'blocked_at',
+        'is_online',
     ];
 
     /**

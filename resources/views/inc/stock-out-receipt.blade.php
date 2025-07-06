@@ -32,13 +32,30 @@
                                                         <th>Item Name</th>
                                                         <th>Quantity</th>
                                                         <th>Unit Price</th>
-                                                        <th>Total</th>
+                                                        <th>Date Due</th>
                                                     </tr>
                                                 </thead>
-                      
+                                                @php
+                                                    $staff = null;
+                                                @endphp
+                                                @foreach ($stockOuts as $out)
+                                                @php
+                                                    $staff = $out->userName;
+                                                @endphp
+                                                    <tr>
+                                                        <td class="text-center">{{ $out->productName }}</td>
+                                                        <td class="text-center">{{ number_format($out->quantityOut) }}</td>
+                                                        <td class="text-center">{{ number_format($out->price, 2) }}</td>
+                                                        <td class="text-center">{{ \Carbon\Carbon::parse($out->dueDate)->format('M d, Y') }}</td>
+                                                    </tr>
+                                                @endforeach
                                                 </tbody>
                                             </table>
                                         </div>
+                                        <div class="row p-3">
+                                                <span class="p-2">Staff Name: {{ $staff }}</span>
+                                                <span class="p-2">Reviewer Signature: ______________________</span>
+                                            </div>
                                     </div>
                                     <a href="#"
                                         class="btn btn-primary float-end mt-4"><i class="fa fa-download"></i> Download

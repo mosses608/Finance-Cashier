@@ -77,8 +77,9 @@ Route::get('/download-receipt/{encryptedReceiptId}', [App\Http\Controllers\Sales
 Route::get('/services', [App\Http\Controllers\Services\ServiceController::class, 'servicePage'])->name('service.page');
 Route::post('/store-services', [App\Http\Controllers\Services\ServiceController::class, 'storeServices'])->name('store.service');
 Route::post('/service-profoma', [App\Http\Controllers\Services\ServiceController::class, 'serviceProfomaInvoice'])->name('service.profoma.invoice');
-
-
+Route::get('/accept-profoma', [App\Http\Controllers\Services\ServiceController::class, 'acceptProfoma'])->name('accept.profoma');
+Route::put('/accept-profoma-invoice', [App\Http\Controllers\Services\ServiceController::class, 'approveProfomaInvoice'])->name('accept.profoma.invoice');
+Route::put('/accept-profoma-outstore', [App\Http\Controllers\Services\ServiceController::class, 'acceptProfomaOutStore'])->name('accept.profoma.outstore.invoice');
 
 // LEDGER
 Route::get('/ledger', [App\Http\Controllers\Ledger\LedgerController::class, 'ledgers'])->name('create.ledger')->middleware('auth');
@@ -104,8 +105,50 @@ Route::get('/trial-balance', [App\Http\Controllers\Reports\ReportController::cla
 // USERS
 Route::post('/authenticate', [App\Http\Controllers\Authenticates\AuthenticateController::class, 'authentication'])->name('auth0n');
 Route::get('/logout', [App\Http\Controllers\Authenticates\AuthenticateController::class, 'logout'])->name('logout')->middleware('auth');
-Route::get('/users', [App\Http\Controllers\Pages\PageController::class, 'usersManager'])->name('users.management');
+Route::get('/stakeholders', [App\Http\Controllers\Pages\PageController::class, 'usersManager'])->name('users.management');
 Route::post('/customer-groupd', [App\Http\Controllers\Pages\PageController::class, 'customerGroupd'])->name('customer.group');
 Route::post('/stakeholder-create', [App\Http\Controllers\Pages\PageController::class, 'storeStakeholder'])->name('stakeholder.create');
+Route::get('/new-bank', [App\Http\Controllers\Pages\PageController::class, 'newBank'])->name('new.bank');
+Route::post('/create-bank', [App\Http\Controllers\Pages\PageController::class, 'createBank'])->name('create.banks');
+Route::post('/register-branch', [App\Http\Controllers\Pages\PageController::class, 'registerBranch'])->name('bank.branch');
+Route::get('/stakeholder-report', [App\Http\Controllers\Pages\PageController::class, 'stakeholdReports'])->name('stakeholder.reports');
+Route::get('/staff-management', [App\Http\Controllers\Pages\PageController::class, 'staffManagement'])->name('staff.management');
+Route::post('/store-staff', [App\Http\Controllers\Pages\PageController::class, 'storeStaff'])->name('staff.store');
 
-Route::get('/test-page', [App\Http\Controllers\Pages\PageController::class, 'testPage']);
+
+// HR MANAGEMENT
+Route::get('/salary-advance', [App\Http\Controllers\HR\HumanResourceController::class, 'salaryAdvance'])->name('salary.advance');
+Route::post('/apply-salary-advance', [App\Http\Controllers\HR\HumanResourceController::class, 'applySalaryAdvance'])->name('apply.salary.advance');
+Route::get('/leave-registraion', [App\Http\Controllers\HR\HumanResourceController::class, 'leaveRegister'])->name('register.leave.type');
+Route::post('/store-leaves', [App\Http\Controllers\HR\HumanResourceController::class, 'storeLeaveTypes'])->name('store.leave.types');
+Route::get('/apply-for-leave', [App\Http\Controllers\HR\HumanResourceController::class, 'applyLeave'])->name('apply.leave');
+Route::post('/leave-application', [App\Http\Controllers\HR\HumanResourceController::class, 'leaveApplications'])->name('store.leave.applications');
+Route::get('/view-leave-applications', [App\Http\Controllers\HR\HumanResourceController::class, 'viewApplications'])->name('leave.applications');
+Route::put('/approve-leave-application', [App\Http\Controllers\HR\HumanResourceController::class, 'approveApplication'])->name('approve.leave.request');
+Route::get('/leave-adjustments', [App\Http\Controllers\HR\HumanResourceController::class, 'leaveAdjustments'])->name('leave.adjustments');
+Route::put('/apply-for-adjustments', [App\Http\Controllers\HR\HumanResourceController::class, 'applyForAdjustments'])->name('apply.leave.adjust');
+Route::get('/adjustment-application-list', [App\Http\Controllers\HR\HumanResourceController::class, 'viewAdjustmentLists'])->name('approve.leave.adjustments');
+Route::put('/update-adjustment', [App\Http\Controllers\HR\HumanResourceController::class, 'approveAdjustmentApplication'])->name('approve.leave.adjustment.application');
+Route::get('/leave-report', [App\Http\Controllers\HR\HumanResourceController::class, 'leaveReports'])->name('staff.leave.reports');
+
+// BUDGET MANAGER
+Route::get('/budgets', [App\Http\Controllers\Budget\BudgetController::class, 'budgetCreate'])->name('new.budget');
+Route::post('/project-store', [App\Http\Controllers\Budget\BudgetController::class, 'storeProject'])->name('store.project');
+Route::post('/budget-create', [App\Http\Controllers\Budget\BudgetController::class, 'budgetStore'])->name('budget.create');
+Route::get('/view-budget/{encryptedId}', [App\Http\Controllers\Budget\BudgetController::class, 'viewBudget'])->name('view.budget');
+Route::get('/budget-review', [App\Http\Controllers\Budget\BudgetController::class, 'budgetReview'])->name('budget.review');
+Route::put('/budget-approval', [App\Http\Controllers\Budget\BudgetController::class, 'budgetApproval'])->name('approve.budget');
+Route::get('/budget-roll-out', [App\Http\Controllers\Budget\BudgetController::class, 'budgetRollOut'])->name('budget.roll.out');
+Route::post('/add-sub-budgets', [App\Http\Controllers\Budget\BudgetController::class, 'appendSubBudgets'])->name('add.sub.codes');
+Route::put('/remove-sub-budget', [App\Http\Controllers\Budget\BudgetController::class, 'removeSubBudget'])->name('remove.sub.budget');
+Route::post('/budget-roll-out', [App\Http\Controllers\Budget\BudgetController::class, 'budgetRollOutRecreate'])->name('budget.roll.out');
+Route::get('/budget-reports', [App\Http\Controllers\Budget\BudgetController::class, 'budgetReports'])->name('budget.reports');
+Route::get('/staff-budget-codes', [App\Http\Controllers\Budget\BudgetController::class, 'staffBudgetCodes'])->name('assign.budget.code');
+Route::post('/staff-budget-codes', [App\Http\Controllers\Budget\BudgetController::class, 'staffSubBudgetCodes'])->name('staff.budget.codes');
+
+
+// EXPENSES
+Route::get('/expenses', [App\Http\Controllers\Expenses\ExpensesController::class, 'expenses'])->name('record.expenses');
+Route::post('/store-expenses', [App\Http\Controllers\Expenses\ExpensesController::class, 'storeExpenses'])->name('expense.store');
+
+Route::get('/test-page', [App\Http\Controllers\Pages\PageController::class, 'testPage'])->name('home');

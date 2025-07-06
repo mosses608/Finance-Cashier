@@ -2,19 +2,33 @@
 
 namespace App\Http\Controllers\Services;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 
 class ServiceController extends Controller
 {
     //
     public function servicePage()
     {
-        $services = DB::table('service')->select('*')->where('soft_delete', 0)->orderBy('name', 'ASC')->get();
-        $customers = DB::table('customer')->select('name', 'id')->where('soft_delete', 0)->orderBy('name', 'ASC')->get();
+        $services = DB::table('service')
+            ->select('*')
+            ->where('soft_delete', 0)
+            ->orderBy('name', 'ASC')
+            ->get();
+
+        $customers = DB::table('stakeholders')
+            ->select('name', 'id')
+            ->where('stakeholder_category', 1)
+            ->where('soft_delete', 0)
+            ->orderBy('name', 'ASC')
+            ->get();
+
+        // dd($customers);
+
         return view('services.service-page', compact('services', 'customers'));
     }
 
@@ -29,6 +43,9 @@ class ServiceController extends Controller
 
             'category' => 'nullable|array',
             'category.*' => 'nullable|string',
+
+            'quantity' => 'nullable|array',
+            'quantity.*' => 'nullable|string',
 
             'description' => 'nullable|array',
             'description.*' => 'nullable|string'
@@ -46,7 +63,8 @@ class ServiceController extends Controller
                 'description' => $request->description[$key],
                 'price' => $request->amount[$key],
                 'category' => $request->category[$key],
-                'created_by' => Auth::user()->id,
+                'quantity' => $request->quantity[$key],
+                'created_by' => Auth::user()->id ?? 1,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
@@ -70,6 +88,9 @@ class ServiceController extends Controller
             'price' => 'required|array',
             'price.*' => 'required|numeric',
 
+            'quantity' => 'nullable|array',
+            'quantity.*' => 'nullable|integer',
+
             'customer_id' => 'nullable|integer',
 
             'name' => 'nullable|string',
@@ -79,7 +100,6 @@ class ServiceController extends Controller
 
             'amountTotal' => 'required|numeric',
         ]);
-
 
         if ($request->filled('TIN')) {
             $existingCustomer = DB::table('customer')
@@ -109,11 +129,12 @@ class ServiceController extends Controller
 
             foreach ($request->service_id as $key => $serviceId) {
 
-                $invoiceItmId = DB::table('invoice_items')->insertGetId([
+                $invoiceItmId = DB::table('invoive_service_items')->insertGetId([
                     'invoice_id' => $invoiceId,
-                    'item_id' => $request->service_id[$key],
+                    'service_id' => $request->service_id[$key],
                     'amount' => $request->price[$key],
                     'discount' => $request->discount[$key],
+                    'quantity' => $request->quantity[$key] ?? 0,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
@@ -142,10 +163,11 @@ class ServiceController extends Controller
 
         foreach ($request->service_id as $key => $serviceId) {
 
-            $invoiceItmId = DB::table('invoice_items')->insertGetId([
+            $invoiceItmId = DB::table('invoive_service_items')->insertGetId([
                 'invoice_id' => $invoiceId,
-                'item_id' => $request->service_id[$key],
+                'service_id' => $request->service_id[$key],
                 'amount' => $request->price[$key],
+                'quantity' => $request->quantity[$key] ?? 0,
                 'discount' => $request->discount[$key] ?? 0,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
@@ -162,6 +184,129 @@ class ServiceController extends Controller
             ]);
         }
 
-        return redirect()->route('profoma.invoice')->with('success_msg','Profoma invoice created successfully!');
+        return redirect()->route('profoma.invoice')->with('success_msg', 'Profoma invoice created successfully!');
+    }
+
+    public function acceptProfoma()
+    {
+        $profomaInvoices = DB::table('profoma_invoice AS PI')
+            ->join('invoice AS INV', 'PI.invoice_id', '=', 'INV.id')
+            ->join('stakeholders AS STK', 'PI.customer_id', '=', 'STK.id')
+            ->select([
+                'STK.name AS name',
+                'PI.id AS invoiceProfomaId',
+                'PI.amount AS amount',
+                'PI.profoma_status AS status',
+                'PI.created_at AS dateDue',
+                'PI.invoice_id AS invoiceId',
+            ])
+            ->where('INV.is_profoma', 1)
+            ->where('PI.soft_delete', 0)
+            ->where('STK.soft_delete', 0)
+            ->orderBy('PI.created_at', 'DESC')
+            ->get();
+
+        $profomaInvoicesOutStore = DB::table('profoma_out_store AS PI')
+            ->join('invoice AS INV', 'PI.invoice_id', '=', 'INV.id')
+            ->join('stakeholders AS STK', 'PI.customer_id', '=', 'STK.id')
+            ->select([
+                'STK.name AS name',
+                'PI.id AS invoiceProfomaId',
+                'PI.amountPay AS amount',
+                'PI.order_status AS status',
+                'PI.created_at AS dateDue',
+                'PI.invoice_id AS invoiceId',
+            ])
+            ->where('INV.is_profoma', 1)
+            ->where('PI.soft_delete', 0)
+            ->where('STK.soft_delete', 0)
+            ->orderBy('PI.created_at', 'DESC')
+            ->get();
+
+        // dd($profomaInvoices);
+
+        return view('inc.accept-profoma', compact([
+            'profomaInvoices',
+            'profomaInvoicesOutStore',
+        ]));
+    }
+
+    public function approveProfomaInvoice(Request $request)
+    {
+        $request->validate([
+            'invoiceId' => 'required|string',
+            'profomaId' => 'required|string',
+        ]);
+
+        try {
+            $decryptedId = Crypt::decrypt($request->invoiceId);
+            $decryptedProfomaId = Crypt::decrypt($request->profomaId);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $invoiceExists = DB::table('invoice')
+            ->where('id', $decryptedId)
+            ->where('is_profoma', 1)
+            ->exists();
+
+        $profomaExists = DB::table('profoma_invoice')
+            ->where('id', $decryptedProfomaId)
+            ->where('soft_delete', 0)
+            ->exists();
+
+        if ($invoiceExists === false && $profomaExists === false) {
+            return redirect()->back()->with('error_msg', 'Invoice does not exist or might already been accepted!');
+        }
+
+        DB::table('invoice')->where('id', $decryptedId)->update([
+            'is_profoma' => 0,
+            'updated_at' => Carbon::now(),
+        ]);
+
+        DB::table('profoma_invoice')->where('id', $decryptedProfomaId)->update([
+            'profoma_status' => 'Accepted',
+        ]);
+
+        return redirect('/invoice-list')->with('success_msg', 'Invoice has been approved successfully!');
+    }
+
+    public function acceptProfomaOutStore(Request $request){
+        $request->validate([
+            'invoiceId' => 'required|string',
+            'profomaId' => 'required|string',
+        ]);
+
+        try {
+            $decryptedId = Crypt::decrypt($request->invoiceId);
+            $decryptedProfomaId = Crypt::decrypt($request->profomaId);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $invoiceExists = DB::table('invoice')
+            ->where('id', $decryptedId)
+            ->where('is_profoma', 1)
+            ->exists();
+
+        $profomaExists = DB::table('profoma_out_store')
+            ->where('id', $decryptedProfomaId)
+            ->where('soft_delete', 0)
+            ->exists();
+
+        if ($invoiceExists === false && $profomaExists === false) {
+            return redirect()->back()->with('error_msg', 'Invoice does not exist or might already been accepted!');
+        }
+
+        DB::table('invoice')->where('id', $decryptedId)->update([
+            'is_profoma' => 0,
+            'updated_at' => Carbon::now(),
+        ]);
+
+        DB::table('profoma_out_store')->where('id', $decryptedProfomaId)->update([
+            'order_status' => 'Accepted',
+        ]);
+
+        return redirect('/invoice-list')->with('success_msg', 'Invoice has been approved successfully!');
     }
 }

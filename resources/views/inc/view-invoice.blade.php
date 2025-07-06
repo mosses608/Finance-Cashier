@@ -19,59 +19,230 @@
                                     style="color: #0000FF;">{{ str_pad($invoiceId, 4, '0', STR_PAD_LEFT) }}</strong>
                             </h4>
                         </div>
+                        @php
+                            $totalAmountWithoutDiscount = 0;
+                            $vatTotal = 0;
+                            $totalDiscount = 0;
+                        @endphp
                         <div class="card-body">
                             <div class="d-flex gap-3">
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-striped">
-                                        <thead class="table-light">
-                                            <tr><strong>Item List:</strong></tr>
-                                            <tr>
-                                                <th>S/N</th>
-                                                <th>Item Name</th>
-                                                <th>Unit Price</th>
-                                                <th>Quantity</th>
-                                                <th>Discount (%)</th>
-                                                <th>Discount Value</th>
-                                                <th>Total Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php
-                                                $totalDiscount = 0;
-                                                $totalAmountWithoutDiscount = 0;
-                                            @endphp
-                                            @foreach ($invoiceItems as $item)
-                                                @php
-                                                    $totalDiscount += $item->quantity * $item->discount;
-                                                    $totalAmountWithoutDiscount += $item->unitPrice * $item->quantity;
-                                                @endphp
+                                    {{-- products view --}}
+                                    @if (count($invoiceItems) > 0)
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-light">
+                                                <tr><strong>Item List:</strong></tr>
                                                 <tr>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $item->itemName }}</td>
-                                                    <td>{{ number_format($item->unitPrice, 2) }}</td>
-                                                    <td>{{ number_format($item->quantity) }}</td>
-                                                    <td>{{ $item->discount }}</td>
-                                                    <td>{{ number_format($item->quantity * $item->discount, 2) }}</td>
-                                                    <td>{{ number_format($item->unitPrice * $item->quantity) }}</td>
+                                                    <th>S/N</th>
+                                                    <th>Item Name</th>
+                                                    <th>Unit Price</th>
+                                                    <th>Quantity</th>
+                                                    <th>Discount (%)</th>
+                                                    <th>Discount Value</th>
+                                                    <th>Total Amount</th>
                                                 </tr>
-                                            @endforeach
-                                        <tfoot>
-                                            <tr>
-                                                <td><strong>Totals (TSH)</strong></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td><strong>
-                                                        {{ number_format($totalDiscount, 2) }}</strong>
-                                                </td>
-                                                <td><strong>
-                                                        {{ number_format($totalAmountWithoutDiscount - $totalDiscount, 2) }}</strong>
-                                                </td>
-                                            </tr>
-                                        </tfoot>
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                @php
+                                                    $itemTotal = 0;
+                                                    $totalDiscount = 0;
+                                                    $totalAmountWithoutDiscount = 0;
+                                                @endphp
+                                                @foreach ($invoiceItems as $item)
+                                                    @php
+                                                        $totalDiscount += $item->unitPrice * $item->discount;
+                                                        $totalAmountWithoutDiscount +=
+                                                            $item->unitPrice * $item->quantity;
+                                                    @endphp
+                                                    <tr>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $item->itemName }}</td>
+                                                        <td>{{ number_format($item->unitPrice, 2) }}</td>
+                                                        <td>{{ number_format($item->quantity) }}</td>
+                                                        <td>{{ $item->discount }}</td>
+                                                        <td>{{ number_format($item->unitPrice * $item->discount, 2) }}</td>
+                                                        <td>{{ number_format($item->unitPrice * $item->quantity) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                                @php
+                                                    $vatTotal = 0;
+                                                    $itemTotal = $totalAmountWithoutDiscount - $totalDiscount;
+                                                @endphp
+                                            <tfoot>
+                                                @if (count($invoiceItems) != 0)
+                                                    @if ($item->vrn != null)
+                                                        @php
+                                                            $vatTotal = $itemTotal * 0.18;
+                                                        @endphp
+                                                        <tr>
+                                                            <td class="text-nowrap">VAT (18%)</td>
+                                                            <td colspan="5"></td>
+                                                            <td>{{ number_format($vatTotal, 2) }}</td>
+                                                        </tr>
+                                                    @endif
+                                                @endif
+                                                <tr class="text-nowrap">
+                                                    <td><strong>Totals (TSH)</strong></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td><strong>
+                                                            {{ number_format($totalDiscount, 2) }}</strong>
+                                                    </td>
+                                                    <td><strong>
+                                                            {{ number_format($totalAmountWithoutDiscount + $vatTotal - $totalDiscount, 2) }}</strong>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                            </tbody>
+                                        </table>
+                                    @endif
+
+                                    {{-- service invoice view --}}
+                                    @if (count($invoiceServiceItems) > 0)
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-light">
+                                                <tr><strong>Item List:</strong></tr>
+                                                <tr>
+                                                    <th>S/N</th>
+                                                    <th>Item Name</th>
+                                                    <th>Unit Price</th>
+                                                    <th>Quantity</th>
+                                                    <th>Discount (%)</th>
+                                                    <th>Discount Value</th>
+                                                    <th>Total Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php
+                                                    $itemTotal = 0;
+                                                    $totalDiscount = 0;
+                                                    $totalAmountWithoutDiscount = 0;
+                                                @endphp
+                                                @foreach ($invoiceServiceItems as $item)
+                                                    @php
+                                                        $totalDiscount += $item->unitPrice * $item->discount;
+                                                        $totalAmountWithoutDiscount +=
+                                                            $item->unitPrice * $item->quantity;
+                                                    @endphp
+                                                    <tr>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $item->itemName }}</td>
+                                                        <td>{{ number_format($item->unitPrice, 2) }}</td>
+                                                        <td>{{ number_format($item->quantity) }}</td>
+                                                        <td>{{ $item->discount }}</td>
+                                                        <td>{{ number_format($item->unitPrice * $item->discount, 2) }}</td>
+                                                        <td>{{ number_format($item->unitPrice * $item->quantity) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                                @php
+                                                    $vatTotal = 0;
+                                                    $itemTotal = $totalAmountWithoutDiscount - $totalDiscount;
+                                                @endphp
+                                            <tfoot>
+                                                @if (count($invoiceServiceItems) != 0)
+                                                    @if ($item->vrn != null)
+                                                        @php
+                                                            $vatTotal = $itemTotal * 0.18;
+                                                        @endphp
+                                                        <tr>
+                                                            <td class="text-nowrap">VAT (18%)</td>
+                                                            <td colspan="5"></td>
+                                                            <td>{{ number_format($vatTotal, 2) }}</td>
+                                                        </tr>
+                                                    @endif
+                                                @endif
+                                                <tr class="text-nowrap">
+                                                    <td><strong>Totals (TSH)</strong></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td><strong>
+                                                            {{ number_format($totalDiscount, 2) }}</strong>
+                                                    </td>
+                                                    <td><strong>
+                                                            {{ number_format($totalAmountWithoutDiscount + $vatTotal - $totalDiscount, 2) }}</strong>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                            </tbody>
+                                        </table>
+                                    @endif
+
+                                    {{-- ITEM OUT OF STORE --}}
+                                    @if (count($itemsOutOfStore) > 0)
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-light">
+                                                <tr><strong>Item List:</strong></tr>
+                                                <tr>
+                                                    <th>S/N</th>
+                                                    <th>Item Name</th>
+                                                    <th>Unit Price</th>
+                                                    <th>Quantity</th>
+                                                    <th>Discount (%)</th>
+                                                    <th>Discount Value</th>
+                                                    <th>Total Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php
+                                                    $itemTotal = 0;
+                                                    $totalDiscount = 0;
+                                                    $totalAmountWithoutDiscount = 0;
+                                                @endphp
+                                                @foreach ($itemsOutOfStore as $item)
+                                                    @php
+                                                        $totalDiscount += $item->unitPrice * $item->discount;
+                                                        $totalAmountWithoutDiscount +=
+                                                            $item->unitPrice * $item->quantity;
+                                                    @endphp
+                                                    <tr>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $item->itemName }}</td>
+                                                        <td>{{ number_format($item->unitPrice, 2) }}</td>
+                                                        <td>{{ number_format($item->quantity) }}</td>
+                                                        <td>{{ $item->discount }}</td>
+                                                        <td>{{ number_format($item->unitPrice * $item->discount, 2) }}</td>
+                                                        <td>{{ number_format($item->unitPrice * $item->quantity) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                                @php
+                                                    $vatTotal = 0;
+                                                    $itemTotal = $totalAmountWithoutDiscount - $totalDiscount;
+                                                @endphp
+                                            <tfoot>
+                                                @if (count($invoiceServiceItems) != 0)
+                                                    @if ($item->vrn != null)
+                                                        @php
+                                                            $vatTotal = $itemTotal * 0.18;
+                                                        @endphp
+                                                        <tr>
+                                                            <td class="text-nowrap">VAT (18%)</td>
+                                                            <td colspan="5"></td>
+                                                            <td>{{ number_format($vatTotal, 2) }}</td>
+                                                        </tr>
+                                                    @endif
+                                                @endif
+                                                <tr class="text-nowrap">
+                                                    <td><strong>Totals (TSH)</strong></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td><strong>
+                                                            {{ number_format($totalDiscount, 2) }}</strong>
+                                                    </td>
+                                                    <td><strong>
+                                                            {{ number_format($totalAmountWithoutDiscount + $vatTotal - $totalDiscount, 2) }}</strong>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                            </tbody>
+                                        </table>
+                                    @endif
+
                                     <hr class="mt-5 mb-5">
                                     <table class="table table-bordered table-striped">
                                         <thead class="table-light">
@@ -103,7 +274,8 @@
                             }
 
                             $qrText .=
-                                'Total Price: TSH ' . number_format($totalAmountWithoutDiscount - $totalDiscount, 2);
+                                'Total Price: TSH ' .
+                                number_format($totalAmountWithoutDiscount + $vatTotal - $totalDiscount, 2);
                         @endphp
 
                         {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(150)->generate($qrText) !!}
@@ -122,10 +294,10 @@
                                 Cancell Invoice
                             </button>
                             @php
-                            $encryptedAutoId = Crypt::encrypt($invoiceId);
+                                $encryptedAutoId = Crypt::encrypt($invoiceId);
                             @endphp
-                            <a href="{{ route('invoice.download', $encryptedAutoId) }}" id="" class="btn btn-primary float-end" border-color: #007BFF; color:
-                                #FFFF;">
+                            <a href="{{ route('invoice.download', $encryptedAutoId) }}" id=""
+                                class="btn btn-primary float-end" border-color: #007BFF; color: #FFFF;">
                                 Download Invoice
                             </a>
                         </form>

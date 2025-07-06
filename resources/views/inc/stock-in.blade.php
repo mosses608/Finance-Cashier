@@ -13,13 +13,15 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="basic-datatables" class="display table table-striped table-hover">
+                                <table id="basic-datatablesx0x" class="display table table-striped table-hover">
                                     <thead>
-                                        <tr>
+                                        <tr class="text-nowrap">
                                             <th>S/N</th>
                                             <th>Name</th>
                                             <th>SKU</th>
-                                            <th>Quantity</th>
+                                            <th>Qty In</th>
+                                            <th>Qty Out</th>
+                                            <th>Available Qty</th>
                                             <th>Cost Price</th>
                                             <th>Selling Price</th>
                                             <th>Store</th>
@@ -30,6 +32,7 @@
                                         @foreach ($products as $product)
                                             @php
                                                 $quantityStocks = $stocks->firstWhere('storage_item_id', $product->id);
+                                                $stockOutQuantity = $stockOutTransactions->where('product_id', $product->id)->sum('stockout_quantity');
                                             @endphp
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
@@ -38,6 +41,8 @@
                                                 <td>
                                                     {{ number_format($quantityStocks->quantity_total ?? 0) }}
                                                 </td>
+                                                <td>{{ number_format($stockOutQuantity) }}</td>
+                                                <td>{{ number_format($quantityStocks->quantity_total - $stockOutQuantity) }}</td>
                                                 <td>{{ number_format($product->cost_price, 2) }}</td>
                                                 <td>{{ number_format($product->selling_price, 2) }}</td>
                                                 <td>{{ $product->storeName }}</td>
@@ -52,13 +57,13 @@
                                                             <i class="fas fa-arrow-circle-down"></i>
                                                         </button>
 
-                                                        <form action="{{ route('products.destroy') }}"
-                                                            method="POST"
+                                                        <form action="{{ route('products.destroy') }}" method="POST"
                                                             onsubmit="return confirm('Are you sure you want to delete this product?');"
                                                             class="m-0 p-0">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <input type="hidden" value="{{ $product->id }}" name="product_id" />
+                                                            <input type="hidden" value="{{ $product->id }}"
+                                                                name="product_id" />
                                                             <button type="submit"
                                                                 class="btn btn-danger btn-sm d-flex align-items-center justify-content-center">
                                                                 <i class="fas fa-trash"></i>
@@ -118,7 +123,9 @@
         </div>
     </div>
 
-
+    <script>
+        new DataTable('#basic-datatablesx0x');
+    </script>
 @stop
 
 <script>

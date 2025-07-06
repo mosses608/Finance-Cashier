@@ -27,12 +27,12 @@
                                 <div class="tab-pane fade show active" id="sales-list" role="tabpanel"
                                     aria-labelledby="nav-home-tab">
                                     <div class="table-responsive">
-                                        <table id="basic-datatables" class="display table table-striped table-hover">
+                                        <table id="basic-datatableszxz" class="display table table-striped table-hover">
                                             <thead>
                                                 <tr>
                                                     <th>S/N</th>
                                                     <th>Invoice ID</th>
-                                                    <th>Amount Paid</th>
+                                                    <th>Amount Paid (TZS)</th>
                                                     <th>Payment Method</th>
                                                     <th>Status</th>
                                                     <th>Date Paid</th>
@@ -43,12 +43,18 @@
                                                 @foreach ($currentDaySales as $sale_receipt)
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
-                                                        <td>{{ str_pad($sale_receipt->invoice_id, 4, '0', STR_PAD_LEFT) }}
+                                                        <td class="text-primary"><strong>#{{ str_pad($sale_receipt->invoice_id, 4, '0', STR_PAD_LEFT) }}</strong>
                                                         </td>
                                                         <td>{{ number_format($sale_receipt->amount_paid, 2) }}</td>
                                                         <td class="text-center">
-                                                            {!! $sale_receipt->payment_method ??
-                                                                '<span class="btn btn-secondary w-100 p-1 rounded-5"><i class="fas fa-spinner fa-spin text-warning me-2"></i> Pending...</span>' !!}
+                                                            @if ($sale_receipt->status == 1)
+                                                                <span
+                                                                    class="btn btn-secondary w-100 p-1 rounded-5">{{ $sale_receipt->payment_method }}</span>
+                                                            @else
+                                                                <span class="btn btn-secondary w-100 p-1 rounded-5"><i
+                                                                        class="fas fa-spinner fa-spin text-warning me-2"></i>
+                                                                    Pending...</span>
+                                                            @endif
                                                         </td>
                                                         <td class="text-center">
                                                             @if ($sale_receipt->status == 0)
@@ -56,7 +62,7 @@
                                                                         class="fas fa-spinner fa-spin text-warning me-2"></i>
                                                                     Pending</span>
                                                             @else
-                                                                {{ $sale_receipt->status }}
+                                                                <span class="text-primary"><i class="fas fa-check-circle me-1"></i> Paid</span>
                                                             @endif
                                                         </td>
                                                         <td>
@@ -127,6 +133,8 @@
         </div>
     </div>
     <script>
+        new DataTable("#basic-datatableszxz");
+        
         document.getElementById('create-sale-form').addEventListener('submit', function(e) {
             e.preventDefault();
 

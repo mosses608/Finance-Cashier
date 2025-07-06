@@ -162,7 +162,7 @@
                 if (!product || qty === 0) return;
 
                 const total = price * qty;
-                const discountTotal = discount * qty;
+                const discountTotal = discount * price;
                 const final = total - discountTotal;
                 grandTotal += final;
 

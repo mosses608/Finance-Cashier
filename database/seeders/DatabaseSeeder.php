@@ -28,5 +28,9 @@ class DatabaseSeeder extends Seeder
         // $this->call(InvoiceStatusSeeder::class);
         // $this->call(SatkeholderCategorySeeder::class);
         // $this->call(IdentificationSourseSeeder::class);
+        // $this->call(CostTypeSeeder::class);
+        // $this->call(ExpensesTypeSeeder::class);
+        // $this->call(RolesAndPermissionsSeeder::class);
+        $this->call(CitySeeder::class);
     }
 }

@@ -52,10 +52,10 @@
                                                 <p><strong>Sold To:</strong></p>
                                                 <div class="border p-2" style="min-height: 100px;">
                                                     <!-- Add customer info here -->
-                                                    <p class="mb-0">{{ $customerData->name }}</p>
-                                                    <p class="mb-0">{{ $customerData->address ?? '' }}</p>
-                                                    <p class="mb-0">Tanzania</p>
-                                                    <p class="mb-0">{{ $customerData->phone ?? '' }}</p>
+                                                    <p class="mb-0">Customer: {{ $customerData->name }}</p>
+                                                    <p class="mb-0">Region: {{ $customerData->address ?? '' }}</p>
+                                                    <p class="mb-0">Nation: Tanzania</p>
+                                                    <p class="mb-0">Phone: {{ $customerData->phone ?? '' }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -68,26 +68,37 @@
                                                         <th>Item Name</th>
                                                         <th>Quantity</th>
                                                         <th>Unit Price</th>
+                                                        <th>Discount (%)</th>
                                                         <th>Total</th>
                                                     </tr>
                                                 </thead>
                                                 @php
                                                     $totalAmount = 0;
+                                                    $totalDiscount = 0;
+                                                    $vat = 0;
                                                 @endphp
                                                 <tbody>
                                                     @if (count($receiptSalesOutOfStore) != 0)
                                                         @foreach ($receiptSalesOutOfStore as $receiptOutStore)
                                                             @php
+                                                                $totalDiscount +=
+                                                                    $receiptOutStore->discount *
+                                                                    $receiptOutStore->amountPay;
                                                                 $totalAmount +=
                                                                     $receiptOutStore->quantity *
-                                                                    $receiptOutStore->amountPay;
+                                                                        $receiptOutStore->amountPay -
+                                                                    $totalDiscount;
                                                             @endphp
                                                             <tr>
-                                                                <td>{{ $receiptOutStore->product_name }}</td>
+                                                                <td class="text-center">{{ $receiptOutStore->product_name }}
+                                                                </td>
                                                                 <td class="text-center">
                                                                     {{ number_format($receiptOutStore->quantity) }}</td>
                                                                 <td class="text-end">
                                                                     {{ number_format($receiptOutStore->amountPay, 2) }}</td>
+                                                                <td class="text-center">
+                                                                    {{ number_format($receiptOutStore->discount * $receiptOutStore->amountPay, 2) }}
+                                                                </td>
                                                                 <td class="text-end">
                                                                     {{ number_format($receiptOutStore->quantity * $receiptOutStore->amountPay) }}
                                                                 </td>
@@ -98,9 +109,13 @@
                                                     @if (count($receiptSalesFromStore) != 0)
                                                         @foreach ($receiptSalesFromStore as $receiptFromStore)
                                                             @php
+                                                                $totalDiscount +=
+                                                                    $receiptFromStore->discount *
+                                                                    $receiptFromStore->amount;
                                                                 $totalAmount +=
                                                                     $receiptFromStore->quantity *
-                                                                    $receiptFromStore->amount;
+                                                                        $receiptFromStore->amount -
+                                                                    $totalDiscount;
                                                             @endphp
                                                             <tr>
                                                                 <td>{{ $receiptFromStore->name }}</td>
@@ -108,8 +123,35 @@
                                                                     {{ number_format($receiptFromStore->quantity) }}</td>
                                                                 <td class="text-end">
                                                                     {{ number_format($receiptFromStore->amount, 2) }}</td>
+                                                                <td class="text-center">{{ number_format($receiptFromStore->amount * $receiptFromStore->discount, 2) }}</td>
                                                                 <td class="text-end">
-                                                                    {{ number_format($receiptFromStore->quantity * $receiptFromStore->amount) }}
+                                                                    {{ number_format($receiptFromStore->quantity * $receiptFromStore->amount - $receiptFromStore->amount * $receiptFromStore->discount, 2) }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    @endif
+
+                                                    @if (count($salesReceiptFromServices) > 0)
+                                                        @foreach ($salesReceiptFromServices as $receiptService)
+                                                            @php
+                                                                $totalDiscount +=
+                                                                    $receiptService->discount * $receiptService->amount;
+                                                                $totalAmount +=
+                                                                    $receiptService->quantity *
+                                                                        $receiptService->amount -
+                                                                    $totalDiscount;
+                                                            @endphp
+                                                            <tr>
+                                                                <td>{{ $receiptService->name }}</td>
+                                                                <td class="text-center">
+                                                                    {{ number_format($receiptService->quantity) }}</td>
+                                                                <td class="text-end">
+                                                                    {{ number_format($receiptService->amount, 2) }}</td>
+                                                                <td class="text-center">
+                                                                    {{ number_format($receiptService->discount * $receiptService->amount, 2) }}
+                                                                </td>
+                                                                <td class="text-end">
+                                                                    {{ number_format($receiptService->quantity * $receiptService->amount - $receiptService->discount * $receiptService->amount) }}
                                                                 </td>
                                                             </tr>
                                                         @endforeach
@@ -125,12 +167,13 @@
                                                         <i class="fas fa-spinner fa-spin text-warning me-2"></i>
                                                         <span class="sm" style="color: #007BFF;">Pending Payment</span>
                                                     @else
-                                                        {{ $paymentData->payment_method }}
+                                                        <strong
+                                                            class="text-primary">{{ $paymentData->payment_method }}</strong>
                                                     @endif
                                                 </p>
                                                 <p><strong>Amount Paid:</strong>
                                                     <span
-                                                        style="color: #007BFF;">{{ number_format($paymentData->amount_paid, 2) }}
+                                                        style="color: #007BFF;"><strong>{{ number_format($paymentData->amount_paid, 2) }}</strong>
                                                         TSH</span>
                                                 </p>
                                             </div>
@@ -138,10 +181,12 @@
                                                 <p><strong>Subtotal:</strong> <strong
                                                         style="color: #007BFF;">{{ number_format($totalAmount, 2) }}
                                                         TSH</strong></p>
-                                                <p><strong>Tax Rate:</strong> <strong style="color: #007BFF;">0% </strong>
+                                                <p><strong>Tax Rate:</strong> <strong
+                                                        style="color: #007BFF;">{{ number_format($paymentData->tax, 2) }}
+                                                    </strong>
                                                 </p>
                                                 <p><strong>Total Amount Due:</strong> <strong
-                                                        style="color: #007BFF;">{{ number_format($totalAmount, 2) }}
+                                                        style="color: #007BFF;">{{ number_format($totalAmount + $paymentData->tax, 2) }}
                                                         TSH</strong></p>
                                             </div>
                                         </div>

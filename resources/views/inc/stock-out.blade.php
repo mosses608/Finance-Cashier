@@ -33,7 +33,7 @@
                                                     <th>S/N</th>
                                                     <th>Product Name</th>
                                                     <th>Quantity Out</th>
-                                                    <th>User</th>
+                                                    <th>Staff</th>
                                                     <th>Due Date</th>
                                                     <th>Action</th>
                                                 </tr>

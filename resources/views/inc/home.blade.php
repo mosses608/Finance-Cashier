@@ -1,4 +1,5 @@
 @extends('layouts.part')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @include('partials.nav-bar')
 @section('content')
     <div class="container">
@@ -22,12 +23,12 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-primary bubble-shadow-small">
-                                        <i class="fas fa-users"></i>
+                                        <i class="fas fa-handshake"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Customers</p>
+                                        <p class="card-category">Stakeholders</p>
                                         <h4 class="card-title">{{ number_format($totalCustomers) }}</h4>
                                     </div>
                                 </div>
@@ -41,13 +42,13 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-info bubble-shadow-small">
-                                        <i class="fas fa-user-check"></i>
+                                        <i class="fas fa-money-bill-wave-alt"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
                                         <p class="card-category">Expenses</p>
-                                        <h4 class="card-title">1303</h4>
+                                        <h4 class="card-title">{{ number_format($expensesCounter) }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -60,13 +61,13 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-success bubble-shadow-small">
-                                        <i class="fas fa-luggage-cart"></i>
+                                        <i class="fas fa-money-bill-wave"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
                                         <p class="card-category">Income</p>
-                                        <h4 class="card-title">$ 1,345</h4>
+                                        <h4 class="card-title">{{ $newIncome }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -79,13 +80,13 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-secondary bubble-shadow-small">
-                                        <i class="far fa-check-circle"></i>
+                                        <i class="fas fa-hand-holding-dollar"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
                                         <p class="card-category">Loans</p>
-                                        <h4 class="card-title">576</h4>
+                                        <h4 class="card-title">{{ number_format(0) }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -98,26 +99,15 @@
                     <div class="card card-round">
                         <div class="card-header">
                             <div class="card-head-row">
-                                <div class="card-title">Sales & Expenses Statistics</div>
-                                <div class="card-tools">
-                                    <a href="#" class="btn btn-label-success btn-round btn-sm me-2">
-                                        <span class="btn-label">
-                                            <i class="fa fa-pencil"></i>
-                                        </span>
-                                        Export
-                                    </a>
-                                    <a href="#" class="btn btn-label-info btn-round btn-sm">
-                                        <span class="btn-label">
-                                            <i class="fa fa-print"></i>
-                                        </span>
-                                        Print
-                                    </a>
+                                <div class="card-title">
+                                    Sales & Expenses Statistics
+                                    <span class="text-primary">({{ $startOfWeek . ' ' . ' - ' . ' ' . $endOfWeek }})</span>
                                 </div>
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="chart-container" style="min-height: 375px">
-                                <canvas id="statisticsChart"></canvas>
+                            <div class="chart-container" style="height: 400px">
+                                <canvas id="statisticsChart" height="400" width="600"></canvas>
                             </div>
                             <div id="myChartLegend"></div>
                         </div>
@@ -133,12 +123,10 @@
                                         <button class="btn btn-sm btn-label-light dropdown-toggle" type="button"
                                             id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true"
                                             aria-expanded="false">
-                                            Export
+                                            Action
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <a class="dropdown-item" href="#">Something else here</a>
+                                            <a class="dropdown-item" href="#">All Sales</a>
                                         </div>
                                     </div>
                                 </div>
@@ -147,7 +135,7 @@
                         </div>
                         <div class="card-body pb-0">
                             <div class="mb-4 mt-2">
-                                <h1>$4,578.58</h1>
+                                <h1>TZS {{ $todaySales }}</h1>
                             </div>
                             <div class="pull-in">
                                 <canvas id="dailySalesChart"></canvas>
@@ -156,8 +144,9 @@
                     </div>
                     <div class="card card-round">
                         <div class="card-body pb-0">
-                            <div class="h1 fw-bold float-end text-primary">+5%</div>
-                            <h2 class="mb-2">17</h2>
+                            <div class="h1 fw-bold float-end text-primary">
+                                {{ number_format(($onlineUsers / $authUsers) * 100) }}%</div>
+                            <h2 class="mb-2">{{ number_format($onlineUsers) }}</h2>
                             <p class="text-muted">Users online</p>
                             <div class="pull-in sparkline-fix">
                                 <div id="lineChart"></div>
@@ -181,107 +170,35 @@
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <a class="dropdown-item" href="#">Something else here</a>
+                                            <a class="dropdown-item" href="#">View All Customers</a>
+                                            {{-- <a class="dropdown-item" href="#">Another action</a>
+                                            <a class="dropdown-item" href="#">Something else here</a> --}}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-list py-4">
-                                <div class="item-list">
-                                    <div class="avatar">
-                                        <img src="assets/img/jm_denis.jpg" alt="..."
-                                            class="avatar-img rounded-circle" />
+                            <div class="card-list py-2">
+
+                                @foreach ($customers as $customer)
+                                    <div class="item-list">
+                                        <div class="avatar">
+                                            <span
+                                                class="avatar-title rounded-circle border border-white">{{ strtoupper(substr($customer->name, 0, 2)) }}</span>
+                                        </div>
+                                        <div class="info-user ms-3">
+                                            <div class="username">{{ $customer->name }}</div>
+                                            <div class="status">{{ $customer->address }}</div>
+                                        </div>
+                                        <a href="mailto:{{ $customer->email }}" target="__blank"
+                                            class="btn btn-icon btn-link op-8 me-1">
+                                            <i class="far fa-envelope"></i>
+                                            </button>
+                                            <a href="tel:{{ $customer->phone }}" target="__blank"
+                                                class="btn btn-icon btn-link btn-primary op-8">
+                                                <i class="fas fa-phone"></i>
+                                            </a>
                                     </div>
-                                    <div class="info-user ms-3">
-                                        <div class="username">Jimmy Denis</div>
-                                        <div class="status">Graphic Designer</div>
-                                    </div>
-                                    <button class="btn btn-icon btn-link op-8 me-1">
-                                        <i class="far fa-envelope"></i>
-                                    </button>
-                                    <button class="btn btn-icon btn-link btn-danger op-8">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                </div>
-                                <div class="item-list">
-                                    <div class="avatar">
-                                        <span class="avatar-title rounded-circle border border-white">CF</span>
-                                    </div>
-                                    <div class="info-user ms-3">
-                                        <div class="username">Chandra Felix</div>
-                                        <div class="status">Sales Promotion</div>
-                                    </div>
-                                    <button class="btn btn-icon btn-link op-8 me-1">
-                                        <i class="far fa-envelope"></i>
-                                    </button>
-                                    <button class="btn btn-icon btn-link btn-danger op-8">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                </div>
-                                <div class="item-list">
-                                    <div class="avatar">
-                                        <img src="assets/img/talha.jpg" alt="..."
-                                            class="avatar-img rounded-circle" />
-                                    </div>
-                                    <div class="info-user ms-3">
-                                        <div class="username">Talha</div>
-                                        <div class="status">Front End Designer</div>
-                                    </div>
-                                    <button class="btn btn-icon btn-link op-8 me-1">
-                                        <i class="far fa-envelope"></i>
-                                    </button>
-                                    <button class="btn btn-icon btn-link btn-danger op-8">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                </div>
-                                <div class="item-list">
-                                    <div class="avatar">
-                                        <img src="assets/img/chadengle.jpg" alt="..."
-                                            class="avatar-img rounded-circle" />
-                                    </div>
-                                    <div class="info-user ms-3">
-                                        <div class="username">Chad</div>
-                                        <div class="status">CEO Zeleaf</div>
-                                    </div>
-                                    <button class="btn btn-icon btn-link op-8 me-1">
-                                        <i class="far fa-envelope"></i>
-                                    </button>
-                                    <button class="btn btn-icon btn-link btn-danger op-8">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                </div>
-                                <div class="item-list">
-                                    <div class="avatar">
-                                        <span class="avatar-title rounded-circle border border-white bg-primary">H</span>
-                                    </div>
-                                    <div class="info-user ms-3">
-                                        <div class="username">Hizrian</div>
-                                        <div class="status">Web Designer</div>
-                                    </div>
-                                    <button class="btn btn-icon btn-link op-8 me-1">
-                                        <i class="far fa-envelope"></i>
-                                    </button>
-                                    <button class="btn btn-icon btn-link btn-danger op-8">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                </div>
-                                <div class="item-list">
-                                    <div class="avatar">
-                                        <span class="avatar-title rounded-circle border border-white bg-secondary">F</span>
-                                    </div>
-                                    <div class="info-user ms-3">
-                                        <div class="username">Farrah</div>
-                                        <div class="status">Marketing</div>
-                                    </div>
-                                    <button class="btn btn-icon btn-link op-8 me-1">
-                                        <i class="far fa-envelope"></i>
-                                    </button>
-                                    <button class="btn btn-icon btn-link btn-danger op-8">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
@@ -299,9 +216,7 @@
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <a class="dropdown-item" href="#">Something else here</a>
+                                            <a class="dropdown-item" href="#">View All Transactions</a>
                                         </div>
                                     </div>
                                 </div>
@@ -313,104 +228,32 @@
                                 <table class="table align-items-center mb-0">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th scope="col">Payment Number</th>
-                                            <th scope="col" class="text-end">Date & Time</th>
-                                            <th scope="col" class="text-end">Amount</th>
-                                            <th scope="col" class="text-end">Status</th>
+                                            <th scope="col" class="text-nowrap">Customer Number</th>
+                                            <th scope="col" class="text-end text-nowrap">Date & Time</th>
+                                            <th scope="col" class="text-end text-nowrap">Amount (TZS)</th>
+                                            <th scope="col" class="text-end text-nowrap">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <th scope="row">
-                                                <button class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                    <i class="fa fa-check"></i>
-                                                </button>
-                                                Payment from #10231
-                                            </th>
-                                            <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                            <td class="text-end">$250.00</td>
-                                            <td class="text-end">
-                                                <span class="badge badge-success">Completed</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <button class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                    <i class="fa fa-check"></i>
-                                                </button>
-                                                Payment from #10231
-                                            </th>
-                                            <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                            <td class="text-end">$250.00</td>
-                                            <td class="text-end">
-                                                <span class="badge badge-success">Completed</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <button class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                    <i class="fa fa-check"></i>
-                                                </button>
-                                                Payment from #10231
-                                            </th>
-                                            <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                            <td class="text-end">$250.00</td>
-                                            <td class="text-end">
-                                                <span class="badge badge-success">Completed</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <button class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                    <i class="fa fa-check"></i>
-                                                </button>
-                                                Payment from #10231
-                                            </th>
-                                            <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                            <td class="text-end">$250.00</td>
-                                            <td class="text-end">
-                                                <span class="badge badge-success">Completed</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <button class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                    <i class="fa fa-check"></i>
-                                                </button>
-                                                Payment from #10231
-                                            </th>
-                                            <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                            <td class="text-end">$250.00</td>
-                                            <td class="text-end">
-                                                <span class="badge badge-success">Completed</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <button class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                    <i class="fa fa-check"></i>
-                                                </button>
-                                                Payment from #10231
-                                            </th>
-                                            <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                            <td class="text-end">$250.00</td>
-                                            <td class="text-end">
-                                                <span class="badge badge-success">Completed</span>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <button class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                    <i class="fa fa-check"></i>
-                                                </button>
-                                                Payment from #10231
-                                            </th>
-                                            <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                                            <td class="text-end">$250.00</td>
-                                            <td class="text-end">
-                                                <span class="badge badge-success">Completed</span>
-                                            </td>
-                                        </tr>
+                                        @foreach ($salesTransactions as $transaction)
+                                            <tr>
+                                                <th scope="row">
+                                                    <button class="btn btn-icon btn-round btn-success btn-sm me-2">
+                                                        <i class="fa fa-check"></i>
+                                                    </button>
+                                                    From # {{ str_pad($transaction->customerId, 4, '0', STR_PAD_LEFT) }}
+                                                </th>
+                                                <td class="text-end">
+                                                    {{ \Carbon\Carbon::parse($transaction->createdDate)->format('M d, Y H:i A') }}
+                                                </td>
+                                                <td class="text-end text-primary fw-600">
+                                                    {{ number_format($transaction->amount, 2) }}</td>
+                                                <td class="text-end">
+                                                    <span class="badge badge-primary"><i class="fas fa-circle-check"></i>
+                                                        Paid</span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
@@ -420,97 +263,57 @@
             </div>
         </div>
     </div>
-
-    @if (false)
-        <footer class="footer">
-            <div class="container-fluid d-flex justify-content-between">
-                <nav class="pull-left">
-                    <ul class="nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="http://www.themekita.com">
-                                ThemeKita
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"> Help </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"> Licenses </a>
-                        </li>
-                    </ul>
-                </nav>
-                <div class="copyright">
-                    2024, made with <i class="fa fa-heart heart text-danger"></i> by
-                    <a href="http://www.themekita.com">ThemeKita</a>
-                </div>
-                <div>
-                    Distributed by
-                    <a target="_blank" href="https://themewagon.com/">ThemeWagon</a>.
-                </div>
-            </div>
-        </footer>
-    @endif
-    </div>
-
-    <!-- Custom template | don't include it in your project! -->
-    <div class="custom-template">
-        <div class="title">Settings</div>
-        <div class="custom-content">
-            <div class="switcher">
-                <div class="switch-block">
-                    <h4>Logo Header</h4>
-                    <div class="btnSwitch">
-                        <button type="button" class="selected changeLogoHeaderColor" data-color="dark"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="blue"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="purple"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="light-blue"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="green"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="orange"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="red"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="white"></button>
-                        <br />
-                        <button type="button" class="changeLogoHeaderColor" data-color="dark2"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="blue2"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="purple2"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="light-blue2"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="green2"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="orange2"></button>
-                        <button type="button" class="changeLogoHeaderColor" data-color="red2"></button>
-                    </div>
-                </div>
-                <div class="switch-block">
-                    <h4>Navbar Header</h4>
-                    <div class="btnSwitch">
-                        <button type="button" class="changeTopBarColor" data-color="dark"></button>
-                        <button type="button" class="changeTopBarColor" data-color="blue"></button>
-                        <button type="button" class="changeTopBarColor" data-color="purple"></button>
-                        <button type="button" class="changeTopBarColor" data-color="light-blue"></button>
-                        <button type="button" class="changeTopBarColor" data-color="green"></button>
-                        <button type="button" class="changeTopBarColor" data-color="orange"></button>
-                        <button type="button" class="changeTopBarColor" data-color="red"></button>
-                        <button type="button" class="selected changeTopBarColor" data-color="white"></button>
-                        <br />
-                        <button type="button" class="changeTopBarColor" data-color="dark2"></button>
-                        <button type="button" class="changeTopBarColor" data-color="blue2"></button>
-                        <button type="button" class="changeTopBarColor" data-color="purple2"></button>
-                        <button type="button" class="changeTopBarColor" data-color="light-blue2"></button>
-                        <button type="button" class="changeTopBarColor" data-color="green2"></button>
-                        <button type="button" class="changeTopBarColor" data-color="orange2"></button>
-                        <button type="button" class="changeTopBarColor" data-color="red2"></button>
-                    </div>
-                </div>
-                <div class="switch-block">
-                    <h4>Sidebar</h4>
-                    <div class="btnSwitch">
-                        <button type="button" class="changeSideBarColor" data-color="white"></button>
-                        <button type="button" class="selected changeSideBarColor" data-color="dark"></button>
-                        <button type="button" class="changeSideBarColor" data-color="dark2"></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="custom-toggle">
-            <i class="icon-settings"></i>
-        </div>
-    </div>
+    <script>
+        const ctx = document.getElementById('statisticsChart').getContext('2d');
+        const weeklyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($labels) !!},
+                datasets: [{
+                        label: 'Sales',
+                        data: {!! json_encode($salesData) !!},
+                        fill: true,
+                        backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                        borderColor: '#007bff',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Expenses',
+                        data: {!! json_encode($expensesData) !!},
+                        fill: true,
+                        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                        borderColor: '#dc3545',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Amount (TSH)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Week Days'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 @endsection

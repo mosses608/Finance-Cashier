@@ -2,11 +2,11 @@
 
 @section('content')
 <div class="container mt-4">
-    <div class="center">
+    <center class="center">
         <span><i class="fa fa-area-chart" style="color: gold;"></i></span>
         <!-- <img src="{{ asset('assets/images/logo-finance.png') }}" alt="Logo Finance"> -->
         <h3>{{__('Reset Password')}}</h3>
-    </div>
+    </center>
     <div class="row justify-content-center">
         <div class="col-md-4">
             <form action="{{ route('rest.password') }}" method="POST">

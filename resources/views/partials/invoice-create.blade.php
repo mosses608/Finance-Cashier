@@ -47,15 +47,6 @@
                 </div>
             </div>
 
-            {{--
-                                        <div class="col-6 mt-3 w-100">
-                                            <button type="button" class="btn btn-primary float-end">
-                                                <i class="fa fa-plus"></i>
-                                            </button>
-                                        </div>
-                                        --}}
-
-
             <div class="col-12 mb-2" id="selected">
                 <label class="input-label p-2"><strong>Customer Section</strong></label>
                 <select class="form-control">
@@ -159,7 +150,7 @@
                 if (!select.value || !quantity) return;
 
                 const totalPrice = price * quantity;
-                const discountPrice = discount * quantity;
+                const discountPrice = discount * price;
                 const finalTotal = totalPrice - discountPrice;
                 grandTotal += finalTotal;
 

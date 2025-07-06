@@ -36,7 +36,7 @@ class StockController extends Controller
     {
         $products = DB::table('products AS PR')
             ->join('stores AS ST', 'PR.store_id', '=', 'ST.id')
-            // ->join('stocks AS STK', 'PR.id', '=', 'STK.storage_item_id')
+            // ->join('stock_out_transaction AS STK', 'PR.id', '=', 'STK.product_id')
             ->select([
                 'PR.name AS productName',
                 'PR.sku AS sku',
@@ -53,9 +53,14 @@ class StockController extends Controller
 
         $stocks = DB::table('stocks')->select('storage_item_id', 'quantity_total')->where('soft_delete', 0)->get();
 
-        // dd($stocks);
+        $stockOutTransactions = DB::table('stock_out_transaction')
+            ->select('stockout_quantity', 'product_id')
+            ->where('soft_delete', 0)
+            ->get();
 
-        return view('inc.stock-in', compact('products', 'stocks'));
+        // dd($stockOutTransactions);
+
+        return view('inc.stock-in', compact('products', 'stocks','stockOutTransactions'));
     }
 
     public function stockInQuantity(Request $request)
@@ -125,11 +130,11 @@ class StockController extends Controller
 
         $todayStockOuts = DB::table('stock_out_transaction AS SOUT')
             ->join('products AS PR', 'SOUT.product_id', '=', 'PR.id')
-            ->join('users AS U', 'SOUT.user_id', '=', 'U.id')
+            ->join('emplyees AS U', 'SOUT.user_id', '=', 'U.id')
             ->select([
                 'PR.name AS productName',
                 'SOUT.stockout_quantity AS quantityOut',
-                'U.name AS userName',
+                'U.first_name AS userName',
                 'SOUT.created_at AS dueDate',
                 'SOUT.id AS autoId'
             ])
@@ -142,7 +147,7 @@ class StockController extends Controller
 
         // dd($todayStockOuts);
 
-        return view('inc.stock-out', compact('stockProducts', 'customers','todayStockOuts'));
+        return view('inc.stock-out', compact('stockProducts', 'customers', 'todayStockOuts'));
     }
 
     public function stockOutProduct(Request $request)
@@ -170,15 +175,33 @@ class StockController extends Controller
         // dd($request->all());
     }
 
-    public function stockOutReceipt($encryptedId){
-        try{
+    public function stockOutReceipt($encryptedId)
+    {
+        try {
             $stockId = Crypt::decrypt($encryptedId);
-        }
-        catch(\Throwable $th){
+        } catch (\Throwable $th) {
             return $th->getMessage();
         }
 
-        // dd($encryptedId);
-        return view('inc.stock-out-receipt');
+        $stockOuts = DB::table('stock_out_transaction AS SOUT')
+            ->join('products AS PR', 'SOUT.product_id', '=', 'PR.id')
+            ->join('stocks AS SK', 'PR.id', '=', 'SK.storage_item_id')
+            ->join('emplyees AS U', 'SOUT.user_id', '=', 'U.id')
+            ->select([
+                'PR.name AS productName',
+                'SOUT.stockout_quantity AS quantityOut',
+                'U.first_name AS userName',
+                'SK.item_price AS price',
+                'SOUT.created_at AS dueDate',
+            ])
+            ->where('SOUT.id', $stockId)
+            ->where('SOUT.soft_delete', 0)
+            ->where('PR.soft_delete', 0)
+            ->where('U.soft_delete', 0)
+            ->get();
+
+        // dd($stockOuts);
+
+        return view('inc.stock-out-receipt', compact('stockOuts'));
     }
 }
