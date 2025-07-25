@@ -21,7 +21,7 @@
                             <div class="nav nav-tabs" id="nav-tab" role="tablist">
                                 <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab"
                                     data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-home"
-                                    aria-selected="true">Budget List List</button>
+                                    aria-selected="true">Budget List</button>
                                 <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab"
                                     data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact"
                                     aria-selected="false">Projects List</button>
@@ -66,7 +66,7 @@
                                                         <td class="text-nowrap">
                                                             @if ($budget->status == false)
                                                                 <button class="btn btn-warning btn-sm">
-                                                                    <i class="fas fa-circle-notch fa-spin"></i> In Review
+                                                                    <i class="fas fa-circle-notch fa-spin"></i> Under Review
                                                                 </button>
                                                             @else
                                                                 <i class="fas fa-check-circle text-success"></i>

@@ -12,7 +12,7 @@
                             <h4 class="fs-5">Budget Code Roll Out</h4>
                             @if ($budget === null)
                                 <form class="row mt-3 mb-0" action="{{ route('budget.roll.out') }}" method="GET">
-                                    <div class="col-4 mb-3">
+                                    <div class="col-3 mb-3">
                                         <div class="input-group mb-3">
                                             <span class="input-group-text" id="inputGroup-sizing-default">Project</span>
                                             <select class="form-control" aria-label="Sizing example input"
@@ -28,19 +28,41 @@
                                     </div>
                                     <div class="col-3 mb-3">
                                         <div class="input-group mb-3">
-                                            <span class="input-group-text" id="inputGroup-sizing-default">Current
-                                                Budget</span>
-                                            <select class="form-control" aria-label="Sizing example input" name="searchYear"
-                                                aria-describedby="inputGroup-sizing-default" required>
-                                                @foreach ($budgetYears as $year)
-                                                    <option value="{{ $year }}">{{ $year }}</option>
+                                            <span class="input-group-text" id="inputGroup-sizing-default">Code</span>
+                                            <select class="form-control" aria-label="Sizing example input" name="searchCode"
+                                                aria-describedby="inputGroup-sizing-default" id="searchCode" required>
+                                                <option value="" selected disabled>--
+                                                    budget code--
+                                                </option>
+                                                @foreach ($budgetCodes as $code)
+                                                    <option value="{{ $code->budget_code }}"
+                                                        data-year="{{ $code->budget_year }}">{{ $code->budget_code }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-3 mb-3">
                                         <div class="input-group mb-3">
-                                            <span class="input-group-text" id="inputGroup-sizing-default">New Budget</span>
+                                            <span class="input-group-text" id="inputGroup-sizing-default">Current
+                                                Year</span>
+                                            <input type="year" class="form-control" aria-label="Sizing example input"
+                                                name="searchYear" aria-describedby="inputGroup-sizing-default"
+                                                placeholder="budget year" id="searchYear" required>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        document.getElementById('searchCode').addEventListener('change', function() {
+                                            const selectOption = this.options[this.selectedIndex];
+
+                                            const selectedValue = selectOption.getAttribute('data-year');
+
+                                            document.getElementById('searchYear').value = selectedValue;
+                                        });
+                                    </script>
+                                    <div class="col-3 mb-3">
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text" id="inputGroup-sizing-default">New Year</span>
                                             <select class="form-control" aria-label="Sizing example input" name="newYear"
                                                 aria-describedby="inputGroup-sizing-default" required>
                                                 <option value="{{ \Carbon\Carbon::now()->format('Y') + 1 }}">
@@ -94,6 +116,8 @@
                                         value="{{ $budget->budget_year }}">
                                     <input type="hidden" name="project_name" id=""
                                         value="{{ $budget->project_name }}">
+                                    <input type="hidden" name="old_budget_code" id=""
+                                        value="{{ $budget->budget_code }}">
                                     @if (isset($budget) && $budget != null)
                                         <div class="table-responsive">
                                             <table id="basic-datatables-01x"
@@ -106,7 +130,7 @@
                                                         <th class="text-nowrap">Unit Cost</th>
                                                         <th class="text-nowrap">Quantity</th>
                                                         <th class="text-nowrap">Unit Measure</th>
-                                                        <th class="text-nowrap">Budget Amount</th>
+                                                        <th class="text-nowrap">Budget Amount <strong class="text-secondary">({{ $budget->currency }})</strong></th>
                                                     </tr>
                                                 </thead>
                                                 @php
@@ -119,68 +143,78 @@
                                                                 $subBudgetItem->unit_cost * $subBudgetItem->quantity;
                                                         @endphp
                                                         <tr>
-                                                            <td class="text-nowrap"><input type="checkbox"
-                                                                    name="sub_budget_code[]" id=""
-                                                                    value="{{ $subBudgetItem->sub_budget_code }}"></td>
-                                                            <td class="text-nowrap">{{ $subBudgetItem->sub_budget_code }}
+                                                            <td>
+                                                                <input type="checkbox" name="sub_budget_code[]"
+                                                                    class="row-check"
+                                                                    value="{{ $subBudgetItem->sub_budget_code }}">
                                                             </td>
-                                                            <td class="text-nowrap">
+                                                            <td>{{ $subBudgetItem->sub_budget_code }}</td>
+                                                            <td>
                                                                 <input type="hidden" name="sub_budget_description[]"
-                                                                    id=""
                                                                     value="{{ $subBudgetItem->sub_budget_description }}">
                                                                 {{ $subBudgetItem->sub_budget_description }}
                                                             </td>
-                                                            <td class="text-nowrap">
-                                                                <input type="text" class="form-control"
-                                                                    style="width: 150px;" id="exampleFormControlInput1"
-                                                                    name="unit_cost[]"
-                                                                    value="{{ number_format($subBudgetItem->unit_cost, 2) }}"
-                                                                    placeholder="{{ number_format($subBudgetItem->unit_cost, 2) }}">
+                                                            <td>
+                                                                <input type="number" step="0.01" class="form-control"
+                                                                    style="width: 150px;" name="unit_cost[]"
+                                                                    value="{{ $subBudgetItem->unit_cost }}">
                                                             </td>
-                                                            <td class="text-nowrap">
+                                                            <td>
+                                                                <input type="number"
+                                                                    class="form-control text-center quantity-input"
+                                                                    name="quantity[]"
+                                                                    value="{{ $subBudgetItem->quantity }}">
+                                                            </td>
+                                                            <td>
                                                                 <input type="text" class="form-control text-center"
-                                                                    id="exampleFormControlInput1" name="quantity[]"
-                                                                    value="{{ $subBudgetItem->quantity }}"
-                                                                    placeholder="{{ number_format($subBudgetItem->quantity) }}">
+                                                                    name="unit_meausre[]"
+                                                                    value="{{ $subBudgetItem->unit_meausre }}">
                                                             </td>
-                                                            <td class="text-nowrap">
-                                                                <input type="text" class="form-control text-center"
-                                                                    id="exampleFormControlInput1" name="unit_meausre[]"
-                                                                    value="{{ $subBudgetItem->unit_meausre }}"
-                                                                    placeholder="{{ $subBudgetItem->unit_meausre }}">
-                                                            </td>
-                                                            <td class="text-nowrap">
-                                                                <input type="number" class="form-control"
-                                                                    style="width: 160px; color: #000; font-weight: 900;"
-                                                                    id="exampleFormControlInput1"
+                                                            <td class="text-center text-secondary">
+                                                                {{-- <input type="text" class="form-control"
                                                                     value="{{ number_format($subBudgetItem->unit_cost * $subBudgetItem->quantity, 2) }}"
-                                                                    placeholder="{{ number_format($subBudgetItem->unit_cost * $subBudgetItem->quantity, 2) }}"
-                                                                    disabled>
+                                                                    disabled> --}}
+                                                                <strong>
+                                                                    {{ number_format($subBudgetItem->unit_cost * $subBudgetItem->quantity, 2) }}</strong>
                                                             </td>
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
                                         </div>
+
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                document.querySelectorAll('.row-check').forEach(function(checkbox) {
+                                                    checkbox.addEventListener('change', function() {
+                                                        const row = this.closest('tr');
+                                                        row.querySelectorAll('input:not([type="checkbox"])').forEach(input => {
+                                                            input.disabled = !this.checked;
+                                                        });
+                                                    });
+
+                                                    checkbox.dispatchEvent(new Event('change'));
+                                                });
+                                            });
+                                        </script>
+
                                         <div class="row mb-3 mt-3 p-3">
                                             <div class="col-4">
-                                                <input type="text" class="form-control"
-                                                    id="exampleFormControlInput1" name="budget_code"
-                                                    placeholder="enter new budget code"
-                                                    required>
+                                                <input type="text" class="form-control" id="exampleFormControlInput1"
+                                                    name="budget_code" placeholder="enter new budget code" required>
                                             </div>
                                             <div class="col-8">
-                                                <div class="form-check">
+                                                <div class="form-check float-end">
                                                     <input class="form-check-input" type="checkbox"
                                                         value="{{ Crypt::encrypt(1) }}" id="checkDefault" name="confirm"
                                                         required>
-                                                    <label class="form-check-label" for="checkDefault">
+                                                    <label class="form-check-label text-primary" for="checkDefault">
                                                         I, hereby confirm budget code roll out.
                                                     </label>
                                                 </div>
                                             </div>
                                             <div class="col-3">
-                                                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i>
+                                                <button type="submit" class="btn btn-primary mt-3"><i class="fa fa-save"></i>
                                                     Save
                                                     Data</button>
                                             </div>

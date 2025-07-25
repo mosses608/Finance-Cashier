@@ -12,6 +12,6 @@ class Project extends Model
     public $incrementing = true;
 
     protected $fillable = [
-        'name','soft_delete',
+        'name','soft_delete','company_id',
     ];
 }

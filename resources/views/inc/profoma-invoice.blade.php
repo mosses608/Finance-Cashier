@@ -132,7 +132,8 @@
                                                                 <i class="fas fa-spinner fa-spin text-warning me-2"></i>
                                                                 {{ $profomaInvoice->statusInvoice }}
                                                             @else
-                                                                <span class="text-primary"><i class="fas fa-check-circle"></i>
+                                                                <span class="text-primary"><i
+                                                                        class="fas fa-check-circle"></i>
                                                                     {{ $profomaInvoice->statusInvoice }}</span>
                                                             @endif
 
@@ -178,8 +179,19 @@
                                                         <td>{{ $profomaOutStore->customerName }}</td>
                                                         <td>{{ number_format($profomaOutStore->amount, 2) }}</td>
                                                         <td>
-                                                            <i class="fas fa-spinner fa-spin text-warning me-2"></i>
-                                                            {{ $profomaOutStore->profomaStatus }}
+                                                            @if ($profomaOutStore->profomaStatus == 'Pending')
+                                                                <i class="fas fa-spinner fa-spin text-warning me-2"></i>
+                                                                {{ $profomaOutStore->profomaStatus }}
+                                                            @elseif($profomaOutStore->profomaStatus == 'Accepted')
+                                                                <div class="text-primary">
+                                                                    <i class="fas fa-check-circle"></i>
+                                                                    {{ $profomaOutStore->profomaStatus }}
+                                                                </div>
+                                                            @else
+                                                                <span
+                                                                    class="text-danger">{{ $profomaOutStore->profomaStatus }}</span>
+                                                            @endif
+
                                                         </td>
                                                         <td>{{ \Carbon\Carbon::parse($profomaOutStore->dateCreated)->format('M d, Y') }}
                                                         </td>

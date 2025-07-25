@@ -10,12 +10,12 @@
                         <div class="card-header">
                             <h4 class="fs-5">Budget Review</h4>
                             <form class="row mt-3 mb-0" action="{{ route('budget.review') }}" method="GET">
-                                <div class="col-5 mb-3">
+                                <div class="col-4 mb-3">
                                     <div class="input-group mb-3">
                                         <span class="input-group-text" id="inputGroup-sizing-default">Project</span>
                                         <select class="form-control" aria-label="Sizing example input" name="searchProject"
                                             aria-describedby="inputGroup-sizing-default" required>
-                                            <option value="" selected disabled>--select
+                                            <option value="" selected disabled>--
                                                 project name--
                                             </option>
                                             @foreach ($projects as $project)
@@ -24,26 +24,43 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-5 mb-3">
+                                <div class="col-3 mb-3">
                                     <div class="input-group mb-3">
-                                        <span class="input-group-text" id="inputGroup-sizing-default">Year</span>
-                                        <select class="form-control" aria-label="Sizing example input" name="searchYear"
-                                            aria-describedby="inputGroup-sizing-default" required>
-                                            <option value="" selected disabled>--select
-                                                budget year--
+                                        <span class="input-group-text" id="inputGroup-sizing-default">Code</span>
+                                        <select class="form-control" aria-label="Sizing example input" name="searchCode"
+                                            aria-describedby="inputGroup-sizing-default" id="searchCode" required>
+                                            <option value="" selected disabled>--
+                                                budget code--
                                             </option>
-                                            @foreach ($budgetYears as $year)
-                                                <option value="{{ $year }}">{{ $year }}</option>
+                                            @foreach ($budgetCodes as $code)
+                                                <option value="{{ $code->budget_code }}"
+                                                    data-year="{{ $code->budget_year }}">{{ $code->budget_code }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-2 mb-3">
+                                <div class="col-3 mb-3">
                                     <div class="input-group mb-3">
-                                        <button type="submit" class="btn btn-primary" type="submit">Search</button>
+                                        <span class="input-group-text" id="inputGroup-sizing-default">Year</span>
+                                        <input type="year" id="budgetYear" class="form-control"
+                                            aria-label="Sizing example input" name="searchYear"
+                                            aria-describedby="inputGroup-sizing-default" placeholder="budget year" required>
                                     </div>
                                 </div>
+                                <div class="col-2 mb-3">
+                                    {{-- <div class="input-group mb-3"> --}}
+                                        <button type="submit" class="btn btn-primary float-end" type="submit">Search</button>
+                                    {{-- </div> --}}
+                                </div>
                             </form>
+                            <script>
+                                document.getElementById('searchCode').addEventListener('change', function() {
+                                    const selectedOption = this.options[this.selectedIndex];
+                                    const selectedYear = selectedOption.getAttribute('data-year');
+
+                                    document.getElementById('budgetYear').value = selectedYear;
+                                });
+                            </script>
                             @if (isset($budget) && $budget != null)
                                 <div class="row p-3 py-0 mb-0">
                                     <hr>

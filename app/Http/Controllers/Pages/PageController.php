@@ -8,9 +8,12 @@ use App\Models\Employees;
 use App\Models\Stakeholder;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use App\Mail\SubscriptionMail;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
 {
@@ -18,6 +21,142 @@ class PageController extends Controller
     public function welcome()
     {
         return view('welcome');
+    }
+
+    public function index()
+    {
+        return view('templates.index');
+    }
+
+    public function getStarted()
+    {
+        $regions = DB::table('city')
+            ->select('id', 'name')
+            ->where('soft_delete', 0)
+            ->get();
+
+        return view('templates.get-started', compact('regions'));
+    }
+
+    public function subscribe(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string',
+        ]);
+
+        $emailExists = DB::table('subscriptions')
+            ->where('email', $request->email)
+            ->where('soft_delete', 0)
+            ->exists();
+
+            if($emailExists == true){
+                return redirect()->back()->with('error_msg','You have already subscribed to our channel, no need to do that again!');
+            }
+
+            DB::table('subscriptions')->insert([
+                'email' => $request->email,
+            ]);
+
+            $mailTo = $request->email;
+
+            Mail::to($mailTo)->send(new SubscriptionMail($mailTo));
+
+        return redirect()->back()->with('success_msg','You have successfully subscribed to our channel');
+    }
+
+    public function signUp(Request $request)
+    {
+        $request->validate([
+            // company data
+            'company_reg_no' => 'required|string',
+            'tin' => 'nullable|string',
+            'vrn' => 'nullable|string',
+            'company_name' => 'required|string',
+            'company_email' => 'nullable|string',
+            'website' => 'nullable|string',
+            'region' => 'nullable|integer',
+            'address' => 'nullable|string',
+
+            // personal data 
+            'first_name' => 'required|string',
+            'last_name' => 'nullable|string',
+            'personal_email' => 'required|string',
+            'phone' => 'required|string',
+            'password' => 'required|string',
+            'password_confirmation' => 'required|string',
+            'logo' => 'nullable|file',
+        ]);
+
+        // company exists
+        $comapnyExists = DB::table('companies')
+            ->where('company_reg_no', $request->company_reg_no)
+            ->orWhere('tin', $request->tin)
+            ->orWhere('vrn', $request->vrn)
+            ->where('soft_delete', 0)
+            ->exists();
+
+        if ($comapnyExists == true) {
+            return redirect()->back()->with('error_msg', 'Company with registration number' . ' ' . $request->company_reg_no . ' ' . 'already exists in our databases!');
+        }
+
+        $userExists = DB::table('administrators')
+            ->where('email', $request->personal_email)
+            ->orWhere('phone', $request->phone)
+            ->exists();
+
+        if ($userExists == true) {
+            return redirect()->back()->with('error_msg', 'User with email and phone number' . ' ' . $request->personal_email . ' ' . $request->phone . ' ' . ' already exists in our databases!');
+        }
+
+        if ($request->password != $request->password_confirmation) {
+            return redirect()->back()->with('error_msg', 'Password  do not match!');
+        }
+
+        $filePath = null;
+
+        if ($request->hasFile('logo')) {
+            $filePath = $request->file('logo')->store('logos', 'public');
+        }
+
+        try {
+            $comapanyId = DB::table('companies')->insertGetId([
+                'company_reg_no' => $request->company_reg_no,
+                'company_name' => $request->company_name,
+                'company_email' => $request->company_email,
+                'website' => $request->website ?? null,
+                'region' => $request->region,
+                'address' => $request->address ?? null,
+                'tin' => $request->tin ?? null,
+                'vrn' => $request->vrn ?? null,
+                'logo' => $filePath,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+
+            $userId = DB::table('administrators')->insertGetId([
+                'names' => $request->first_name . ' ' . $request->last_name,
+                'role_id' => 1,
+                'email' => $request->personal_email,
+                'phone' => $request->phone,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+                'company_id' => $comapanyId,
+            ]);
+
+            DB::table('auth')->insert([
+                'user_id' => $userId,
+                'username' => $request->phone,
+                'password' => Hash::make($request->password),
+                'role_id' => 1,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+
+            return redirect()->route('login')->with('success_msg', 'Company with registration number ' . ' ' . $request->company_reg_no . ' ' . 'has been registered successfully!');
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+        dd($comapnyExists);
     }
 
     public function dashboard()
@@ -58,14 +197,23 @@ class PageController extends Controller
         return $number;
     }
 
-    public function testPage()
+    public function dashboardFx()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $totalCustomers = DB::table('stakeholders')
             ->where('soft_delete', 0)
+            ->where('company_id', $companyId->companyId)
             ->count();
 
         $expensesCounter = DB::table('expenses AS EXP')
             ->join('budgets AS B', 'EXP.budget_id', '=', 'B.id')
+            ->where('EXP.company_id', $companyId->companyId)
             ->where('B.budget_year', Carbon::now()->year)
             ->where('B.soft_delete', 0)
             ->where('EXP.soft_delete', 0)
@@ -73,6 +221,7 @@ class PageController extends Controller
 
         $expsnesAmount = DB::table('expenses AS EXP')
             ->join('budgets AS B', 'EXP.budget_id', '=', 'B.id')
+            ->where('EXP.company_id', $companyId->companyId)
             ->where('B.budget_year', Carbon::now()->year)
             ->where('B.soft_delete', 0)
             ->where('EXP.soft_delete', 0)
@@ -80,11 +229,13 @@ class PageController extends Controller
 
         $salesAmount = DB::table('sales')
             ->whereYear('created_at', Carbon::now()->year)
+            ->where('company_id', $companyId->companyId)
             ->where('soft_delete', 0)
             ->sum('amount_paid');
 
         $shortSales = DB::table('sales')
             ->whereDate('created_at', Carbon::today())
+            ->where('company_id', $companyId->companyId)
             ->where('soft_delete', 0)
             ->sum('amount_paid');
 
@@ -95,6 +246,7 @@ class PageController extends Controller
         $customers = DB::table('stakeholders')
             ->where('stakeholder_category', 1)
             ->select('name', 'address', 'phone', 'email')
+            ->where('company_id', $companyId->companyId)
             ->orderBy('name', 'ASC')
             ->limit(10)
             ->get();
@@ -108,6 +260,7 @@ class PageController extends Controller
                 'ST.is_paid AS isPaid',
                 'ST.status AS status',
             ])
+            ->where('ST.company_id', $companyId->companyId)
             ->where('I.soft_delete', 0)
             ->where('ST.soft_delete', 0)
             ->orderBy('ST.id', 'DESC')
@@ -117,7 +270,9 @@ class PageController extends Controller
             ->where('is_online', 1)
             ->count();
 
-        $authUsers = $onlineUsers = DB::table('auth')->count();
+        // dd($onlineUsers);
+
+        $authUsers = DB::table('auth')->count();
 
         $startOfWeek = Carbon::now()->startOfWeek()->format('M d, Y');
         $endOfWeek = Carbon::now()->endOfWeek()->format('M d, Y');
@@ -129,6 +284,7 @@ class PageController extends Controller
         $weeklySales = DB::table('sales')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(amount_paid) as total'))
             ->whereBetween('created_at', [$start, $end])
+            ->where('company_id', $companyId->companyId)
             ->where('soft_delete', 0)
             ->groupBy('date')
             ->pluck('total', 'date');
@@ -137,6 +293,7 @@ class PageController extends Controller
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(amount) as total'))
             ->whereBetween('created_at', [$start, $end])
             ->where('soft_delete', 0)
+            ->where('company_id', $companyId->companyId)
             ->groupBy('date')
             ->pluck('total', 'date');
 
@@ -153,6 +310,15 @@ class PageController extends Controller
             $expensesData[] = $weeklyExpenses[$key] ?? 0;
         }
 
+        $companyData = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select([
+                'C.company_name	 AS companyName',
+            ])
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         return view('inc.home', compact([
             'totalCustomers',
             'expensesCounter',
@@ -166,7 +332,8 @@ class PageController extends Controller
             'endOfWeek',
             'labels',
             'salesData',
-            'expensesData'
+            'expensesData',
+            'companyData'
         ]));
     }
 
@@ -201,6 +368,13 @@ class PageController extends Controller
             ->orderBy('name', 'ASC')
             ->get();
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $stakeholders = DB::table('stakeholders AS STH')
             ->join('city AS C', 'STH.region_id', '=', 'C.id')
             ->select([
@@ -212,6 +386,7 @@ class PageController extends Controller
                 'STH.vrn AS vrn',
                 'C.name AS region',
             ])
+            ->where('STH.company_id', $companyId->companyId)
             ->where('STH.soft_delete', 0)
             ->orderBy('STH.id', 'DESC')
             ->get();
@@ -262,7 +437,15 @@ class PageController extends Controller
             'supplier_type' => 'nullable|string',
         ]);
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $existingStakeholder = DB::table('stakeholders')
+            ->where('company_id', $companyId->companyId)
             ->where('phone', $request->phone)
             ->orWhere('tin', $request->tin)
             ->orWhere('vrn', $request->vrn)
@@ -276,7 +459,11 @@ class PageController extends Controller
         // dd($request->all());
 
         try {
-            Stakeholder::create($validatedData);
+            $stakeHolderId = Stakeholder::create($validatedData);
+
+            DB::table('stakeholders')->where('id', $stakeHolderId->id)->update([
+                'company_id' => $companyId->companyId,
+            ]);
         } catch (\Throwable $th) {
             return $th->getMessage();
         }
@@ -474,6 +661,13 @@ class PageController extends Controller
             ->orderBy('name', 'ASC')
             ->get();
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $departments = DB::table('departments')
             ->select([
                 'id',
@@ -497,6 +691,7 @@ class PageController extends Controller
                 'E.bank_name AS bankName',
                 'E.bank_account_number AS bank_account_number',
             ])
+            ->where('E.company_id', $companyId->companyId)
             ->where('E.soft_delete', 0)
             ->orderBy('E.first_name', 'ASC')
             ->get();
@@ -533,9 +728,18 @@ class PageController extends Controller
             'social_security_name' => 'nullable|string',
             'employment_type' => 'nullable|string',
             'department' => 'nullable|integer',
+            'salary_amount' => 'nullable|numeric',
         ]);
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $staffExists = DB::table('emplyees')
+            ->where('company_id', $companyId->companyId)
             ->where('phone_number', $request->phone_number)
             ->where('email', $request->email)
             ->exists();
@@ -570,22 +774,24 @@ class PageController extends Controller
             'social_security_name' => $request->social_security_name,
             'employment_type' => $request->employment_type,
             'department' => $request->department,
+            'company_id' => $companyId->companyId,
+            'salary_amount' => $request->salary_amount,
             'created_by' => Auth::user()->id,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
 
-        DB::table('auth')->insert([
-            'user_id' => $userData->id,
-            'username' => $userData->phone_number,
-            'password' => null,
-            'role_id' => $userData->role,
-            'login_attempts' => 0,
-            'blocked_at' => null,
-            'is_online' => false,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
+        // DB::table('auth')->insert([
+        //     'user_id' => $userData->id,
+        //     'username' => $userData->phone_number,
+        //     'password' => null,
+        //     'role_id' => $userData->role,
+        //     'login_attempts' => 0,
+        //     'blocked_at' => null,
+        //     'is_online' => false,
+        //     'created_at' => Carbon::now(),
+        //     'updated_at' => Carbon::now(),
+        // ]);
 
         return redirect()->back()->with('success_msg', 'New employee created_successfully!');
     }

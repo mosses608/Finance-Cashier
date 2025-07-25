@@ -19,18 +19,27 @@ class HumanResourceController extends Controller
             return [$monthNumber => \Carbon\Carbon::create()->month($monthNumber)->format('F')];
         });
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $staffs = DB::table('emplyees')
             ->select([
                 'first_name',
                 'last_name',
                 'id'
             ])
+            ->where('company_id', $companyId->companyId)
             ->where('soft_delete', 0)
             ->orderBy('first_name', 'ASC')
             ->get();
 
         $budgetData = DB::table('budgets')
             ->select('budget_year', 'project_name')
+            ->where('company_id', $companyId->companyId)
             ->where('soft_delete', 0)
             ->orderBy('budget_year', 'DESC')
             ->get();
@@ -48,6 +57,7 @@ class HumanResourceController extends Controller
                 'SA.status',
                 'SA.month',
             ])
+            ->where('EM.company_id', $companyId->companyId)
             ->where('SA.status', 'pending')
             ->where('SA.soft_delete', 0)
             ->orderBy('SA.id', 'DESC')
@@ -66,6 +76,7 @@ class HumanResourceController extends Controller
                 'SA.status',
                 'SA.month',
             ])
+            ->where('EM.company_id', $companyId->companyId)
             ->where('SA.status', 'approved')
             ->where('SA.soft_delete', 0)
             ->orderBy('SA.id', 'DESC')
@@ -171,7 +182,15 @@ class HumanResourceController extends Controller
             'is_balance_carry_over' => 'required|integer',
         ]);
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $leaveExists = DB::table('leave_types')
+            ->where('company_id', $companyId->companyId)
             ->where('name', $request->name)
             ->where('soft_delete', 0)
             ->exists();
@@ -188,6 +207,7 @@ class HumanResourceController extends Controller
             'require_attachment' => $request->require_attachment,
             'is_balance_carry_over' => $request->is_balance_carry_over,
             'created_by' => Auth::user()->user_id,
+            'company_id' => $companyId->companyId,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
@@ -197,8 +217,16 @@ class HumanResourceController extends Controller
 
     public function applyLeave()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $leaveTypes = DB::table('leave_types')
             ->select('id', 'name')
+            ->where('company_id', $companyId->companyId)
             ->orderBy('name', 'ASC')
             ->where('soft_delete', 0)
             ->get();
@@ -214,11 +242,14 @@ class HumanResourceController extends Controller
                 'LA.created_at AS dateApplied',
                 'LA.status AS status',
             ])
+            ->where('LT.company_id', $companyId->companyId)
             ->where('LA.user_id', Auth::user()->user_id)
             ->where('LA.soft_delete', 0)
             ->where('LT.soft_delete', 0)
             ->orderBy('LA.id', 'DESC')
             ->get();
+
+        // dd($myLeaveApplications);
 
         return view('hr.leave-application', compact([
             'leaveTypes',
@@ -262,6 +293,60 @@ class HumanResourceController extends Controller
             'end_date' => $request->end_date,
             'reason' => $request->reason ?? null,
             'user_id' => Auth::user()->user_id,
+            'attachment' => $filePath,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success_msg', 'Leave application sent successfully. Please wait for approval!');
+    }
+
+    public function staffLeaveApply(Request $request)
+    {
+        $request->validate([
+            'leave_type' => 'required|integer',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'reason' => 'nullable|string',
+            'attachment' => 'nullable|mimes:pdf|max:2048',
+            'staff_id' => 'required|integer',
+        ]);
+
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $leaveType = DB::table('leave_types')
+            ->where('company_id', $companyId->companyId)
+            ->where('id', $request->leave_type)->first();
+
+        if (!$leaveType) {
+            return redirect()->back()->with('error_msg', 'Selected leave type not found.');
+        }
+
+        $filePath = null;
+
+        if ($leaveType->require_attachment != null) {
+            if ($request->hasFile('attachment')) {
+                $filePath = $request->file('attachment')->store('leave_attachments', 'public');
+            } else {
+                return redirect()->back()->with('error_msg', 'This leave type requires an attachment, please upload one!');
+            }
+        }
+
+        if (Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) > $leaveType->days) {
+            return redirect()->back()->with('error_msg', 'This leave type allows only ' . $leaveType->days . ' days.');
+        }
+
+        DB::table('leave_applications')->insert([
+            'leave_type' => $request->leave_type,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'reason' => $request->reason ?? null,
+            'user_id' => $request->staff_id,
             'attachment' => $filePath,
             'created_at' => now(),
             'updated_at' => now(),
@@ -377,6 +462,13 @@ class HumanResourceController extends Controller
 
     public function leaveAdjustments()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $myLeaveApplications = DB::table('leave_applications AS LA')
             ->join('leave_types AS LT', 'LA.leave_type', '=', 'LT.id')
             ->select([
@@ -391,6 +483,7 @@ class HumanResourceController extends Controller
                 'LA.is_adjusted AS is_adjusted',
                 'LA.adjusted_days AS adjusted_days',
             ])
+            ->where('LT.company_id', $companyId->companyId)
             ->where('LA.user_id', Auth::user()->user_id)
             ->whereNull('LA.adjusted_days')
             ->where('LA.soft_delete', 0)
@@ -412,6 +505,7 @@ class HumanResourceController extends Controller
                 'LA.is_adjusted AS is_adjusted',
                 'LA.adjusted_days AS adjusted_days',
             ])
+            ->where('LT.company_id', $companyId->companyId)
             ->where('LA.user_id', Auth::user()->user_id)
             ->whereNotNull('LA.is_adjustment_approved')
             ->whereNotNull('LA.adjusted_days')
@@ -454,6 +548,13 @@ class HumanResourceController extends Controller
 
     public function viewAdjustmentLists()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $adjustedLeaveApplications = DB::table('leave_applications AS LA')
             ->join('leave_types AS LT', 'LA.leave_type', '=', 'LT.id')
             ->join('emplyees AS EM', 'LA.user_id', 'EM.id')
@@ -474,6 +575,8 @@ class HumanResourceController extends Controller
                 'LA.adjusted_days AS adjusted_days',
                 'LA.is_adjustment_approved as adjustmentStatus',
             ])
+            ->where('EM.company_id', $companyId->companyId)
+            ->where('LT.company_id', $companyId->companyId)
             ->whereNull('LA.is_adjustment_approved')
             ->whereNotNull('LA.is_adjusted')
             ->whereNotNull('LA.adjusted_days')
@@ -502,6 +605,8 @@ class HumanResourceController extends Controller
                 'LA.adjusted_days AS adjusted_days',
                 'LA.is_adjustment_approved as adjustmentStatus',
             ])
+            ->where('EM.company_id', $companyId->companyId)
+            ->where('LT.company_id', $companyId->companyId)
             ->whereNotNull('LA.is_adjustment_approved')
             ->whereNotNull('LA.is_adjusted')
             ->whereNotNull('LA.adjusted_days')
@@ -570,6 +675,13 @@ class HumanResourceController extends Controller
 
     public function leaveReports(Request $request)
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $leaveApplicationReportData = DB::table('leave_applications AS LA')
             ->join('leave_types AS LT', 'LA.leave_type', '=', 'LT.id')
             ->join('emplyees AS EM', 'LA.user_id', 'EM.id')
@@ -587,6 +699,8 @@ class HumanResourceController extends Controller
                 'EM.phone_number AS phone',
                 'D.name AS departmentName',
             ])
+            ->where('EM.company_id', $companyId->companyId)
+            ->where('LT.company_id', $companyId->companyId)
             ->where('LA.status', 'Approved')
             ->where('LA.soft_delete', 0)
             ->where('LT.soft_delete', 0)
@@ -620,6 +734,8 @@ class HumanResourceController extends Controller
                     'EM.phone_number AS phone',
                     'D.name AS departmentName',
                 ])
+                ->where('EM.company_id', $companyId->companyId)
+                ->where('LT.company_id', $companyId->companyId)
                 ->where('LA.user_id', $staffId)
                 ->orWhere('LA.user_id', null)
                 ->whereBetween('LA.created_at', [$fromDate, $toDate])
@@ -631,5 +747,61 @@ class HumanResourceController extends Controller
         }
 
         return view('hr.leave-reports', compact('leaveApplicationReportData', 'staffs'));
+    }
+
+    public function hrLeaveApply()
+    {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $leaveTypes = DB::table('leave_types')
+            ->select('id', 'name')
+            ->orderBy('name', 'ASC')
+            ->where('soft_delete', 0)
+            ->get();
+
+        $employees = DB::table('emplyees')
+            ->select([
+                'first_name',
+                'last_name',
+                'id',
+            ])
+            ->where('company_id', $companyId->companyId)
+            ->where('soft_delete', 0)
+            ->get();
+
+        $leaveApplications = DB::table('leave_applications AS LA')
+                ->join('leave_types AS LT', 'LA.leave_type', '=', 'LT.id')
+                ->join('emplyees AS EM', 'LA.user_id', 'EM.id')
+                ->join('departments AS D', 'EM.department', '=', 'D.id')
+                ->select([
+                    'LA.id AS leaveId',
+                    'LT.name AS leaveName',
+                    'LA.start_date AS start_date',
+                    'LA.end_date AS end_date',
+                    'LT.days AS days',
+                    'LA.created_at AS dateApplied',
+                    'LA.status AS status',
+                    'EM.first_name AS fName',
+                    'EM.last_name AS lName',
+                    'EM.phone_number AS phone',
+                    'D.name AS departmentName',
+                ])
+                ->where('EM.company_id', $companyId->companyId)
+                ->where('LT.company_id', $companyId->companyId)
+                ->orWhere('LA.user_id', null)
+                ->where('LA.status', 'Pending')
+                ->where('LA.soft_delete', 0)
+                ->where('LT.soft_delete', 0)
+                ->orderBy('LA.id', 'DESC')
+                ->get();
+
+                // dd($leaveApplicationReportData);
+
+        return view('hr.leave-apply-hr', compact('leaveTypes', 'employees','leaveApplications'));
     }
 }

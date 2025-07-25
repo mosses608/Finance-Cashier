@@ -265,7 +265,7 @@
 
     <div class="content w-100">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4>Dashboard</h4>
+            <h4>Dashboard </h4>
             <div class="input-group w-25">
                 <input type="text" class="form-control" placeholder="Search...">
             </div>

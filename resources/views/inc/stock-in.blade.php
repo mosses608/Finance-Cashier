@@ -24,6 +24,7 @@
                                             <th>Available Qty</th>
                                             <th>Cost Price</th>
                                             <th>Selling Price</th>
+                                            <th>Exp profit</th>
                                             <th>Store</th>
                                             <th>Action</th>
                                         </tr>
@@ -32,19 +33,34 @@
                                         @foreach ($products as $product)
                                             @php
                                                 $quantityStocks = $stocks->firstWhere('storage_item_id', $product->id);
-                                                $stockOutQuantity = $stockOutTransactions->where('product_id', $product->id)->sum('stockout_quantity');
+                                                $stockOutQuantity = $stockOutTransactions
+                                                    ->where('product_id', $product->id)
+                                                    ->sum('stockout_quantity');
                                             @endphp
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $product->productName }}</td>
                                                 <td>{{ $product->sku }}</td>
-                                                <td>
+                                                <td class="text-start">
                                                     {{ number_format($quantityStocks->quantity_total ?? 0) }}
                                                 </td>
-                                                <td>{{ number_format($stockOutQuantity) }}</td>
-                                                <td>{{ number_format($quantityStocks->quantity_total - $stockOutQuantity) }}</td>
-                                                <td>{{ number_format($product->cost_price, 2) }}</td>
-                                                <td>{{ number_format($product->selling_price, 2) }}</td>
+                                                <td class="text-start">
+                                                    @if (!$quantityStocks)
+                                                        {{ number_format(0) }}
+                                                    @else
+                                                        {{ number_format($stockOutQuantity) }}
+                                                    @endif
+                                                </td>
+                                                <td class="text-start">
+                                                    @if (!$quantityStocks)
+                                                        {{ number_format(0) }}
+                                                    @else
+                                                        {{ number_format($quantityStocks->quantity_total - $stockOutQuantity) }}
+                                                    @endif
+                                                </td>
+                                                <td class="text-start">{{ number_format($product->cost_price, 2) }}</td>
+                                                <td class="text-start">{{ number_format($product->selling_price, 2) }}</td>
+                                                <td class="text-nowrap text-primary text-start">{{ number_format($quantityStocks->quantity_total ?? 0 * ($product->selling_price - $product->cost_price), 2 ) }}</td>
                                                 <td>{{ $product->storeName }}</td>
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2">

@@ -33,7 +33,8 @@ class Employees extends Model
         // BANK INFO
         'bank_name','bank_account_number','tax_identification_number','social_security_name','social_security_number',
 
-        // HR STATUS
+        // HR 
+        'company_id',
         'status','termination_date','salary_amount',
         'termination_reason','created_by','soft_delete',
     ];

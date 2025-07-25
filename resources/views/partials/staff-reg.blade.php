@@ -247,6 +247,14 @@
 
                           <div class="row p-1">
 
+                            <div class="col-4 mb-3">
+                                  <div class="input-group mb-3">
+                                      <span class="input-group-text">Salary</span>
+                                      <input type="text" class="form-control" name="salary_amount"
+                                          placeholder="salary amount">
+                                  </div>
+                              </div>
+
                               <div class="col-4 mb-3">
                                   <div class="input-group mb-3">
                                       <span class="input-group-text">Bank Name</span>

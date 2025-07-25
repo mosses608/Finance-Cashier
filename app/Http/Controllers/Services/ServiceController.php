@@ -14,14 +14,23 @@ class ServiceController extends Controller
     //
     public function servicePage()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $services = DB::table('service')
             ->select('*')
+            ->where('company_id', $companyId->companyId)
             ->where('soft_delete', 0)
             ->orderBy('name', 'ASC')
             ->get();
 
         $customers = DB::table('stakeholders')
             ->select('name', 'id')
+            ->where('company_id', $companyId->companyId)
             ->where('stakeholder_category', 1)
             ->where('soft_delete', 0)
             ->orderBy('name', 'ASC')
@@ -51,6 +60,13 @@ class ServiceController extends Controller
             'description.*' => 'nullable|string'
         ]);
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         foreach ($request->service_name as $key => $serviceName) {
             $existingService = DB::table('service')->where('name', $request->service_name[$key])->exists();
 
@@ -64,6 +80,7 @@ class ServiceController extends Controller
                 'price' => $request->amount[$key],
                 'category' => $request->category[$key],
                 'quantity' => $request->quantity[$key],
+                'company_id' => $companyId->companyId,
                 'created_by' => Auth::user()->id ?? 1,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
@@ -101,21 +118,26 @@ class ServiceController extends Controller
             'amountTotal' => 'required|numeric',
         ]);
 
+         $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         if ($request->filled('TIN')) {
-            $existingCustomer = DB::table('customer')
-                ->where('name', $request->name)
-                ->where('phone', $request->phone)
-                ->where('TIN', $request->TIN)
+            $existingCustomer = DB::table('stakeholders')
+                ->where('tin', $request->TIN)
                 ->exists();
 
             if ($existingCustomer == true) {
                 return redirect()->back()->with('error_msg', 'Customer you are trying to add already exists!');
             }
 
-            $customerId = DB::table('customer')->insertGetId([
+            $customerId = DB::table('stakeholders')->insertGetId([
                 'name' => $request->name,
                 'phone' => $request->phone,
-                'TIN' => $request->TIN,
+                'tin' => $request->TIN,
                 'address' => $request->address,
             ]);
 
@@ -123,6 +145,7 @@ class ServiceController extends Controller
                 'customer_id' => $customerId,
                 'amount' => $request->amountTotal,
                 'created_at' => Carbon::now(),
+                'company_id' => $companyId->companyId,
                 'updated_at' => Carbon::now(),
                 'is_profoma' => 1,
             ]);
@@ -157,6 +180,7 @@ class ServiceController extends Controller
             'customer_id' => $request->customer_id,
             'amount' => $request->amountTotal,
             'created_at' => Carbon::now(),
+            'company_id' => $companyId->companyId,
             'updated_at' => Carbon::now(),
             'is_profoma' => 1,
         ]);

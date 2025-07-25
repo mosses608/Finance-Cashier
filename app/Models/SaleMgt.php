@@ -21,6 +21,7 @@ class SaleMgt extends Model
         'is_paid',
         'status',
         'notes',
+        'company_id',
         'soft_delete',
     ];
 }

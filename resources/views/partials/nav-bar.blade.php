@@ -2,9 +2,9 @@
     <div class="sidebar-logo">
         <!-- Logo Header -->
         <div class="logo-header" data-background-color="dark">
-            <a href="#" class="logo">
-                <img src="{{ asset('assets/img/kaiadmin/logo_light.svg') }}" alt="navbar brand" class="navbar-brand"
-                    height="20" />
+            <a href="{{ route('home') }}" class="logo">
+                <img width="180" src="{{ asset('assets/images/akilisoft-logo-image.png') }}" alt="navbar brand" class="navbar-brand"
+                    height="70" />
             </a>
             <div class="nav-toggle">
                 <button class="btn btn-toggle toggle-sidebar">
@@ -24,12 +24,12 @@
         <div class="sidebar-content">
             <ul class="nav nav-secondary">
                 <li class="nav-item active">
-                    <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+                    <a href="{{ route('home') }}" class="collapsed">
                         <i class="fas fa-home"></i>
                         <p>Dashboards</p>
                         <span class="caret"></span>
                     </a>
-                    @if (true)
+                    @if (false)
                         <div class="collapse" id="dashboard">
                             <ul class="nav nav-collapse">
                                 <li>
@@ -215,12 +215,45 @@
                             </li>
                             <li>
                                 <a href="#">
-                                    <span class="sub-item">Sales Receipt</span>
+                                    <span class="sub-item">Monthly Allowances</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="#">
-                                    <span class="sub-item">Sales Report</span>
+                                    <span class="sub-item">Staff Absence</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Staff Over-Times</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Process Payroll</span> 
+                                    {{-- process & approve payroll --}}
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Payroll Payment</span>
+                                    {{-- prepare , approve & list of paid payroll --}}
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Posted Payroll</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Reversed Payroll</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="sub-item">Reports</span>
+                                    {{-- payroll report, PAYE Return, WCF Return, Payslips & Staff Absence --}}
                                 </a>
                             </li>
                         </ul>
@@ -241,12 +274,12 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
-                                    <span class="sub-item">Sales Receipt</span>
+                                <a href="{{ route('sales.list') }}">
+                                    <span class="sub-item">Sales List</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="{{ route('sales.reports') }}">
                                     <span class="sub-item">Sales Report</span>
                                 </a>
                             </li>
@@ -332,7 +365,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('stakeholder.reports') }}">
+                                <a href="{{ route('leave.application.pg') }}">
                                     <span class="sub-item">Leave Application</span>
                                 </a>
                             </li>
@@ -391,6 +424,39 @@
                             <li>
                                 <a href="{{ route('staff.leave.reports') }}">
                                     <span class="sub-item">Reports</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                 <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#system-users">
+                        <i class="fas fa-cog"></i>
+                        <p>System Access</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="system-users">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('system.users') }}">
+                                    <span class="sub-item">System Users</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('apply.leave') }}">
+                                    <span class="sub-item">User Branch</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('password.resets') }}">
+                                    <span class="sub-item">Passwords Reset</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('users.system.reports') }}">
+                                    <span class="sub-item">Reports</span>
+                                    {{-- users reports, System logs --}}
                                 </a>
                             </li>
                         </ul>

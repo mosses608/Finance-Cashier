@@ -8,7 +8,7 @@ class Product extends Model
 {
     //
     protected $fillable = [
-        'name','sku','description','cost_price','selling_price','store_id','item_pic','soft_delete',
+        'name','sku','description','cost_price','selling_price','store_id','item_pic','soft_delete','company_id',
     ];
 
     public static function find($id){

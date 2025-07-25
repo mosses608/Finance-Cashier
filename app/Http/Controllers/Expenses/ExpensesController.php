@@ -37,10 +37,17 @@ class ExpensesController extends Controller
             ->orderBy('name', 'ASC')
             ->get();
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $expenses = DB::table('expenses AS EXP')
             ->join('sub_budgests AS SB', 'EXP.budget_id', '=', 'SB.id')
             ->join('expenses_type AS EXT', 'EXP.expense_type', '=', 'EXT.id')
-            ->join('emplyees AS U', 'EXP.created_by', '=', 'U.id')
+            ->join('administrators AS U', 'EXP.created_by', '=', 'U.id')
             ->select([
                 'EXP.expense_name AS exName',
                 'EXT.name AS exType',
@@ -49,8 +56,9 @@ class ExpensesController extends Controller
                 'EXP.amount AS amount',
                 'EXP.reference_no AS refNo',
                 'EXP.expense_date AS dueDate',
-                'U.last_name AS staffName',
+                'U.names AS staffName',
             ])
+            ->where('EXP.company_id', $companyId->companyId)
             ->where('EXP.soft_delete', 0)
             ->where('SB.soft_delete', 0)
             ->orderByDesc('EXP.id')
@@ -76,6 +84,13 @@ class ExpensesController extends Controller
         $staff = Auth::user()->id;
         // dd($staff);
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         try {
             DB::table('expenses')->insert([
                 'expense_name' => $request->expense_name,
@@ -85,6 +100,7 @@ class ExpensesController extends Controller
                 'reference_no' => $request->reference_no,
                 'description' => $request->description,
                 'expense_date' => Carbon::now(),
+                'company_id' => $companyId->companyId,
                 'created_by' => $staff,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),

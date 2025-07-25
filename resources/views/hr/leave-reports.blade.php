@@ -21,7 +21,7 @@
                                         <span class="input-group-text" id="addon-wrapping">From</span>
                                         <input type="date" class="form-control text-primary" name="searchFrom"
                                             value="{{ old('searchFrom', \Carbon\Carbon::today()->format('Y-m-d')) }}"
-                                            min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}" aria-label="Username"
+                                            max="{{ \Carbon\Carbon::today()->format('Y-m-d') }}" aria-label="Username"
                                             aria-describedby="addon-wrapping">
                                     </div>
                                 </div>
@@ -30,7 +30,6 @@
                                         <span class="input-group-text" id="addon-wrapping">To</span>
                                         <input type="date" class="form-control text-primary" name="searchTo"
                                             value="{{ old('searchTo', \Carbon\Carbon::today()->format('Y-m-d')) }}"
-                                            min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
                                             aria-describedby="addon-wrapping">
                                     </div>
                                 </div>

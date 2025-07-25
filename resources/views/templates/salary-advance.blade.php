@@ -213,7 +213,7 @@
 
                                         <div class="col-2">
                                             <div class="input-group mb-3">
-                                                <button type="submit" class="btn btn-primary">Search</button>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
                                             </div>
                                         </div>
                                     </form>

@@ -12,6 +12,7 @@ class Store extends Model
         'city',
         'location',
         'store_keeper',
+        'company_id',
         'phone',
         'soft_delete',
     ];

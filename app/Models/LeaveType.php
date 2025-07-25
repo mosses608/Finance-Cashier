@@ -14,6 +14,7 @@ class LeaveType extends Model
     protected $fillable = [
         'name',
         'days',
+        'company_id',
         'leave_priority',
         'gender_specification',
         'require_attachment',

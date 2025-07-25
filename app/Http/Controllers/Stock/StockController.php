@@ -34,6 +34,13 @@ class StockController extends Controller
 
     public function stockInMethod()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $products = DB::table('products AS PR')
             ->join('stores AS ST', 'PR.store_id', '=', 'ST.id')
             // ->join('stock_out_transaction AS STK', 'PR.id', '=', 'STK.product_id')
@@ -44,8 +51,9 @@ class StockController extends Controller
                 'PR.selling_price AS selling_price',
                 'ST.store_name AS storeName',
                 'PR.id AS id',
-                // DB::raw('SUM(STK.quantity_total) AS stockQuantity')
+                // DB::raw('SUM(STK.stockout_quantity) AS stockQuantity')
             ])
+            ->where('PR.company_id', $companyId->companyId)
             ->where('PR.soft_delete', 0)
             ->where('ST.soft_delete', 0)
             // ->groupBy('PR.id', 'PR.name', 'PR.sku', 'PR.cost_price', 'PR.selling_price', 'ST.store_name', 'ST.id')

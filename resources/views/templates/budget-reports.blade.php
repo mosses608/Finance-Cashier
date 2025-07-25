@@ -133,13 +133,13 @@
                                                             <td>{{ $loop->iteration }}</td>
                                                             <td class="text-nowrap">{{ $report->costType }}</td>
                                                             <td class="text-nowrap">{{ $report->sub_budget_code }}</td>
-                                                            <td class="text-nowrap">{{ number_format($report->amount, 2) }}
+                                                            <td class="text-nowrap text-primary">{{ number_format($report->amount, 2) }}
                                                             </td>
-                                                            <td class="text-nowrap">
+                                                            <td class="text-nowrap text-primary">
                                                                 {{ number_format($report->totalAmount, 2) }}</td>
-                                                            <td class="text-nowrap text-center">
+                                                            <td class="text-nowrap text-center text-secondary">
                                                                 {{ number_format($percentageUsage, 2) . '%' }}</td>
-                                                            <td class="text-nowrap">{{ number_format($budgetBalance, 2) }}
+                                                            <td class="text-nowrap text-primary">{{ number_format($budgetBalance, 2) }}
                                                             </td>
                                                         </tr>
                                                     @endforeach

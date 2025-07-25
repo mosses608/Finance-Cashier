@@ -4,10 +4,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Accounting | System | Home</title>
+        <title>AkiliSoft ERP & Finance System | Home</title>
 
         <!-- Fonts -->
-        <link rel="icon" href="{{ asset('assets/images/fav-icon.png') }}">
+        <link rel="icon" href="{{ asset('assets/images/121616.png') }}">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
         <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>

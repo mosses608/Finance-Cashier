@@ -19,7 +19,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">Send Rest Link</button>
+                <button type="submit" class="btn btn-primary w-100">Request Rest Link</button>
                 <a href="{{ route('login') }}">Back To Login</a>
             </form>
         </div>

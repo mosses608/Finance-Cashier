@@ -39,6 +39,7 @@ class User extends Authenticatable
         'login_attempts',
         'blocked_at',
         'is_online',
+        'status',
     ];
 
     /**

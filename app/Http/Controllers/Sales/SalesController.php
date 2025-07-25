@@ -81,13 +81,88 @@ class SalesController extends Controller
                 'updated_at',
             ])
             ->where('soft_delete', 0)
-            ->whereDate('created_at', Carbon::now())
-            ->orderByDesc('id')
+            ->whereDate('created_at', Carbon::today())
+            ->orderByDesc('id', 'DESC')
             ->get();
 
         // dd($currentDaySales);
 
         return view('sales.create-sales', compact('invoiceData', 'currentDaySales'));
+    }
+
+    public function salesList()
+    {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $companySales = DB::table('sales')
+            ->select([
+                'invoice_id',
+                'amount_paid',
+                'payment_method',
+                'status',
+                'created_at',
+                'id AS autoId',
+                'updated_at',
+            ])
+            ->where('company_id', $companyId->companyId)
+            ->where('soft_delete', 0)
+            ->orderByDesc('id', 'DESC')
+            ->get();
+
+        return view('sales.sales-list', compact('companySales'));
+    }
+
+    public function salesReports(Request $request)
+    {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $salesReports = DB::table('sales')
+            ->select([
+                'invoice_id',
+                'amount_paid',
+                'payment_method',
+                'status',
+                'created_at',
+                'id AS autoId',
+                'updated_at',
+            ])
+            ->where('company_id', $companyId->companyId)
+            ->where('soft_delete', 0)
+            ->orderByDesc('id', 'DESC')
+            ->get();
+
+        if ($request->has('from') && $request->has('to') && $request->from != null && $request->to != null) {
+            $from = $request->from;
+            $to = $request->to;
+
+            $salesReports = DB::table('sales')
+                ->select([
+                    'invoice_id',
+                    'amount_paid',
+                    'payment_method',
+                    'status',
+                    'created_at',
+                    'id AS autoId',
+                    'updated_at',
+                ])
+                ->whereBetween('created_at', [$from, $to])
+                ->where('company_id', $companyId->companyId)
+                ->where('soft_delete', 0)
+                ->orderByDesc('id', 'DESC')
+                ->get();
+        }
+
+        return view('sales.sales-reports', compact('salesReports'));
     }
 
     public function storeSales(Request $request)
@@ -121,7 +196,15 @@ class SalesController extends Controller
 
         // dd('Mohammed');
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         DB::table('sales')->insert([
+            'company_id' => $companyId->companyId,
             'user_id' => $userId,
             'invoice_id' => $request->invoice_id,
             'tax' => $request->tax,

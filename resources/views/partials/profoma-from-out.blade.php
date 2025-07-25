@@ -7,25 +7,25 @@
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Product Name</strong></label>
                     <input type="text" class="form-control order-product-select" name="product_name[]"
-                        placeholder="Product name">
+                        placeholder="product name">
                 </div>
 
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Item Price</strong></label>
                     <input type="text" name="amountPay[]" class="form-control order-selling-price"
-                        placeholder="Item Price">
+                        placeholder="item price">
                 </div>
 
                 <input type="hidden" name="order_status" value="pending">
 
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Quantity</strong></label>
-                    <input type="number" name="quantity[]" class="form-control" placeholder="Quantity">
+                    <input type="number" name="quantity[]" class="form-control" placeholder="quantity">
                 </div>
 
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Item Discount</strong></label>
-                    <input type="text" name="discount[]" class="form-control" placeholder="Discount @ eg 2.5">
+                    <input type="text" name="discount[]" class="form-control" placeholder="discount @ eg 0.5">
                 </div>
             </div>
         </div>
@@ -119,19 +119,19 @@
                 <hr class="mt-3" style="width: 95%; margin-left:2.5%;">
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Product Name</strong></label>
-                    <input type="text" class="form-control order-product-select" name="product_name[]" placeholder="Product name">
+                    <input type="text" class="form-control order-product-select" name="product_name[]" placeholder="product name">
                 </div>
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Item Price</strong></label>
-                    <input type="text" name="amountPay[]" class="form-control order-selling-price" placeholder="Item Price">
+                    <input type="text" name="amountPay[]" class="form-control order-selling-price" placeholder="item price">
                 </div>
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Quantity</strong></label>
-                    <input type="number" name="quantity[]" class="form-control" placeholder="Quantity">
+                    <input type="number" name="quantity[]" class="form-control" placeholder="quantity">
                 </div>
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Item Discount</strong></label>
-                    <input type="text" name="discount[]" class="form-control" placeholder="Discount @ eg 2.5">
+                    <input type="text" name="discount[]" class="form-control" placeholder="discount @ eg 0.5">
                 </div>
             `;
             container.appendChild(newGroup);

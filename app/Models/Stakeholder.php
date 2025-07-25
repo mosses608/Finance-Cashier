@@ -18,6 +18,7 @@ class Stakeholder extends Model
         'email',
         'tin',
         'vrn',
+        'company_id',
         'region_id',
         'stakeholder_category',
         'customer_type',

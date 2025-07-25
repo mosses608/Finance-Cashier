@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Invoice;
 
-use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Validation\ValidationException;
@@ -59,11 +60,19 @@ class InvoiceController extends Controller
             ]);
         }
 
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         // Insert main invoice record
         $invoiceId = DB::table('invoice')->insertGetId([
             'customer_id' => $customerId,
             'billId' => null,
             'amount' => $amount,
+            'company_id' => $companyId->companyId,
         ]);
 
         foreach ($request->product_id as $index => $productId) {
@@ -89,6 +98,13 @@ class InvoiceController extends Controller
 
     public function invoiceList()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $invoices = DB::table('invoice AS i')
             ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
             ->join('stakeholders AS C', 'I.customer_id', '=', 'C.id')
@@ -99,6 +115,7 @@ class InvoiceController extends Controller
                 'I.created_at AS invoiceDate',
                 'I.id AS invoiceId'
             ])
+            ->where('i.company_id', $companyId->companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 1)
@@ -116,6 +133,7 @@ class InvoiceController extends Controller
                 'I.created_at AS invoiceDate',
                 'I.id AS invoiceId'
             ])
+            ->where('i.company_id', $companyId->companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 3)
@@ -133,6 +151,7 @@ class InvoiceController extends Controller
                 'I.updated_at AS cancelledDate',
                 'I.id AS invoiceId'
             ])
+            ->where('i.company_id', $companyId->companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 2)
@@ -164,6 +183,8 @@ class InvoiceController extends Controller
         } catch (\Throwable $th) {
             return $th->getMessage();
         }
+
+        // dd($invoiceId);
 
         $invoiceItems = DB::table('invoice_items AS ITM')
             ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
@@ -222,8 +243,8 @@ class InvoiceController extends Controller
         // dd($itemsOutOfStore);
 
         return view('inc.view-invoice', compact([
-            'invoiceId', 
-            'invoiceItems', 
+            'invoiceId',
+            'invoiceItems',
             'invoiceServiceItems',
             'itemsOutOfStore'
         ]));
@@ -311,10 +332,18 @@ class InvoiceController extends Controller
                 ]);
             }
 
+            $companyId = DB::table('companies AS C')
+                ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+                ->select('C.id AS companyId')
+                ->where('A.phone', Auth::user()->username)
+                ->orWhere('A.email', Auth::user()->username)
+                ->first();
+
             $invoiceId = DB::table('invoice')->insertGetId([
                 'customer_id' => $customerId,
                 'billId' => null,
                 'amount' => $amount,
+                'company_id' => $companyId->companyId,
             ]);
 
             foreach ($request->product_id as $index => $productId) {
@@ -412,10 +441,18 @@ class InvoiceController extends Controller
                 ]);
             }
 
+            $companyId = DB::table('companies AS C')
+                ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+                ->select('C.id AS companyId')
+                ->where('A.phone', Auth::user()->username)
+                ->orWhere('A.email', Auth::user()->username)
+                ->first();
+
             $invoiceId = DB::table('invoice')->insertGetId([
                 'customer_id' => $customerId,
                 'billId' => null,
                 'amount' => $amount,
+                'company_id' => $companyId->companyId,
                 'is_profoma' => 1,
             ]);
 
@@ -456,7 +493,15 @@ class InvoiceController extends Controller
 
     public function profomaInvoice()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $prodomaInvoiceFromStore = DB::table('profoma_invoice AS PI')
+            ->join('invoice AS I', 'PI.invoice_id', '=', 'I.id')
             ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
@@ -466,6 +511,7 @@ class InvoiceController extends Controller
                 'PI.id AS profomaId',
             ])
             // ->where('PI.category_id', 1)
+            ->where('I.company_id', $companyId->companyId)
             ->where('PI.soft_delete', 0)
             ->orderByDesc('PI.id')
             ->get();
@@ -482,6 +528,7 @@ class InvoiceController extends Controller
                 'POS.created_at AS dateCreated',
                 'POS.id AS autoId',
             ])
+            ->where('I.company_id', $companyId->companyId)
             ->where('I.soft_delete', 0)
             ->where('POS.soft_delete', 0)
             ->where('C.soft_delete', 0)
@@ -493,6 +540,7 @@ class InvoiceController extends Controller
         // dd($profomaInvoiceOutOfStore);
 
         $acceptedProfomaInvoice = DB::table('profoma_invoice AS PI')
+            ->join('invoice AS I', 'PI.invoice_id', '=', 'I.id')
             ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
@@ -502,12 +550,14 @@ class InvoiceController extends Controller
                 'PI.id AS profomaId'
             ])
             // ->where('PI.category_id', 1)
+            ->where('I.company_id', $companyId->companyId)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Accepted')
             ->orderByDesc('PI.id')
             ->count();
 
         $pendingProfomaInvoice = DB::table('profoma_invoice AS PI')
+            ->join('invoice AS I', 'PI.invoice_id', '=', 'I.id')
             ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
@@ -517,12 +567,14 @@ class InvoiceController extends Controller
                 'PI.id AS profomaId'
             ])
             // ->where('PI.category_id', 1)
+            ->where('I.company_id', $companyId->companyId)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Pending')
             ->orderByDesc('PI.id')
             ->count();
 
         $rejectedProfomaInvoice = DB::table('profoma_invoice AS PI')
+            ->join('invoice AS I', 'PI.invoice_id', '=', 'I.id')
             ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
@@ -532,6 +584,7 @@ class InvoiceController extends Controller
                 'PI.id AS profomaId'
             ])
             // ->where('PI.category_id', 1)
+            ->where('I.company_id', $companyId->companyId)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Rejected')
             ->orderByDesc('PI.id')
@@ -632,7 +685,7 @@ class InvoiceController extends Controller
         $profomaInvoiceItems = DB::table('invoice_items AS ITM')
             ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
             ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
-            ->join('customer AS C', 'PI.customer_id', '=', 'C.id')
+            ->join('stakeholders AS C', 'PI.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'PI.created_at AS issuedDate',
@@ -646,6 +699,36 @@ class InvoiceController extends Controller
             ->where('PI.soft_delete', 0)
             ->where('ITM.soft_delete', 0)
             ->get();
+
+        $customerDetails = DB::table('stakeholders AS C')
+            ->join('invoice AS I', 'I.customer_id', '=', 'C.id')
+            ->join('profoma_invoice AS PI', 'I.id', '=', 'PI.invoice_id')
+            ->select([
+                'C.name AS customerName',
+                'C.phone AS phoneNumber',
+                'C.address AS address',
+                'C.tin as TIN',
+                'C.vrn as VRN',
+            ])
+            ->where('PI.id', $profomaInvoiceId)
+            ->first();
+        // dd($customerDetails);
+
+        $companyData = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.*')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $logoPath = storage_path('app/public/' . $companyData->logo);
+        $logoBase64 = null;
+
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        }
+
 
         $issuesDate = DB::table('profoma_invoice')
             ->where('id', $profomaInvoiceId)->first();
@@ -677,6 +760,9 @@ class InvoiceController extends Controller
             'profomaInvoiceItems' => $profomaInvoiceItems,
             'qrImageBase64' => $qrBase64,
             'issuesDate' => $issuesDate,
+            'customerDetails' => $customerDetails,
+            'logoBase64' => $logoBase64,
+            'companyData' => $companyData,
         ])->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,
@@ -724,6 +810,36 @@ class InvoiceController extends Controller
             ->where('POS.id', $invoiceProfomaOutId)
             ->get();
 
+        $customerDetails = DB::table('stakeholders AS C')
+            ->join('invoice AS I', 'I.customer_id', '=', 'C.id')
+            ->join('profoma_out_store AS POS', 'I.id', '=', 'POS.invoice_id')
+            ->select([
+                'C.name AS customerName',
+                'C.phone AS phoneNumber',
+                'C.address AS address',
+                'C.tin as TIN',
+                'C.vrn as VRN',
+            ])
+            ->where('POS.id', $invoiceProfomaOutId)
+            ->first();
+        // dd($customerDetails);
+
+        $companyData = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.*')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $logoPath = storage_path('app/public/' . $companyData->logo);
+        $logoBase64 = null;
+
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        }
+
+
         $issuesDate = DB::table('profoma_out_store')
             ->where('id', $invoiceProfomaOutId)->first();
 
@@ -754,6 +870,9 @@ class InvoiceController extends Controller
             'profomaInvoiceItems' => $profomaInvoiceItems,
             'qrImageBase64' => $qrBase64,
             'issuesDate' => $issuesDate,
+            'customerDetails' => $customerDetails,
+            'companyData' => $companyData,
+            'logoBase64' => $logoBase64,
         ])->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,
@@ -767,6 +886,8 @@ class InvoiceController extends Controller
         } catch (\Throwable $th) {
             return $th->getMessage();
         }
+
+        // dd($invoiceAutoId);
 
         $profomaInvoiceItems = DB::table('invoice_items AS ITM')
             ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
@@ -784,17 +905,33 @@ class InvoiceController extends Controller
             ->where('ITM.soft_delete', 0)
             ->get();
 
-        $customerDetails = DB::table('customer AS C')
+        $customerDetails = DB::table('stakeholders AS C')
             ->join('invoice AS I', 'I.customer_id', '=', 'C.id')
             ->select([
                 'C.name AS customerName',
                 'C.phone AS phoneNumber',
                 'C.address AS address',
-                'C.TIN as TIN',
+                'C.tin as TIN',
+                'C.vrn as VRN',
             ])
             ->where('I.id', $invoiceAutoId)
             ->first();
         // dd($customerDetails);
+
+        $companyData = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.*')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $logoPath = storage_path('app/public/' . $companyData->logo);
+        $logoBase64 = null;
+
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        }
 
         $issuesDate = DB::table('invoice')
             ->where('id', $invoiceAutoId)->first();
@@ -828,6 +965,8 @@ class InvoiceController extends Controller
             'qrImageBase64' => $qrBase64,
             'issuesDate' => $issuesDate,
             'customerDetails' => $customerDetails,
+            'companyData' => $companyData,
+            'logoBase64' => $logoBase64
         ])->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,

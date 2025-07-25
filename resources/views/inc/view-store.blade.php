@@ -15,7 +15,7 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="basic-datatables" class="display table table-striped table-hover">
+                                <table id="basic-datatablesxzy" class="display table table-striped table-hover">
                                     <thead>
                                         <tr>
                                             <th>S/N</th>
@@ -55,4 +55,8 @@
             </div>
         </div>
     </div>
+
+    <script>
+        new DataTable("#basic-datatablesxzy");
+    </script>
 @stop

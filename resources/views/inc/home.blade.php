@@ -6,7 +6,7 @@
         <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
                 <div>
-                    <h3 class="fw-bold mb-3">Dashboard</h3>
+                    <h3 class="fw-bold mb-3">Dashboard | <span class="text-primary">{{ $companyData->companyName }} </span></h3>
                     <h6 class="op-7 mb-2">{{ \Carbon\Carbon::today()->format('M d, Y') }}</h6>
                 </div>
                 @if (false)
@@ -147,7 +147,7 @@
                             <div class="h1 fw-bold float-end text-primary">
                                 {{ number_format(($onlineUsers / $authUsers) * 100) }}%</div>
                             <h2 class="mb-2">{{ number_format($onlineUsers) }}</h2>
-                            <p class="text-muted">Users online</p>
+                            <p class="text-muted text-primary">Users online</p>
                             <div class="pull-in sparkline-fix">
                                 <div id="lineChart"></div>
                             </div>

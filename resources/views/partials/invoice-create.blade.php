@@ -20,12 +20,12 @@
                     <div class="row g-2">
                         <div class="col-6">
                             <input type="number" name="available_quantity[]" class="form-control available-quantity"
-                                placeholder="Available quantity" readonly>
+                                placeholder="available quantity" readonly>
                         </div>
 
                         <div class="col-6">
                             <input type="text" name="selling_price[]" class="form-control selling-price"
-                                placeholder="Selling Price" readonly>
+                                placeholder="selling Price" readonly>
                         </div>
                     </div>
 
@@ -34,13 +34,13 @@
                         <div class="col-6">
                             <label class="input-label p-2"><strong>Quantity to sale</strong></label>
                             <input type="number" name="quantity_sell[]" class="form-control form-control"
-                                placeholder="Quantity">
+                                placeholder="quantity">
                         </div>
 
                         <div class="col-6">
                             <label class="input-label p-2"><strong>Item Discount</strong></label>
                             <input type="text" name="discount[]" class="form-control form-control"
-                                placeholder="Sale At Discount @ eg 2.5">
+                                placeholder="discount @ eg 0.5">
                         </div>
 
                     </div>
@@ -243,18 +243,18 @@
         </select>
     </div>
     <div class="col-6">
-        <input type="number" name="available_quantity[]" class="form-control available-quantity" placeholder="Available quantity" readonly>
+        <input type="number" name="available_quantity[]" class="form-control available-quantity" placeholder="available quantity" readonly>
     </div>
     <div class="col-6">
-        <input type="text" name="selling_price[]" class="form-control selling-price" placeholder="Selling Price" readonly>
+        <input type="text" name="selling_price[]" class="form-control selling-price" placeholder="selling Price" readonly>
     </div>
     <div class="col-6">
         <label class="input-label p-2"><strong>Quantity to sale</strong></label>
-        <input type="number" name="quantity_sell[]" class="form-control" placeholder="Quantity">
+        <input type="number" name="quantity_sell[]" class="form-control" placeholder="quantity">
     </div>
     <div class="col-6">
         <label class="input-label p-2"><strong>Item Discount</strong></label>
-        <input type="text" name="discount[]" class="form-control" placeholder="Sale At Discount @ eg 2.5">
+        <input type="text" name="discount[]" class="form-control" placeholder="discount @ eg 0.5">
     </div>
 `;
         container.appendChild(productSet);

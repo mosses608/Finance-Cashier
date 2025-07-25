@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>{{ __('Accounting & ERP') }}</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="assets/img/kaiadmin/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('assets/images/121616.png') }}" type="image/x-icon" />
 
     <!-- Fonts and icons -->
     <script src="assets/js/plugin/webfont/webfont.min.js"></script>
@@ -317,29 +317,52 @@
                                     </div>
                                 </li>
 
+                                @php
+                                    $company = DB::table('companies AS C')
+                                        ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+                                        ->select([
+                                            'C.company_name AS companyName',
+                                            'C.logo AS logo',
+                                            'C.company_email AS company_email',
+                                        ])
+                                        ->where('A.phone', Auth::user()->username)
+                                        ->orWhere('A.email', Auth::user()->username)
+                                        ->first();
+                                @endphp
+
                                 <li class="nav-item topbar-user dropdown hidden-caret">
                                     <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#"
                                         aria-expanded="false">
                                         <div class="avatar-sm">
-                                            <img src="assets/img/profile.jpg" alt="..."
-                                                class="avatar-img rounded-circle" />
+                                            @if ($company->logo == null)
+                                                <img src="assets/img/profile.jpg" alt="..."
+                                                    class="avatar-img rounded-circle" />
+                                            @else
+                                                <img src="{{ asset('storage/' . $company->logo) }}" alt="..."
+                                                    class="avatar-img rounded-circle" />
+                                            @endif
                                         </div>
-                                        <span class="profile-username">
+                                        {{-- <span class="profile-username">
                                             <span class="op-7">Hi,</span>
-                                            <span class="fw-bold">akili soft</span>
-                                        </span>
+                                            <span class="fw-bold">{{ strtoupper(substr($company->companyName, 0, 2)) }}</span>
+                                        </span> --}}
                                     </a>
                                     <ul class="dropdown-menu dropdown-user animated fadeIn">
                                         <div class="dropdown-user-scroll scrollbar-outer">
                                             <li>
                                                 <div class="user-box">
                                                     <div class="avatar-lg">
-                                                        <img src="assets/img/profile.jpg" alt="image profile"
-                                                            class="avatar-img rounded" />
+                                                        @if ($company->logo == null)
+                                                            <img src="assets/img/profile.jpg" alt="..."
+                                                                class="avatar-img rounded-circle" />
+                                                        @else
+                                                            <img src="{{ asset('storage/' . $company->logo) }}"
+                                                                alt="..." class="avatar-img rounded-circle" />
+                                                        @endif
                                                     </div>
                                                     <div class="u-text">
-                                                        <h4>akili soft</h4>
-                                                        <p class="text-muted">hello@example.com</p>
+                                                        <h4>{{ $company->companyName ?? '' }}</h4>
+                                                        <p class="text-muted">{{ $company->company_email }}</p>
                                                         <a href="profile.html"
                                                             class="btn btn-xs btn-secondary btn-sm">View
                                                             Profile</a>
@@ -349,12 +372,11 @@
                                             <li>
                                                 <div class="dropdown-divider"></div>
                                                 <a class="dropdown-item" href="#">My Profile</a>
-                                                <a class="dropdown-item" href="#">My Balance</a>
                                                 <a class="dropdown-item" href="#">Inbox</a>
                                                 <div class="dropdown-divider"></div>
                                                 <a class="dropdown-item" href="#">Account Setting</a>
                                                 <div class="dropdown-divider"></div>
-                                                <a class="dropdown-item" href="#">Logout</a>
+                                                <a class="dropdown-item" href="{{ route('logout') }}">Logout</a>
                                             </li>
                                         </div>
                                     </ul>
@@ -437,65 +459,6 @@
         fillColor: "rgba(255, 165, 52, .14)",
     });
 </script>
-
-{{-- 
-<script>
-    $(document).ready(function() {
-        $("#basic-datatables").DataTable({});
-
-        $("#multi-filter-select").DataTable({
-            pageLength: 5,
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $(
-                                '<select class="form-select"><option value=""></option></select>'
-                            )
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-
-                                column
-                                    .search(val ? "^" + val + "$" : "", true, false)
-                                    .draw();
-                            });
-
-                        column
-                            .data()
-                            .unique()
-                            .sort()
-                            .each(function(d, j) {
-                                select.append(
-                                    '<option value="' + d + '">' + d + "</option>"
-                                );
-                            });
-                    });
-            },
-        });
-
-        // Add Row
-        $("#add-row").DataTable({
-            pageLength: 5,
-        });
-
-        var action =
-            '<td> <div class="form-button-action"> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
-
-        $("#addRowButton").click(function() {
-            $("#add-row")
-                .dataTable()
-                .fnAddData([
-                    $("#addName").val(),
-                    $("#addPosition").val(),
-                    $("#addOffice").val(),
-                    action,
-                ]);
-            $("#addRowModal").modal("hide");
-        });
-    });
-</script> --}}
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 

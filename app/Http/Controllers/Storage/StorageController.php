@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 
 class StorageController extends Controller
@@ -40,7 +41,17 @@ class StorageController extends Controller
             'phone' => 'nullable',
         ]);
 
-        $existingStore = DB::table('stores')->where('store_name', $request->store_name)->first();
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $existingStore = DB::table('stores')
+            ->where('company_id', $companyId->companyId)
+            ->where('store_name', $request->store_name)
+            ->first();
 
         if ($existingStore) {
             return redirect()->back()->with('error_msg', 'This store already exists');
@@ -48,15 +59,14 @@ class StorageController extends Controller
 
         // dd($existingStore);
 
-        $data = Store::create([
+        Store::create([
             'store_name' => $request->store_name,
             'city' => $request->city,
             'location' => $request->location,
             'store_keeper' => $request->store_keeper,
             'phone' => $request->phone,
+            'company_id' => $companyId->companyId,
         ]);
-
-        // dd($data);
 
         return redirect()->route('store.list')->with('success_msg', 'Store registered successfully!');
     }
@@ -73,6 +83,13 @@ class StorageController extends Controller
 
     public function storeLists()
     {
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
         $stores = DB::table('stores AS ST')
             ->join('products AS PR', 'ST.id', '=', 'PR.store_id')
             ->select([
@@ -84,6 +101,7 @@ class StorageController extends Controller
                 'ST.phone AS phone',
                 DB::raw('COUNT(PR.id) AS totalItems'),
             ])
+            ->where('ST.company_id', $companyId->companyId)
             ->where('ST.soft_delete', 0)
             ->groupBy(
                 'ST.store_name',
@@ -96,7 +114,7 @@ class StorageController extends Controller
             ->orderBy('ST.store_name', 'ASC')
             ->get();
 
-            // dd($stores);
+        // dd($stores);
 
         return view('inc.store-list', compact(['stores']));
     }

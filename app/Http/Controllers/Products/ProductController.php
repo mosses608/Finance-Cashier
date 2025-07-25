@@ -11,6 +11,7 @@ use App\Imports\ProductsImport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
@@ -28,15 +29,24 @@ class ProductController extends Controller
             'store_id' => 'nullable|integer',
             'item_pic' => 'nullable|image|max:2048',
         ]);
-        // dd($request->all());
+
+        $fileStore = null;
 
         if ($request->hasFile('item_pic')) {
-            $productDetails['item_pic'] = $request->file('item_pic')->store('product_pics', 'public');
+            $fileStore = $request->file('item_pic')->store('product_pics', 'public');
         }
 
-        $existingProduct = DB::table('products')->where('name', $request->name)->first();
+        $companyId = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select('C.id AS companyId')
+            ->where('A.phone', Auth::user()->username)
+            ->orWhere('A.email', Auth::user()->username)
+            ->first();
 
-        // dd($existingProduct);
+        $existingProduct = DB::table('products')
+            ->where('company_id', $companyId->companyId)
+            ->where('name', $request->name)
+            ->first();
 
         if ($existingProduct) {
             return redirect()->back()->with('error_msg', 'Product' . ' ' . 'with name' . ' ' . $request->name . ' ' .  'exists!');
@@ -50,7 +60,8 @@ class ProductController extends Controller
             'cost_price' => $request->cost_price,
             'selling_price' => $request->selling_price,
             'store_id' => $request->store_id,
-            'item_pic' => $request->item_pic,
+            'item_pic' => $fileStore,
+            'company_id' => $companyId->companyId,
         ]);
 
         return redirect()->back()->with('success_msg', 'Product registered successfully!');
@@ -94,7 +105,8 @@ class ProductController extends Controller
         }
     }
 
-    public function destroyProduct(Request $request){
+    public function destroyProduct(Request $request)
+    {
         $request->validate([
             'product_id' => 'required|integer',
         ]);
@@ -103,17 +115,17 @@ class ProductController extends Controller
 
         $productExistsInDb = DB::table('products')->where('id', $productId)->first();
 
-        if(!$productExistsInDb){
-            return redirect()->back()->with('error_msg','Product with Id' . ' ' . $productId . ' ' . 'does not exists!');
+        if (!$productExistsInDb) {
+            return redirect()->back()->with('error_msg', 'Product with Id' . ' ' . $productId . ' ' . 'does not exists!');
         }
 
-        if($productExistsInDb){
+        if ($productExistsInDb) {
             DB::table('products')->where('id', $productId)->update([
                 'soft_delete' => 1,
             ]);
         }
 
-        return redirect()->back()->with('success_msg','Product deleted successfully!');
+        return redirect()->back()->with('success_msg', 'Product deleted successfully!');
     }
 
     public function singleProduct($id)

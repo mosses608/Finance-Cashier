@@ -15,6 +15,7 @@ class Budget extends Model
         'budget_year',
         'currency',
         'cost_type',
+        'company_id',
         'budget_name',
         'budget_code',
         'project_name',

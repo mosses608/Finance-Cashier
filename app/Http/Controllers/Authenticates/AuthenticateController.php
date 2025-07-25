@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\ResetPasswordMail;
 use App\Models\PasswordResetToken;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,8 @@ use Illuminate\Support\Facades\Mail;
 class AuthenticateController extends Controller
 {
     //
-    public function authentication(Request $request){
+    public function authentication(Request $request)
+    {
         $request->validate([
             'username' => 'required|string|max:255',
             'password' => 'required|string|max:255|min:5'
@@ -26,15 +28,15 @@ class AuthenticateController extends Controller
 
         // dd($user);
 
-        if(!$user){
-            return redirect()->back()->with('error_msg','User does not exist!');
+        if (!$user) {
+            return redirect()->back()->with('error_msg', 'User does not exist!');
         }
 
         if ($user->blocked_at && Carbon::now()->lt(Carbon::parse($user->blocked_at)->addMinutes(30))) {
             return back()->with('error_msg', 'Your account is temporarily blocked due to too many login attempts!');
         }
 
-        if(Hash::check($request->password, $user->password)){
+        if (Hash::check($request->password, $user->password)) {
             $user->update([
                 'login_attempts' => 0,
                 'blocked_at' => null,
@@ -42,7 +44,11 @@ class AuthenticateController extends Controller
 
             Auth::login($user);
 
-            return redirect('/dashboard')->with('success_msg','Logged in successfully!');
+            DB::table('auth')->where('user_id', Auth::user()->user_id)->update([
+                'is_online' => 1,
+            ]);
+
+            return redirect()->route('home')->with('success_msg', 'Logged in successfully!');
         }
 
         $user->increment('login_attempts');
@@ -62,20 +68,22 @@ class AuthenticateController extends Controller
         //     return redirect()->back()->with('error_msg','Incorrect username or password!');
         // }
     }
-    
-    public function forgotPass(){
+
+    public function forgotPass()
+    {
         return view('inc.forgot-password');
     }
 
-    public function resetPassword(Request $request){
+    public function resetPassword(Request $request)
+    {
         $request->validate([
             'username' => 'required|string|max:255',
         ]);
 
         $user = User::where('username', $request->input('username'))->first();
 
-        if(!$user){
-            return redirect()->back()->with('error_msg','User does not exist!');
+        if (!$user) {
+            return redirect()->back()->with('error_msg', 'User does not exist!');
         }
 
         $userEmail = $user->email;
@@ -85,7 +93,7 @@ class AuthenticateController extends Controller
 
         Mail::to($userEmail)->send(new ResetPasswordMail($user->username, $token));
 
-        $maskedEmail = substr($userEmail, 0,4) . '******' . substr($userEmail, -10);
+        $maskedEmail = substr($userEmail, 0, 4) . '******' . substr($userEmail, -10);
 
         PasswordResetToken::create([
             'email' => $userEmail,
@@ -95,35 +103,37 @@ class AuthenticateController extends Controller
         return redirect('/')->with('success_msg',  'A password reset link has been sent to your email: ' . $maskedEmail);
     }
 
-    public function resetMail(Request $request){
+    public function resetMail(Request $request)
+    {
         $token = $request->query('token');
         $username = $request->query('username');
-        return view('inc.reset_password', compact('username','token'));
+        return view('inc.reset_password', compact('username', 'token'));
     }
 
-    public function finaliseReset(Request $request){
+    public function finaliseReset(Request $request)
+    {
         $request->validate([
             'username' => 'required|string|max:255',
             'password_comfirm' => 'required|string|max:255',
             'password' => 'required|string|max:255',
         ]);
 
-        if($request->username == ''){
-            return redirect()->back()->with('error_msg','Username not found, Try again later!');
+        if ($request->username == '') {
+            return redirect()->back()->with('error_msg', 'Username not found, Try again later!');
         }
 
-        if($request->password != $request->password_comfirm){
-            return redirect()->back()->with('error_msg','Passwords do not match!');
+        if ($request->password != $request->password_comfirm) {
+            return redirect()->back()->with('error_msg', 'Passwords do not match!');
         }
 
         $user = User::where('username', $request->input('username'))->first();
 
-        if(!$user){
-            return redirect()->back()->with('error_msg','Error!');
+        if (!$user) {
+            return redirect()->back()->with('error_msg', 'Error!');
         }
 
-        if(Hash::check($request->password, $user->password)){
-            return redirect()->back()->with('success_msg','New password can not be same as old password!');
+        if (Hash::check($request->password, $user->password)) {
+            return redirect()->back()->with('success_msg', 'New password can not be same as old password!');
         }
 
         $user->update([
@@ -131,12 +141,17 @@ class AuthenticateController extends Controller
             'reset_token' => null,
         ]);
 
-        return redirect('/')->with('success_msg','Password updated successfully. You can login!');
+        return redirect('/')->with('success_msg', 'Password updated successfully. You can login!');
     }
 
-    public function logout(Request $request){
+    public function logout(Request $request)
+    {
+        DB::table('auth')->where('user_id', Auth::user()->user_id)->update([
+            'is_online' => 0,
+        ]);
+
         $request->session()->invalidate();
-        // Auth::logout();
-        return redirect('/')->with('success_msg','Logged out sucessfully!');
+        Auth::logout();
+        return redirect()->route('login')->with('success_msg', 'Logged out sucessfully!');
     }
 }

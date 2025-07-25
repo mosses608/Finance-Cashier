@@ -17,6 +17,7 @@ class Service extends Model
         'price',
         'category',
         'quantity',
+        'company_id',
         'active',
         'soft_delete',
         'created_by',

@@ -15,5 +15,6 @@ class Invoice extends Model
         'customer_id',
         'billId',
         'amount','status','soft_delete',
+        'company_id',
     ];
 }

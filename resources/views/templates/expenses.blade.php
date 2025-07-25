@@ -55,7 +55,7 @@
                                                         <td class="text-nowrap">{{ $exp->exType }}</td>
                                                         <td class="text-nowrap">{{ $exp->description . ' , ' .  $exp->subBudgetCode }}</td>
                                                         <td class="text-nowrap">{{ number_format($exp->amount, 2) }}</td>
-                                                        <td class="text-nowrap">{{ $exp->refNo ?? '###' }}</td>
+                                                        <td class="text-nowrap text-primary text-center">{{ $exp->refNo ?? '###' }}</td>
                                                         <td class="text-nowrap">{{ \Carbon\Carbon::parse($exp->dueDate)->format('M d, Y') }}</td>
                                                         <td class="text-nowrap">{{ $exp->staffName }}</td>
                                                         <td class="text-center"><a class="btn btn-primary btn-sm" href="#"><i class="fa fa-eye"></i></a></td>

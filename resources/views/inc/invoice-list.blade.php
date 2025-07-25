@@ -128,7 +128,7 @@
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{ $invoice->customerName }}</td>
-                                                        <td>{{ number_format($invoice->amountPaid, 2) }}</td>
+                                                        <td class="text-primary">{{ number_format($invoice->amountPaid, 2) }}</td>
                                                         <td class="pending"><i
                                                                 class="fas fa-spinner fa-spin text-warning me-2"></i>
                                                             {{ $invoice->invoiceStatus }}</td>
@@ -169,7 +169,7 @@
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>100</td>
                                                         <td>{{ $paidinvoice->customerName }}</td>
-                                                        <td>{{ number_format($paidinvoice->amountPaid, 2) }}</td>
+                                                        <td class="text-primary">{{ number_format($paidinvoice->amountPaid, 2) }}</td>
                                                         <td>{{ \Carbon\Carbon::parse($paidinvoice->invoiceDate)->format('M d, Y') }}
                                                         </td>
                                                         @php
@@ -207,7 +207,7 @@
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{ $cancelledinvoice->customerName }}</td>
-                                                        <td>{{ number_format($cancelledinvoice->amountPaid, 2) }}</td>
+                                                        <td class="text-primary fw-700">{{ number_format($cancelledinvoice->amountPaid, 2) }}</td>
                                                         <td>{{ \Carbon\Carbon::parse($cancelledinvoice->cancelledDate)->format('M d, Y') }}
                                                         </td>
                                                         @php
