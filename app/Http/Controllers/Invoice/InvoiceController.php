@@ -60,19 +60,14 @@ class InvoiceController extends Controller
             ]);
         }
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         // Insert main invoice record
         $invoiceId = DB::table('invoice')->insertGetId([
             'customer_id' => $customerId,
             'billId' => null,
             'amount' => $amount,
-            'company_id' => $companyId->companyId,
+            'company_id' => $companyId,
         ]);
 
         foreach ($request->product_id as $index => $productId) {
@@ -98,12 +93,7 @@ class InvoiceController extends Controller
 
     public function invoiceList()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $invoices = DB::table('invoice AS i')
             ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
@@ -115,7 +105,7 @@ class InvoiceController extends Controller
                 'I.created_at AS invoiceDate',
                 'I.id AS invoiceId'
             ])
-            ->where('i.company_id', $companyId->companyId)
+            ->where('i.company_id', $companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 1)
@@ -133,7 +123,7 @@ class InvoiceController extends Controller
                 'I.created_at AS invoiceDate',
                 'I.id AS invoiceId'
             ])
-            ->where('i.company_id', $companyId->companyId)
+            ->where('i.company_id', $companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 3)
@@ -151,7 +141,7 @@ class InvoiceController extends Controller
                 'I.updated_at AS cancelledDate',
                 'I.id AS invoiceId'
             ])
-            ->where('i.company_id', $companyId->companyId)
+            ->where('i.company_id', $companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 2)
@@ -242,11 +232,24 @@ class InvoiceController extends Controller
 
         // dd($itemsOutOfStore);
 
+        $transaction = DB::table('sales')
+            ->select([
+                'amount_paid',
+                'payment_method',
+                'notes',
+                'tax',
+                'created_at',
+                'status'
+            ])
+            ->where('invoice_id', $invoiceId)
+            ->first();
+
         return view('inc.view-invoice', compact([
             'invoiceId',
             'invoiceItems',
             'invoiceServiceItems',
-            'itemsOutOfStore'
+            'itemsOutOfStore',
+            'transaction'
         ]));
     }
 
@@ -332,18 +335,14 @@ class InvoiceController extends Controller
                 ]);
             }
 
-            $companyId = DB::table('companies AS C')
-                ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-                ->select('C.id AS companyId')
-                ->where('A.phone', Auth::user()->username)
-                ->orWhere('A.email', Auth::user()->username)
-                ->first();
+            $companyId = Auth::user()->company_id;
 
             $invoiceId = DB::table('invoice')->insertGetId([
                 'customer_id' => $customerId,
                 'billId' => null,
                 'amount' => $amount,
-                'company_id' => $companyId->companyId,
+                'is_profoma' => 1,
+                'company_id' => $companyId,
             ]);
 
             foreach ($request->product_id as $index => $productId) {
@@ -441,18 +440,13 @@ class InvoiceController extends Controller
                 ]);
             }
 
-            $companyId = DB::table('companies AS C')
-                ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-                ->select('C.id AS companyId')
-                ->where('A.phone', Auth::user()->username)
-                ->orWhere('A.email', Auth::user()->username)
-                ->first();
+            $companyId = Auth::user()->company_id;
 
             $invoiceId = DB::table('invoice')->insertGetId([
                 'customer_id' => $customerId,
                 'billId' => null,
                 'amount' => $amount,
-                'company_id' => $companyId->companyId,
+                'company_id' => $companyId,
                 'is_profoma' => 1,
             ]);
 
@@ -493,12 +487,7 @@ class InvoiceController extends Controller
 
     public function profomaInvoice()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $prodomaInvoiceFromStore = DB::table('profoma_invoice AS PI')
             ->join('invoice AS I', 'PI.invoice_id', '=', 'I.id')
@@ -511,7 +500,7 @@ class InvoiceController extends Controller
                 'PI.id AS profomaId',
             ])
             // ->where('PI.category_id', 1)
-            ->where('I.company_id', $companyId->companyId)
+            ->where('I.company_id', $companyId)
             ->where('PI.soft_delete', 0)
             ->orderByDesc('PI.id')
             ->get();
@@ -528,7 +517,7 @@ class InvoiceController extends Controller
                 'POS.created_at AS dateCreated',
                 'POS.id AS autoId',
             ])
-            ->where('I.company_id', $companyId->companyId)
+            ->where('I.company_id', $companyId)
             ->where('I.soft_delete', 0)
             ->where('POS.soft_delete', 0)
             ->where('C.soft_delete', 0)
@@ -550,7 +539,7 @@ class InvoiceController extends Controller
                 'PI.id AS profomaId'
             ])
             // ->where('PI.category_id', 1)
-            ->where('I.company_id', $companyId->companyId)
+            ->where('I.company_id', $companyId)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Accepted')
             ->orderByDesc('PI.id')
@@ -567,7 +556,7 @@ class InvoiceController extends Controller
                 'PI.id AS profomaId'
             ])
             // ->where('PI.category_id', 1)
-            ->where('I.company_id', $companyId->companyId)
+            ->where('I.company_id', $companyId)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Pending')
             ->orderByDesc('PI.id')
@@ -584,7 +573,7 @@ class InvoiceController extends Controller
                 'PI.id AS profomaId'
             ])
             // ->where('PI.category_id', 1)
-            ->where('I.company_id', $companyId->companyId)
+            ->where('I.company_id', $companyId)
             ->where('PI.soft_delete', 0)
             ->where('PI.profoma_status', 'Rejected')
             ->orderByDesc('PI.id')
@@ -637,7 +626,7 @@ class InvoiceController extends Controller
             ->join('stakeholders AS STK', 'STK.id', '=', 'PI.customer_id')
             ->select([
                 'PR.name AS itemName',
-                'PR.selling_price AS unitPrice',
+                'ITM.amount AS unitPrice',
                 'ITM.quantity AS quantity',
                 'ITM.amount AS invoiceAmount',
                 'ITM.discount AS discount',
@@ -717,8 +706,10 @@ class InvoiceController extends Controller
         $companyData = DB::table('companies AS C')
             ->join('administrators AS A', 'C.id', '=', 'A.company_id')
             ->select('C.*')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
+            ->where(function ($query) {
+                $query->where('A.phone', Auth::user()->username)
+                    ->orWhere('A.email', Auth::user()->username);
+            })
             ->first();
 
         $logoPath = storage_path('app/public/' . $companyData->logo);
@@ -905,6 +896,43 @@ class InvoiceController extends Controller
             ->where('ITM.soft_delete', 0)
             ->get();
 
+        $invoiceServiceItems = DB::table('invoive_service_items AS ITM')
+            ->join('service AS SV', 'ITM.service_id', '=', 'SV.id')
+            ->join('invoice AS I', 'ITM.invoice_id', '=', 'I.id')
+            ->join('stakeholders AS STH', 'I.customer_id', '=', 'STH.id')
+            ->select([
+                'SV.name AS itemName',
+                'SV.price AS unitPrice',
+                'SV.description AS description',
+                'ITM.quantity AS quantity',
+                'ITM.amount AS invoiceAmount',
+                'ITM.discount AS discount',
+                'STH.tin AS tin',
+                'STH.vrn AS vrn',
+            ])
+            ->where('SV.active', 1)
+            ->where('I.id', $invoiceAutoId)
+            ->where('I.soft_delete', 0)
+            ->where('ITM.soft_delete', 0)
+            ->get();
+
+        $itemsOutOfStore = DB::table('profoma_out_store AS POS')
+            ->join('invoice AS INV', 'POS.invoice_id', '=', 'INV.id')
+            ->join('stakeholders AS STH', 'INV.customer_id', '=', 'STH.id')
+            ->select([
+                'POS.product_name AS itemName',
+                'POS.amountPay AS unitPrice',
+                'POS.quantity AS quantity',
+                'POS.amountPay AS invoiceAmount',
+                'POS.discount AS discount',
+                'STH.tin AS tin',
+                'STH.vrn AS vrn',
+            ])
+            ->where('INV.id', $invoiceAutoId)
+            ->where('INV.soft_delete', 0)
+            ->get();
+
+
         $customerDetails = DB::table('stakeholders AS C')
             ->join('invoice AS I', 'I.customer_id', '=', 'C.id')
             ->select([
@@ -936,24 +964,46 @@ class InvoiceController extends Controller
         $issuesDate = DB::table('invoice')
             ->where('id', $invoiceAutoId)->first();
 
-
-        // dd($profomaInvoiceItems);
-
-        if ($profomaInvoiceItems->isEmpty()) {
-            return response()->json(['error' => 'No invoice items found.'], 404);
-        }
-
         $qrText = "Invoice ID: $invoiceAutoId\n";
         $totalDiscount = 0;
         $totalAmountWithoutDiscount = 0;
 
-        foreach ($profomaInvoiceItems as $item) {
-            $totalDiscount += $item->quantity * $item->discount;
-            $totalAmountWithoutDiscount = $item->unitPrice * $item->quantity;
-            $qrText .= "Item: {$item->itemName}, Qty: {$item->quantity}, Price: {$item->unitPrice}\n";
+        if ($invoiceServiceItems->count() > 0) {
+            $profomaInvoiceItems = $invoiceServiceItems->collect();
+            foreach ($profomaInvoiceItems as $item) {
+                $totalDiscount += $item->quantity * $item->discount;
+                $totalAmountWithoutDiscount = $item->unitPrice * $item->quantity;
+                $qrText .= "Item: {$item->itemName}, Qty: {$item->quantity}, Price: {$item->unitPrice}\n";
+            }
         }
 
-        $qrText .= "Total Price: TSH " . number_format($totalAmountWithoutDiscount - $totalDiscount, 2);
+        if ($profomaInvoiceItems->count() > 0) {
+            foreach ($profomaInvoiceItems as $item) {
+                $totalDiscount += $item->quantity * $item->discount;
+                $totalAmountWithoutDiscount = $item->unitPrice * $item->quantity;
+                $qrText .= "Item: {$item->itemName}, Qty: {$item->quantity}, Price: {$item->unitPrice}\n";
+            }
+        }
+
+        if ($itemsOutOfStore->count() > 0) {
+            $profomaInvoiceItems = $itemsOutOfStore->collect();
+            foreach ($profomaInvoiceItems as $item) {
+                $totalDiscount += $item->quantity * $item->discount;
+                $totalAmountWithoutDiscount = $item->unitPrice * $item->quantity;
+                $qrText .= "Item: {$item->itemName}, Qty: {$item->quantity}, Price: {$item->unitPrice}\n";
+            }
+        }
+
+        $subTotal = $totalAmountWithoutDiscount - $totalDiscount;
+
+        $totalAmount = $subTotal;
+
+        if ($customerDetails->VRN != null) {
+            $vat = $subTotal * 0.18;
+            $totalAmount = $subTotal + $vat;
+        }
+
+        $qrText .= "Total Price: TSH " . number_format($totalAmount, 2);
 
         // Use SVG instead of PNG
         $qrSvg = QrCode::format('svg')->size(150)->generate($qrText);
@@ -966,11 +1016,13 @@ class InvoiceController extends Controller
             'issuesDate' => $issuesDate,
             'customerDetails' => $customerDetails,
             'companyData' => $companyData,
-            'logoBase64' => $logoBase64
+            'logoBase64' => $logoBase64,
+            'invoiceServiceItems' => $invoiceServiceItems,
+            'itemsOutOfStore' => $itemsOutOfStore,
         ])->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,
-        ])->download("Profoma-Invoice-$invoiceAutoId.pdf");
+        ])->download("Invoice-$invoiceAutoId.pdf");
     }
 
     public function createInvoice()
@@ -994,5 +1046,140 @@ class InvoiceController extends Controller
             ->orderBy('name', 'ASC')
             ->get();
         return view('inc.create-invoice', compact('stockProducts', 'customers'));
+    }
+
+    public function invoiceAdjustments(Request $request)
+    {
+        $profomaInvoiceId = null;
+        $profomaInvoiceItems = collect();
+        $invoiceServiceItems = collect();
+
+        if ($request->has('invoice_id') && $request->invoice_id != null) {
+
+            $profomaInvoiceId = $request->invoice_id;
+
+            $profomaInvoiceItems = DB::table('invoice_items AS ITM')
+                ->join('products AS PR', 'ITM.item_id', '=', 'PR.id')
+                ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
+                ->join('invoice AS I', 'PI.invoice_id', '=', 'I.id')
+                ->join('stakeholders AS S', 'I.customer_id', '=', 'S.id')
+                ->select([
+                    'ITM.id AS itemId',
+                    'PR.name AS itemName',
+                    'PR.selling_price AS unitPrice',
+                    'ITM.quantity AS quantity',
+                    'ITM.amount AS invoiceAmount',
+                    'ITM.discount AS discount',
+                    'PI.id AS invoiceId',
+                    'S.vrn AS vrn'
+                ])
+                ->where('PI.id', $profomaInvoiceId)
+                ->where('PI.soft_delete', 0)
+                ->where('ITM.soft_delete', 0)
+                ->get();
+
+            $invoiceServiceItems = DB::table('invoive_service_items AS ITM')
+                ->join('service AS SV', 'ITM.service_id', '=', 'SV.id')
+                ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
+                ->join('invoice AS I', 'PI.invoice_id', '=', 'I.id')
+                ->join('stakeholders AS S', 'I.customer_id', '=', 'S.id')
+                ->select([
+                    'ITM.id AS itemId',
+                    'SV.name AS itemName',
+                    'SV.price AS unitPrice',
+                    'SV.description AS description',
+                    'ITM.quantity AS quantity',
+                    'ITM.amount AS invoiceAmount',
+                    'ITM.discount AS discount',
+                    'S.vrn AS vrn'
+                ])
+                ->where('SV.active', 1)
+                ->where('PI.id', $profomaInvoiceId)
+                ->where('PI.soft_delete', 0)
+                ->where('ITM.soft_delete', 0)
+                ->get();
+        }
+
+        return view('inc.invoice-adjustment', compact([
+            'profomaInvoiceId',
+            'invoiceServiceItems',
+            'profomaInvoiceItems',
+        ]));
+    }
+
+    public function invoiceAdjustSave(Request $request)
+    {
+        $request->validate([
+            'type' => 'required|string',
+            'invoice_id' => 'required|string',
+
+            'item_id' => 'required|array',
+            'item_id.*' => 'required|integer',
+
+            'unit_price' => 'required|array',
+            'unit_price.*' => 'required|string',
+
+            'quantity' => 'required|array',
+            'quantity.*' => 'required|string',
+
+            'dicount' => 'nullable|array',
+            'dicount.*' => 'nullable|string',
+        ]);
+
+        try {
+            $decryptedId = Crypt::decrypt($request->invoice_id);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $totalAmount = 0;
+        $subTotalAmount = 0;
+
+        if ($request->has('type') && $request->type == 'item') {
+            foreach ($request->item_id as $key => $itm) {
+                $invoiceIdFromProfoma = DB::table('profoma_invoice AS PI')
+                    ->join('invoice_items AS ITM', 'PI.invoice_id', '=', 'ITM.invoice_id')
+                    ->select('PI.invoice_id AS invoiceId')
+                    ->where('ITM.id', $itm)
+                    ->where('PI.id', $decryptedId)
+                    ->first();
+
+                $amount = str_replace(',', '', $request->unit_price[$key]);
+                $quantity = $request->quantity[$key];
+                $discount = str_replace(',', '', $request->dicount[$key]);
+                $totalDiscount = 0;
+
+                $discountPercent = number_format(($discount / $amount) * 100);
+
+                if ($discount > $amount * $quantity) {
+                    $discountPercent = 0;
+                }
+
+                $subTotalAmount += $amount * $quantity;
+                $totalDiscount += $discountPercent;
+
+                if ($invoiceIdFromProfoma) {
+                    DB::table('invoice_items')->where('id', $itm)->update([
+                        'amount' => $amount,
+                        'quantity' => $quantity,
+                        'discount' => $discountPercent,
+                    ]);
+                }
+            }
+
+            $invoiceId = $invoiceIdFromProfoma->invoiceId;
+
+            $totalAmount = $subTotalAmount;
+
+            DB::table('profoma_invoice')->where('invoice_id', $invoiceId)->update([
+                'amount' => $totalAmount,
+            ]);
+
+            DB::table('invoice')->where('id', $invoiceId)->update([
+                'amount' => $totalAmount - $totalDiscount,
+            ]);
+
+            return redirect()->back()->with('success_msg', 'Invoice with number ' . ' # ' . $invoiceId . ' ' . 'has been adjusted successfully!');
+        }
     }
 }

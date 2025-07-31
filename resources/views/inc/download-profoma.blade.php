@@ -161,10 +161,14 @@
                 $totalDiscount = 0;
                 $totalAmountWithoutDiscount = 0;
             @endphp
+            @php
+                $totalDiscount = 0;
+                $totalAmountWithoutDiscount = 0;
+            @endphp
             @foreach ($profomaInvoiceItems as $item)
                 @php
-                    $discountValue = $item->quantity * $item->discount;
                     $lineTotal = $item->unitPrice * $item->quantity;
+                    $discountValue = $lineTotal * ($item->discount / 100);
                     $totalDiscount += $discountValue;
                     $totalAmountWithoutDiscount += $lineTotal;
                 @endphp
@@ -178,6 +182,7 @@
                     <td>{{ number_format($lineTotal, 2) }}</td>
                 </tr>
             @endforeach
+
         </tbody>
         <tfoot>
             @php
@@ -197,9 +202,9 @@
                     <td>{{ number_format(0, 2) }}</td>
                 </tr>
             @else
-            @php
-                $vat = $finalAmount * 0.18;
-            @endphp
+                @php
+                    $vat = $finalAmount * 0.18;
+                @endphp
                 <tr>
                     <td colspan="6" class="text-right">VAT (18%)</td>
                     <td>{{ number_format($vat, 2) }}</td>

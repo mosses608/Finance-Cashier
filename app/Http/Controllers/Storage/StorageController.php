@@ -41,15 +41,10 @@ class StorageController extends Controller
             'phone' => 'nullable',
         ]);
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $existingStore = DB::table('stores')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('store_name', $request->store_name)
             ->first();
 
@@ -65,7 +60,7 @@ class StorageController extends Controller
             'location' => $request->location,
             'store_keeper' => $request->store_keeper,
             'phone' => $request->phone,
-            'company_id' => $companyId->companyId,
+            'company_id' => $companyId,
         ]);
 
         return redirect()->route('store.list')->with('success_msg', 'Store registered successfully!');
@@ -83,12 +78,7 @@ class StorageController extends Controller
 
     public function storeLists()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $stores = DB::table('stores AS ST')
             ->join('products AS PR', 'ST.id', '=', 'PR.store_id')
@@ -101,7 +91,7 @@ class StorageController extends Controller
                 'ST.phone AS phone',
                 DB::raw('COUNT(PR.id) AS totalItems'),
             ])
-            ->where('ST.company_id', $companyId->companyId)
+            ->where('ST.company_id', $companyId)
             ->where('ST.soft_delete', 0)
             ->groupBy(
                 'ST.store_name',

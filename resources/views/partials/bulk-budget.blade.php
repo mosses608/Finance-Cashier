@@ -1,4 +1,4 @@
-<form action="{{ route('stakeholder.create') }}" method="POST">
+<form action="{{ route('bulk.budget.create') }}" method="POST" enctype="multipart/form-data">
     @csrf
     <h4 class="p-2 mt-0 fs-5"><strong style="color: #007BFF;"><i class="fa fa-check"></i></strong> Budget
         Information
@@ -54,18 +54,49 @@
             </div>
         </div>
 
+         <div class="col-4 mb-3">
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="inputGroup-sizing-default">Cost</span>
+                <select class="form-control" aria-label="Sizing example input" name="cost_type"
+                    aria-describedby="inputGroup-sizing-default">
+                    <option value="" selected disabled>--select
+                        cost
+                        type--
+                    </option>
+                    @foreach ($costTypes as $cost)
+                        <option value="{{ $cost->name }}">
+                            {{ $cost->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+         <div class="col-4 mb-3">
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="inputGroup-sizing-default">Budget</span>
+                <input type="text" class="form-control" aria-label="Sizing example input" name="budget_name"
+                    aria-describedby="inputGroup-sizing-default" placeholder="budget name">
+            </div>
+        </div>
+        <div class="col-4 mb-3">
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="inputGroup-sizing-default">Code</span>
+                <input type="text" class="form-control" id="code" aria-label="code" name="budget_code"
+                    aria-describedby="inputGroup-sizing-default" placeholder="budget code">
+            </div>
+        </div>
+
         <div class="col-12 mb-3">
             <div class="input-group mb-3">
-                <a href="#" type="button" class="btn btn-secondary"><i class="fa fa-download"></i> Sample Budget
+                <a href="{{ route('download.csv.budget') }}" type="button" class="btn btn-secondary"><i class="fa fa-download"></i> Sample Budget
                     File</a>
             </div>
         </div>
 
         <div class="col-12 mb-3">
             <div class="input-group mb-3">
-                {{-- <span class="input-group-text"
-                                                                            id="inputGroup-sizing-default">File</span> --}}
-                <input type="file" class="form-control" id="project" name="subCodeFile" aria-label="Project Id"
+                <input type="file" class="form-control" id="subCodeFile" name="subCodeFile" aria-label=""
                     aria-describedby="inputGroup-sizing-default" />
 
             </div>

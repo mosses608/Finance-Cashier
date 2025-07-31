@@ -73,6 +73,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/download-profoma1/{encryptedPrpfomaAutoId}', [App\Http\Controllers\Invoice\InvoiceController::class, 'downloadInvoiceProfoma'])->name('download.profoma.out');
     Route::get('/invoice-download/{encryptedAutoId}', [App\Http\Controllers\Invoice\InvoiceController::class, 'invoiceDownload'])->name('invoice.download');
     Route::get('/create-invoice', [App\Http\Controllers\Invoice\InvoiceController::class, 'createInvoice'])->name('create.invoice');
+    Route::get('/invoice-adjustments', [App\Http\Controllers\Invoice\InvoiceController::class, 'invoiceAdjustments'])->name('invoice.adjustments');
+    Route::post('/adjust-invoice', [App\Http\Controllers\Invoice\InvoiceController::class, 'invoiceAdjustSave'])->name('adjust.invoice');
+
+
 
     // TRANSACTION || SALES
     Route::get('/sales', [App\Http\Controllers\TransactionController::class, 'transactions'])->name('sales')->middleware('auth');
@@ -159,11 +163,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/budget-reports', [App\Http\Controllers\Budget\BudgetController::class, 'budgetReports'])->name('budget.reports');
     Route::get('/staff-budget-codes', [App\Http\Controllers\Budget\BudgetController::class, 'staffBudgetCodes'])->name('assign.budget.code');
     Route::post('/staff-budget-codes', [App\Http\Controllers\Budget\BudgetController::class, 'staffSubBudgetCodes'])->name('staff.budget.codes');
+    Route::get('/budget-file-download', [App\Http\Controllers\Budget\BudgetController::class, 'downloadBudgetFileSample'])->name('download.csv.budget');
+    Route::post('/bulk-budget-create', [App\Http\Controllers\Budget\BudgetController::class, 'bulkBudgetCreate'])->name('bulk.budget.create');
+
+    // ACCOUNT
+    Route::get('/account-balance', [App\Http\Controllers\Accounts\AccountController::class, 'accountBalance'])->name('account.balance');
+    Route::post('/bank-balance-store', [App\Http\Controllers\Accounts\AccountController::class, 'accountBalanceStore'])->name('bank.balance');
+    Route::get('/bank-statements', [App\Http\Controllers\Accounts\AccountController::class, 'bankStatements'])->name('bank.statements');
+    Route::get('/download-bank-statement', [App\Http\Controllers\Accounts\AccountController::class, 'downloadBankStatement'])->name('download.bank.statement');
 
 
     // EXPENSES
     Route::get('/expenses', [App\Http\Controllers\Expenses\ExpensesController::class, 'expenses'])->name('record.expenses');
     Route::post('/store-expenses', [App\Http\Controllers\Expenses\ExpensesController::class, 'storeExpenses'])->name('expense.store');
+    Route::get('/payment-requests', [App\Http\Controllers\Expenses\ExpensesController::class, 'paymentRequests'])->name('payment.requests');
+    Route::post('/approve-payments', [App\Http\Controllers\Accounts\AccountController::class, 'approvePayments'])->name('approve.payment.request');
+
 
     Route::get('/dashboard', [App\Http\Controllers\Pages\PageController::class, 'dashboardFx'])->name('home')->middleware('auth');
+
+    // WEBSITE BUILDER
+    Route::get('/website/{encryptedId}', [App\Http\Controllers\Website\WebsiteBuilderController::class, 'websiteBuilder'])->name('view.website.builder');
 });
+

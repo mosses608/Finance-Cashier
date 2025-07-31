@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Budget;
 use Carbon\Carbon;
 use App\Models\Budget;
 use Illuminate\Http\Request;
+use App\Imports\BudgetImport;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\ValidationException;
 
@@ -16,16 +19,11 @@ class BudgetController extends Controller
     //
     public function budgetCreate()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $projects = DB::table('projects')
             ->select('*')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->get();
@@ -54,7 +52,7 @@ class BudgetController extends Controller
                 DB::raw('COUNT(SB.id) AS subCodes'),
                 DB::raw('SUM(SB.unit_cost * SB.quantity) AS totalBudgetCost')
             ])
-            ->where('BG.company_id', $companyId->companyId)
+            ->where('BG.company_id', $companyId)
             ->where('BG.soft_delete', 0)
             ->where('SB.soft_delete', 0)
             ->groupBy([
@@ -81,15 +79,10 @@ class BudgetController extends Controller
             'project_name' => 'required|string|max:30',
         ]);
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $projectExsists = DB::table('projects')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('name', $request->project_name)
             ->where('soft_delete', 0)
             ->exists();
@@ -101,7 +94,7 @@ class BudgetController extends Controller
         try {
             DB::table('projects')->insert([
                 'name' => $request->project_name,
-                'company_id' => $companyId->companyId,
+                'company_id' => $companyId,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
@@ -140,12 +133,7 @@ class BudgetController extends Controller
             'unit_meausre.*' => 'nullable|string',
         ]);
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         try {
             $budgetData = Budget::create([
@@ -156,7 +144,7 @@ class BudgetController extends Controller
                 'budget_code' => $request->budget_code,
                 'project_name' => $request->project_name,
                 'created_by' => Auth::user()->id,
-                'company_id' => $companyId->companyId,
+                'company_id' => $companyId,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
@@ -190,15 +178,10 @@ class BudgetController extends Controller
             return $th->getMessage();
         }
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $budget = Budget::select('*')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('id', $budgetId)
             ->first();
 
@@ -218,30 +201,25 @@ class BudgetController extends Controller
         $subudgets = collect();
         $budget = null;
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $budgetYears = DB::table('budgets')
             ->select('budget_year')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->pluck('budget_year');
 
         $budgetCodes = DB::table('budgets')
             ->select('budget_code', 'budget_year')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->get();
 
         $projects = DB::table('budgets')
             ->select('project_name')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->distinct()
@@ -265,7 +243,7 @@ class BudgetController extends Controller
                 'created_at',
                 'is_approved'
             ])
-                ->where('company_id', $companyId->companyId)
+                ->where('company_id', $companyId)
                 ->where('project_name', $request->searchProject)
                 ->where('budget_year', $request->searchYear)
                 ->where('budget_code', $request->searchCode)
@@ -310,12 +288,7 @@ class BudgetController extends Controller
             dd('Validation failed', $e->errors(), $request->all());
         }
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         if ($request->has('confirm') && $request->confirm != null && Crypt::decrypt($request->confirm) == 1) {
 
@@ -327,20 +300,20 @@ class BudgetController extends Controller
             }
 
             $budgetExists = DB::table('budgets')
-                ->where('company_id', $companyId->companyId)
+                ->where('company_id', $companyId)
                 ->where('project_name', $decryptedProject)
                 ->where('budget_year', $decryptedBudgetYear)
                 ->exists();
 
             if ($budgetExists == true) {
                 $thisBudget = DB::table('budgets')
-                    ->where('company_id', $companyId->companyId)
+                    ->where('company_id', $companyId)
                     ->where('project_name', $decryptedProject)
                     ->where('budget_year', $decryptedBudgetYear)
                     ->first();
 
                 DB::table('budgets')
-                    ->where('company_id', $companyId->companyId)
+                    ->where('company_id', $companyId)
                     ->where('budget_year', $decryptedBudgetYear)
                     ->where('project_name', $decryptedProject)
                     ->update([
@@ -390,15 +363,10 @@ class BudgetController extends Controller
             'project_name' => 'required|string',
         ]);
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $existingBudget = DB::table('budgets')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('budget_code', $request->budget_code)
             ->where('soft_delete', 0)
             ->first();
@@ -469,30 +437,25 @@ class BudgetController extends Controller
         $budget = null;
         $newYear = null;
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $budgetYears = DB::table('budgets')
             ->select('budget_year')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->pluck('budget_year');
 
         $budgetCodes = DB::table('budgets')
             ->select('budget_year', 'budget_code')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->get();
 
         $projects = DB::table('budgets')
             ->select('project_name')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->distinct()
@@ -516,7 +479,7 @@ class BudgetController extends Controller
                 'created_at',
                 'is_approved'
             ])
-                ->where('company_id', $companyId->companyId)
+                ->where('company_id', $companyId)
                 ->where('project_name', $request->searchProject)
                 ->where('budget_year', $request->searchYear)
                 ->where('budget_code', $request->searchCode)
@@ -579,17 +542,12 @@ class BudgetController extends Controller
 
         // dd($request->all());
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $newBudgetYear = $request->new_budget_year;
 
         $existingBudget = DB::table('budgets')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('budget_year', $newBudgetYear)
             ->where('budget_code', $request->budget_code)
             ->exists();
@@ -597,7 +555,7 @@ class BudgetController extends Controller
         // dd($existingBudget);
 
         $oldBudget = DB::table('budgets')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('budget_year', $request->budget_year)
             ->where('budget_name', $request->budget_name)
             ->where('budget_code', $request->old_budget_code)
@@ -619,7 +577,7 @@ class BudgetController extends Controller
             'budget_code' => $request->budget_code,
             'project_name' => $request->project_name ?? $oldBudget->project_name,
             'created_by' => Auth::user()->id,
-            'company_id' => $companyId->companyId,
+            'company_id' => $companyId,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
@@ -651,19 +609,14 @@ class BudgetController extends Controller
 
     public function budgetReports(Request $request)
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $projects = DB::table('projects')
             ->select([
                 'id',
                 'name',
             ])
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->distinct()
@@ -671,7 +624,7 @@ class BudgetController extends Controller
 
         $budgetYrs = DB::table('budgets')
             ->select('budget_year AS year')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->distinct()
@@ -679,7 +632,7 @@ class BudgetController extends Controller
 
         $branch = DB::table('budgets')
             ->select('branch_name AS branch')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('branch_name', 'ASC')
             ->distinct()
@@ -697,9 +650,10 @@ class BudgetController extends Controller
                     'SB.unit_cost AS amount',
                     DB::raw('SUM(EX.amount) AS totalAmount'),
                 ])
+                ->where('EX.status', 1)
                 ->whereBetween('EX.expense_date', [$request->from_date, $request->to_date])
-                ->where('B.company_id', $companyId->companyId)
-                ->where('EX.company_id', $companyId->companyId)
+                ->where('B.company_id', $companyId)
+                ->where('EX.company_id', $companyId)
                 ->where('B.budget_year', $request->year)
                 ->where('B.branch_name', $request->branch)
                 ->where('B.soft_delete', 0)
@@ -710,33 +664,64 @@ class BudgetController extends Controller
             // dd($reports);
         }
 
+        $banks = DB::table('banks AS B')
+            ->join('bank_transactions AS BT', 'B.id', '=', 'BT.bank_id')
+            ->select([
+                'B.id AS bankId',
+                'B.bank_name AS bankName',
+                'B.account_number AS account_number',
+            ])
+            ->where('B.company_id', $companyId)
+            ->distinct()
+            ->get();
+
+        $transactions = collect();
+
+        if ($request->ajax()) {
+            $transactions = DB::table('bank_transactions AS BT')
+                ->join('banks AS B', 'B.id', '=', 'BT.bank_id')
+                ->select([
+                    'B.bank_name AS bankName',
+                    'B.account_name AS accountName',
+                    'B.account_number AS accountNumber',
+                    'BT.amount AS amount',
+                    'BT.related_module AS related_module',
+                    'BT.type AS accType',
+                    'BT.date AS transactionDate',
+                ])
+                ->when($request->from_date, fn($q) => $q->where('BT.date', '>=', $request->from_date))
+                ->when($request->to_date, fn($q) => $q->where('BT.date', '<=', $request->to_date))
+                ->when($request->bank_id, fn($q) => $q->where('BT.bank_id', $request->bank_id))
+                ->where('B.company_id', $companyId)
+                ->get();
+
+            return view('partials.transaction-report-results', compact('transactions'))->render();
+        }
+
         return view('templates.budget-reports', compact([
             'projects',
             'budgetYrs',
             'branch',
-            'reports'
+            'reports',
+            'banks',
+            'transactions',
         ]));
     }
 
     public function staffBudgetCodes(Request $request)
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $years = DB::table('budgets')
             ->select('budget_year AS yr')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
             ->get();
 
         $projects = DB::table('budgets')
             ->select('project_name AS proj')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->distinct()
             ->get();
@@ -755,13 +740,13 @@ class BudgetController extends Controller
                     'first_name',
                     'last_name'
                 ])
-                ->where('company_id', $companyId->companyId)
+                ->where('company_id', $companyId)
                 ->where('soft_delete', 0)->orderBy('first_name', 'ASC')->get();
 
             $budget = DB::table('budgets AS B')
                 ->join('sub_budgests AS SB', 'B.budget_code', '=', 'SB.budget_code')
                 ->select('B.id', 'B.budget_code', 'B.budget_name', 'SB.sub_budget_code')
-                ->where('company_id', $companyId->companyId)
+                ->where('company_id', $companyId)
                 ->where('B.budget_year', $budgetYear)
                 ->where('B.project_name', $projectName)
                 ->where('B.soft_delete', 0)
@@ -782,7 +767,7 @@ class BudgetController extends Controller
             ->join('emplyees AS EM', 'SBC.staff_id', '=', 'EM.id')
             ->join('budgets AS B', 'SBC.budget_code', '=', 'B.id')
             ->select('SBC.*', 'B.budget_code AS budget_code_name', 'EM.first_name', 'EM.middle_name', 'EM.last_name')
-            ->where('B.company_id', $companyId->companyId)
+            ->where('B.company_id', $companyId)
             ->where('SBC.soft_delete', 0)
             ->orderBy('SBC.id', 'DESC')
             ->get();
@@ -836,5 +821,68 @@ class BudgetController extends Controller
         }
 
         return redirect()->back()->with('success_msg', 'Sub-budget code assigned successfully!');
+    }
+
+    public function downloadBudgetFileSample()
+    {
+        $filename = "budget-codes-file.csv";
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate",
+            "Expires" => "0"
+        ];
+
+        $columns = ['sub_budget_code', 'unit_cost', 'quantity', 'unit_meausre', 'sub_budget_description'];
+
+        $callback = function () use ($columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function bulkBudgetCreate(Request $request)
+    {
+        $request->validate([
+            'budget_year' => 'required|integer',
+            'currency' => 'required|string',
+            'project_id' => 'required|integer',
+            'cost_type' => 'required|string',
+            'budget_name' => 'required|string',
+            'budget_code' => 'required|string',
+            'subCodeFile' => 'required|file|mimetypes:text/csv,text/plain,application/csv',
+        ]);
+
+        $projectData = DB::table('projects')
+            ->where('id', $request->project_id)
+            ->first();
+
+        $companyId = Auth::user()->company_id;
+
+        $budgetId = DB::table('budgets')->insertGetId([
+            'budget_year' => $request->budget_year,
+            'currency' => $request->currency,
+            'cost_type' => $request->cost_type,
+            'budget_name' => $request->budget_name,
+            'budget_code' => $request->budget_code,
+            'project_name' => $projectData->name,
+            'created_by' => Auth::user()->user_id,
+            'company_id' => $companyId,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]);
+
+        try {
+            Excel::import(new BudgetImport($budgetId), $request->file('subCodeFile'));
+
+            return back()->with('success_msg', 'Excel file uploaded successfully!');
+        } catch (\Exception $e) {
+            Log::error('Import error: ' . $e->getMessage());
+            return back()->with('error_msg', 'Import failed: ' . $e->getMessage());
+        }
     }
 }

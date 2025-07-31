@@ -142,6 +142,11 @@
                                     <span class="sub-item">Accept Profoma Invoice</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('invoice.adjustments') }}">
+                                    <span class="sub-item">Invoice Adjustments</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>
@@ -194,6 +199,45 @@
                             <li>
                                 <a href="{{ route('record.expenses') }}">
                                     <span class="sub-item">Record Expenses</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#accounts">
+                        <i class="fas fa-credit-card"></i>
+                        <p>Accounts</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="accounts">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('account.balance') }}">
+                                    <span class="sub-item">Account Balance</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('bank.statements') }}">
+                                    <span class="sub-item">Bank Statements</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a data-bs-toggle="collapse" href="#payments">
+                        <i class="fas fa-cash-register"></i>
+                        <p>Cash-Cheque Payments</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="collapse" id="payments">
+                        <ul class="nav nav-collapse">
+                            <li>
+                                <a href="{{ route('payment.requests') }}">
+                                    <span class="sub-item">Payment Requests</span>
                                 </a>
                             </li>
                         </ul>

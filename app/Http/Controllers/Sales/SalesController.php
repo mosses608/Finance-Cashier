@@ -92,12 +92,7 @@ class SalesController extends Controller
 
     public function salesList()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $companySales = DB::table('sales')
             ->select([
@@ -109,7 +104,7 @@ class SalesController extends Controller
                 'id AS autoId',
                 'updated_at',
             ])
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderByDesc('id', 'DESC')
             ->get();
@@ -119,12 +114,7 @@ class SalesController extends Controller
 
     public function salesReports(Request $request)
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $salesReports = DB::table('sales')
             ->select([
@@ -136,7 +126,7 @@ class SalesController extends Controller
                 'id AS autoId',
                 'updated_at',
             ])
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderByDesc('id', 'DESC')
             ->get();
@@ -156,7 +146,7 @@ class SalesController extends Controller
                     'updated_at',
                 ])
                 ->whereBetween('created_at', [$from, $to])
-                ->where('company_id', $companyId->companyId)
+                ->where('company_id', $companyId)
                 ->where('soft_delete', 0)
                 ->orderByDesc('id', 'DESC')
                 ->get();
@@ -196,15 +186,10 @@ class SalesController extends Controller
 
         // dd('Mohammed');
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         DB::table('sales')->insert([
-            'company_id' => $companyId->companyId,
+            'company_id' => $companyId,
             'user_id' => $userId,
             'invoice_id' => $request->invoice_id,
             'tax' => $request->tax,
@@ -243,6 +228,23 @@ class SalesController extends Controller
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.id', $invoiceIdFromSales)
+            ->first();
+
+        $companyData = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select([
+                'C.company_name AS name',
+                'C.address AS address',
+                'C.tin AS TIN',
+                'C.company_email AS email',
+                'C.logo AS logo',
+                'C.website AS webiste'
+            ])
+            ->where(function ($join) {
+                $join->where('A.phone', Auth::user()->username)
+                    ->orWhere('A.email', Auth::user()->username);
+            })
+            ->where('C.soft_delete', 0)
             ->first();
 
         $paymentData = DB::table('sales')
@@ -286,7 +288,8 @@ class SalesController extends Controller
             'saleAutoId',
             'paymentData',
             'customerData',
-            'salesReceiptFromServices'
+            'salesReceiptFromServices',
+            'companyData'
         ]));
     }
 
@@ -304,6 +307,31 @@ class SalesController extends Controller
             ->where('C.soft_delete', 0)
             ->where('I.id', $invoiceIdFromSales)
             ->first();
+
+        $companyData = DB::table('companies AS C')
+            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+            ->select([
+                'C.company_name AS name',
+                'C.address AS address',
+                'C.tin AS TIN',
+                'C.company_email AS email',
+                'C.logo AS logo',
+                'C.website AS webiste'
+            ])
+            ->where(function ($join) {
+                $join->where('A.phone', Auth::user()->username)
+                    ->orWhere('A.email', Auth::user()->username);
+            })
+            ->where('C.soft_delete', 0)
+            ->first();
+
+        $logoPath = storage_path('app/public/' . $companyData->logo);
+        $base64Logo = null;
+
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $base64Logo = 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($logoData);
+        }
 
         $paymentData = DB::table('sales')
             ->where('id', $saleAutoId)
@@ -354,7 +382,9 @@ class SalesController extends Controller
             'receiptSalesFromStore',
             'totalAmount',
             'saleAutoId',
-            'salesReceiptFromServices'
+            'salesReceiptFromServices',
+            'companyData',
+            'base64Logo'
         ));
 
         return $pdf->download('sales_receipt_' . str_pad($saleAutoId, 4, '0', STR_PAD_LEFT) . '.pdf');

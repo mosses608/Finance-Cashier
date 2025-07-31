@@ -16,6 +16,7 @@ class Bank extends Model
         'account_name',
         'phone',
         'account_number',
+        'company_id',
         'address',
         'email',
         'box',

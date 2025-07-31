@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Profoma Invoice</title>
+    <title>Invoice</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -108,7 +108,7 @@
 
 <body>
 
-    <h2>Profoma Invoice</h2>
+    <h2>Invoice</h2>
 
     <div class="logo-container">
         @if (isset($logoBase64))
@@ -144,35 +144,36 @@
         </div>
     </div>
 
-    <table>
+    <table class="table table-bordered">
         <thead>
             <tr>
                 <th>S/N</th>
                 <th>Item Name</th>
-                <th>Unit Price</th>
+                <th>Unit Price (TSH)</th>
                 <th>Quantity</th>
                 <th>Discount (%)</th>
-                <th>Discount Value</th>
-                <th>Total Amount</th>
+                <th>Discount Value (TSH)</th>
+                <th>Total Amount (TSH)</th>
             </tr>
         </thead>
         <tbody>
             @php
+                $subTotal = 0;
                 $totalDiscount = 0;
-                $totalAmountWithoutDiscount = 0;
             @endphp
+
             @foreach ($profomaInvoiceItems as $item)
                 @php
-                    $discountValue = $item->quantity * $item->discount;
+                    $discountValue = (($item->unitPrice * $item->discount) / 100) * $item->quantity;
                     $lineTotal = $item->unitPrice * $item->quantity;
+                    $subTotal += $lineTotal;
                     $totalDiscount += $discountValue;
-                    $totalAmountWithoutDiscount += $lineTotal;
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $item->itemName }}</td>
                     <td>{{ number_format($item->unitPrice, 2) }}</td>
-                    <td>{{ number_format($item->quantity) }}</td>
+                    <td>{{ $item->quantity }}</td>
                     <td>{{ $item->discount }}</td>
                     <td>{{ number_format($discountValue, 2) }}</td>
                     <td>{{ number_format($lineTotal, 2) }}</td>
@@ -181,36 +182,29 @@
         </tbody>
         <tfoot>
             @php
-                $finalAmount = $totalAmountWithoutDiscount - $totalDiscount;
+                $finalAmount = $subTotal - $totalDiscount;
+                $vat = $customerDetails->VRN ? $finalAmount * 0.18 : 0;
+                $grandTotal = $finalAmount + $vat;
             @endphp
             <tr>
-                <td colspan="6" class="text-right">Sub Total</td>
-                <td>{{ number_format($totalAmountWithoutDiscount, 2) }}</td>
+                <td colspan="6" class="text-end">Sub Total</td>
+                <td>{{ number_format($subTotal, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="6" class="text-right">Total Discount</td>
+                <td colspan="6" class="text-end">Total Discount</td>
                 <td>{{ number_format($totalDiscount, 2) }}</td>
             </tr>
-            @if (!$customerDetails->VRN)
-                <tr>
-                    <td colspan="6" class="text-right">VAT (0%)</td>
-                    <td>{{ number_format(0, 2) }}</td>
-                </tr>
-            @else
-            @php
-                $vat = $finalAmount * 0.18;
-            @endphp
-                <tr>
-                    <td colspan="6" class="text-right">VAT (18%)</td>
-                    <td>{{ number_format($vat, 2) }}</td>
-                </tr>
-            @endif
             <tr>
-                <td colspan="6" class="text-right"><strong>Grand Total (TSH)</strong></td>
-                <td><strong>{{ number_format($finalAmount + $vat, 2) }}</strong></td>
+                <td colspan="6" class="text-end">VAT ({{ $customerDetails->VRN ? '18%' : '0%' }})</td>
+                <td>{{ number_format($vat, 2) }}</td>
+            </tr>
+            <tr>
+                <td colspan="6" class="text-end"><strong>Grand Total (TSH)</strong></td>
+                <td><strong>{{ number_format($grandTotal, 2) }}</strong></td>
             </tr>
         </tfoot>
     </table>
+
 
     <div class="qr-section">
         <p><strong>QR Code</strong></p>

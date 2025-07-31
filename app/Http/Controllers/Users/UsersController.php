@@ -103,12 +103,14 @@ class UsersController extends Controller
 
     public function systemUsers()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        // $companyId = DB::table('companies AS C')
+        //     ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+        //     ->select('C.id AS companyId')
+        //     ->where('A.phone', Auth::user()->username)
+        //     ->orWhere('A.email', Auth::user()->username)
+        //     ->first();
+
+        $companyId = Auth::user()->company_id;
 
         $employees = DB::table('emplyees')
             ->select([
@@ -117,7 +119,7 @@ class UsersController extends Controller
                 'first_name',
                 'last_name'
             ])
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->orderBy('first_name', 'ASC')
             ->get();
 
@@ -130,7 +132,7 @@ class UsersController extends Controller
                 'UR.name AS roleName',
                 'AU.status AS status',
             ])
-            ->where('AD.company_id', $companyId->companyId)
+            ->where('AD.company_id', $companyId)
             ->get();
 
         // dd($systemUsersFromAdmin);
@@ -147,7 +149,7 @@ class UsersController extends Controller
                 'DP.name AS department',
                 'AU.status AS status',
             ])
-            ->where('EMP.company_id', $companyId->companyId)
+            ->where('EMP.company_id', $companyId)
             ->get();
 
         return view('users.system-users', compact([
@@ -183,6 +185,8 @@ class UsersController extends Controller
             return redirect()->back()->with('error_msg', 'This user already has access to this system!');
         }
 
+        $companyId = Auth::user()->company_id;
+
         if ($request->has('role_id') && $request->role_id == 1) {
 
             $userId = DB::table('administrators')->insertGetId([
@@ -197,6 +201,7 @@ class UsersController extends Controller
                 'username' => $request->username,
                 'password' => Hash::make($request->password),
                 'role_id' => $request->role_id,
+                'company_id' => $companyId,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
@@ -208,6 +213,7 @@ class UsersController extends Controller
             DB::table('auth')->insert([
                 'user_id' => $request->user_id,
                 'username' => $request->username,
+                'company_id' => $companyId,
                 'password' => Hash::make($request->password),
                 'role_id' => $request->role_id,
             ]);
@@ -220,19 +226,14 @@ class UsersController extends Controller
 
     public function passwordRest()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $users = DB::table('auth AS A')
             ->join('administrators AS AD', 'A.user_id', '=', 'AD.id')
             ->join('emplyees AS EM', 'A.user_id', '=', 'EM.id')
             ->select('A.username', 'A.user_id')
-            ->where('AD.company_id', $companyId->companyId)
-            ->where('EM.company_id', $companyId->companyId)
+            ->where('AD.company_id', $companyId)
+            ->where('EM.company_id', $companyId)
             ->where('A.status', 1)
             ->get();
 
@@ -269,12 +270,7 @@ class UsersController extends Controller
 
     public function usersReports()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $systemUsersFromAdmin = DB::table('administrators AS AD')
             ->join('auth AS AU', 'AD.id', '=', 'AU.user_id')
@@ -285,7 +281,7 @@ class UsersController extends Controller
                 'UR.name AS roleName',
                 'AU.status AS status',
             ])
-            ->where('AD.company_id', $companyId->companyId)
+            ->where('AD.company_id', $companyId)
             ->get();
 
         // dd($systemUsersFromAdmin);
@@ -302,7 +298,7 @@ class UsersController extends Controller
                 'DP.name AS department',
                 'AU.status AS status',
             ])
-            ->where('EMP.company_id', $companyId->companyId)
+            ->where('EMP.company_id', $companyId)
             ->get();
 
         $userLogs = DB::table('sessions AS S')
@@ -314,7 +310,7 @@ class UsersController extends Controller
                 'S.ip_address AS ipaddress',
                 'S.user_agent AS agent',
             ])
-            ->where('E.company_id', $companyId->companyId)
+            ->where('E.company_id', $companyId)
             ->orderBy('S.id', 'DESC')
             ->get();
 
@@ -328,7 +324,7 @@ class UsersController extends Controller
                 'S.ip_address AS ipaddress',
                 'S.user_agent AS agent',
             ])
-            ->where('E.company_id', $companyId->companyId)
+            ->where('E.company_id', $companyId)
             ->orderBy('S.id', 'DESC')
             ->get();
 

@@ -19,12 +19,7 @@ class HumanResourceController extends Controller
             return [$monthNumber => \Carbon\Carbon::create()->month($monthNumber)->format('F')];
         });
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $staffs = DB::table('emplyees')
             ->select([
@@ -32,14 +27,14 @@ class HumanResourceController extends Controller
                 'last_name',
                 'id'
             ])
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('first_name', 'ASC')
             ->get();
 
         $budgetData = DB::table('budgets')
             ->select('budget_year', 'project_name')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('budget_year', 'DESC')
             ->get();
@@ -57,7 +52,7 @@ class HumanResourceController extends Controller
                 'SA.status',
                 'SA.month',
             ])
-            ->where('EM.company_id', $companyId->companyId)
+            ->where('EM.company_id', $companyId)
             ->where('SA.status', 'pending')
             ->where('SA.soft_delete', 0)
             ->orderBy('SA.id', 'DESC')
@@ -76,7 +71,7 @@ class HumanResourceController extends Controller
                 'SA.status',
                 'SA.month',
             ])
-            ->where('EM.company_id', $companyId->companyId)
+            ->where('EM.company_id', $companyId)
             ->where('SA.status', 'approved')
             ->where('SA.soft_delete', 0)
             ->orderBy('SA.id', 'DESC')
@@ -182,15 +177,10 @@ class HumanResourceController extends Controller
             'is_balance_carry_over' => 'required|integer',
         ]);
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $leaveExists = DB::table('leave_types')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('name', $request->name)
             ->where('soft_delete', 0)
             ->exists();
@@ -207,7 +197,7 @@ class HumanResourceController extends Controller
             'require_attachment' => $request->require_attachment,
             'is_balance_carry_over' => $request->is_balance_carry_over,
             'created_by' => Auth::user()->user_id,
-            'company_id' => $companyId->companyId,
+            'company_id' => $companyId,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
@@ -217,16 +207,11 @@ class HumanResourceController extends Controller
 
     public function applyLeave()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $leaveTypes = DB::table('leave_types')
             ->select('id', 'name')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->orderBy('name', 'ASC')
             ->where('soft_delete', 0)
             ->get();
@@ -242,7 +227,7 @@ class HumanResourceController extends Controller
                 'LA.created_at AS dateApplied',
                 'LA.status AS status',
             ])
-            ->where('LT.company_id', $companyId->companyId)
+            ->where('LT.company_id', $companyId)
             ->where('LA.user_id', Auth::user()->user_id)
             ->where('LA.soft_delete', 0)
             ->where('LT.soft_delete', 0)
@@ -312,15 +297,10 @@ class HumanResourceController extends Controller
             'staff_id' => 'required|integer',
         ]);
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $leaveType = DB::table('leave_types')
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('id', $request->leave_type)->first();
 
         if (!$leaveType) {
@@ -462,12 +442,7 @@ class HumanResourceController extends Controller
 
     public function leaveAdjustments()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $myLeaveApplications = DB::table('leave_applications AS LA')
             ->join('leave_types AS LT', 'LA.leave_type', '=', 'LT.id')
@@ -483,7 +458,7 @@ class HumanResourceController extends Controller
                 'LA.is_adjusted AS is_adjusted',
                 'LA.adjusted_days AS adjusted_days',
             ])
-            ->where('LT.company_id', $companyId->companyId)
+            ->where('LT.company_id', $companyId)
             ->where('LA.user_id', Auth::user()->user_id)
             ->whereNull('LA.adjusted_days')
             ->where('LA.soft_delete', 0)
@@ -505,7 +480,7 @@ class HumanResourceController extends Controller
                 'LA.is_adjusted AS is_adjusted',
                 'LA.adjusted_days AS adjusted_days',
             ])
-            ->where('LT.company_id', $companyId->companyId)
+            ->where('LT.company_id', $companyId)
             ->where('LA.user_id', Auth::user()->user_id)
             ->whereNotNull('LA.is_adjustment_approved')
             ->whereNotNull('LA.adjusted_days')
@@ -548,12 +523,7 @@ class HumanResourceController extends Controller
 
     public function viewAdjustmentLists()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $adjustedLeaveApplications = DB::table('leave_applications AS LA')
             ->join('leave_types AS LT', 'LA.leave_type', '=', 'LT.id')
@@ -575,8 +545,8 @@ class HumanResourceController extends Controller
                 'LA.adjusted_days AS adjusted_days',
                 'LA.is_adjustment_approved as adjustmentStatus',
             ])
-            ->where('EM.company_id', $companyId->companyId)
-            ->where('LT.company_id', $companyId->companyId)
+            ->where('EM.company_id', $companyId)
+            ->where('LT.company_id', $companyId)
             ->whereNull('LA.is_adjustment_approved')
             ->whereNotNull('LA.is_adjusted')
             ->whereNotNull('LA.adjusted_days')
@@ -605,8 +575,8 @@ class HumanResourceController extends Controller
                 'LA.adjusted_days AS adjusted_days',
                 'LA.is_adjustment_approved as adjustmentStatus',
             ])
-            ->where('EM.company_id', $companyId->companyId)
-            ->where('LT.company_id', $companyId->companyId)
+            ->where('EM.company_id', $companyId)
+            ->where('LT.company_id', $companyId)
             ->whereNotNull('LA.is_adjustment_approved')
             ->whereNotNull('LA.is_adjusted')
             ->whereNotNull('LA.adjusted_days')
@@ -675,12 +645,7 @@ class HumanResourceController extends Controller
 
     public function leaveReports(Request $request)
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $leaveApplicationReportData = DB::table('leave_applications AS LA')
             ->join('leave_types AS LT', 'LA.leave_type', '=', 'LT.id')
@@ -699,8 +664,8 @@ class HumanResourceController extends Controller
                 'EM.phone_number AS phone',
                 'D.name AS departmentName',
             ])
-            ->where('EM.company_id', $companyId->companyId)
-            ->where('LT.company_id', $companyId->companyId)
+            ->where('EM.company_id', $companyId)
+            ->where('LT.company_id', $companyId)
             ->where('LA.status', 'Approved')
             ->where('LA.soft_delete', 0)
             ->where('LT.soft_delete', 0)
@@ -734,8 +699,8 @@ class HumanResourceController extends Controller
                     'EM.phone_number AS phone',
                     'D.name AS departmentName',
                 ])
-                ->where('EM.company_id', $companyId->companyId)
-                ->where('LT.company_id', $companyId->companyId)
+                ->where('EM.company_id', $companyId)
+                ->where('LT.company_id', $companyId)
                 ->where('LA.user_id', $staffId)
                 ->orWhere('LA.user_id', null)
                 ->whereBetween('LA.created_at', [$fromDate, $toDate])
@@ -751,12 +716,7 @@ class HumanResourceController extends Controller
 
     public function hrLeaveApply()
     {
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $leaveTypes = DB::table('leave_types')
             ->select('id', 'name')
@@ -770,7 +730,7 @@ class HumanResourceController extends Controller
                 'last_name',
                 'id',
             ])
-            ->where('company_id', $companyId->companyId)
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->get();
 
@@ -791,8 +751,8 @@ class HumanResourceController extends Controller
                     'EM.phone_number AS phone',
                     'D.name AS departmentName',
                 ])
-                ->where('EM.company_id', $companyId->companyId)
-                ->where('LT.company_id', $companyId->companyId)
+                ->where('EM.company_id', $companyId)
+                ->where('LT.company_id', $companyId)
                 ->orWhere('LA.user_id', null)
                 ->where('LA.status', 'Pending')
                 ->where('LA.soft_delete', 0)

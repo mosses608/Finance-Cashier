@@ -73,7 +73,7 @@
                                                     <td class="text-nowrap">
                                                         {{ number_format($subBudgetItem->quantity) }}</td>
                                                     <td class="text-nowrap">{{ $subBudgetItem->unit_meausre }}</td>
-                                                    <td class="text-nowrap">
+                                                    <td class="text-nowrap text-start">
                                                         {{ number_format($subBudgetItem->unit_cost * $subBudgetItem->quantity, 2) }}
                                                     </td>
                                                     <td class="text-nowrap text-center">
@@ -100,7 +100,7 @@
                                                 <td colspan="6">Total in <strong
                                                         style="color: #0000FF;">{{ $budget->currency }}</strong>
                                                 </td>
-                                                <td class="text-nowrap text-center">
+                                                <td class="text-nowrap text-start">
                                                     <strong
                                                         style="color: #0000FF;">{{ number_format($totalBudgetAmount, 2) }}</strong>
                                                 </td>

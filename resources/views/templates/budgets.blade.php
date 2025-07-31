@@ -74,7 +74,7 @@
                                                             @endif
                                                         </td>
                                                         @php
-                                                            $encryptedId = Crypt::encrypt($budget->autoId);
+                                                            $encryptedId = \Illuminate\Support\Facades\Crypt::encrypt($budget->autoId);
                                                         @endphp
                                                         <td class="text-nowrap">
                                                             <a href="{{ route('view.budget', $encryptedId) }}"

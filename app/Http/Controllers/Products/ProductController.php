@@ -28,6 +28,7 @@ class ProductController extends Controller
             'selling_price' => 'nullable|integer',
             'store_id' => 'nullable|integer',
             'item_pic' => 'nullable|image|max:2048',
+            'serial_no' => 'nullable|string',
         ]);
 
         $fileStore = null;
@@ -36,16 +37,14 @@ class ProductController extends Controller
             $fileStore = $request->file('item_pic')->store('product_pics', 'public');
         }
 
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        $companyId = Auth::user()->company_id;
 
         $existingProduct = DB::table('products')
-            ->where('company_id', $companyId->companyId)
-            ->where('name', $request->name)
+            ->where('company_id', $companyId)
+            ->where(function($query) use($request){
+                $query->where('serial_no', $request->serial_no)
+                ->orWhere('name', $request->name);
+            })
             ->first();
 
         if ($existingProduct) {
@@ -61,7 +60,8 @@ class ProductController extends Controller
             'selling_price' => $request->selling_price,
             'store_id' => $request->store_id,
             'item_pic' => $fileStore,
-            'company_id' => $companyId->companyId,
+            'company_id' => $companyId,
+            'serial_no' => $request->serial_no,
         ]);
 
         return redirect()->back()->with('success_msg', 'Product registered successfully!');
@@ -78,7 +78,7 @@ class ProductController extends Controller
             "Expires" => "0"
         ];
 
-        $columns = ['name', 'sku', 'description', 'cost_price', 'selling_price', 'store_name'];
+        $columns = ['name','serial_no', 'sku', 'description', 'cost_price', 'selling_price', 'store_name'];
 
         $callback = function () use ($columns) {
             $file = fopen('php://output', 'w');
@@ -92,7 +92,7 @@ class ProductController extends Controller
     public function importProductFile(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'file' => 'required|file',
         ]);
 
         try {

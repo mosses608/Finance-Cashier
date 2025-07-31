@@ -35,6 +35,7 @@ class User extends Authenticatable
         'user_id',
         'username',
         'password',
+        'company_id',
         'role_id',
         'login_attempts',
         'blocked_at',

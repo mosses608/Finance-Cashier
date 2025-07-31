@@ -91,8 +91,11 @@
                                                         <td class="text-nowrap">{{ $branch->branch_name }}</td>
                                                         <td class="text-nowrap">{{ $branch->branch_code }}</td>
                                                         <td class="text-nowrap">
-                                                            <button class="btn btn-primary btn-sm"><i class="fa fa-edit"></i></button>
-                                                            <button class="btn btn-sm" style="background-color: red; color: #FFF;"><i class="fa fa-trash"></i></button>
+                                                            <button class="btn btn-primary btn-sm"><i
+                                                                    class="fa fa-edit"></i></button>
+                                                            <button class="btn btn-sm"
+                                                                style="background-color: red; color: #FFF;"><i
+                                                                    class="fa fa-trash"></i></button>
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -103,119 +106,119 @@
 
                                 <div class="tab-pane fade" id="nav-new-data" role="tabpanel"
                                     aria-labelledby="nav-contact-tab">
-                                    <div class="table-responsive">
-                                        <form action="{{ route('create.banks') }}" method="POST">
-                                            @csrf
-                                            <div class="row">
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">Name</span>
-                                                        <input type="text" class="form-control"
-                                                            aria-label="Sizing example input" name="bank_name"
-                                                            aria-describedby="inputGroup-sizing-default"
-                                                            placeholder="bank name" required>
-                                                    </div>
+                                    {{-- <div class="table-responsive"> --}}
+                                    <form action="{{ route('create.banks') }}" method="POST">
+                                        @csrf
+                                        <div class="row">
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">Name</span>
+                                                    <input type="text" class="form-control"
+                                                        aria-label="Sizing example input" name="bank_name"
+                                                        aria-describedby="inputGroup-sizing-default" placeholder="bank name"
+                                                        required>
                                                 </div>
-
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">Account</span>
-                                                        <input type="string" class="form-control"
-                                                            aria-label="Sizing example input" name="account_name"
-                                                            aria-describedby="inputGroup-sizing-default"
-                                                            placeholder="account name">
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">Number</span>
-                                                        <input type="number" class="form-control"
-                                                            aria-label="Sizing example input" name="account_number"
-                                                            aria-describedby="inputGroup-sizing-default"
-                                                            placeholder="account number" maxlength="10">
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">Phone</span>
-                                                        <input type="string" class="form-control"
-                                                            aria-label="Sizing example input" name="phone"
-                                                            aria-describedby="inputGroup-sizing-default"
-                                                            placeholder="07xxxxxxxx" maxlength="10">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">Address</span>
-                                                        <input type="text" class="form-control"
-                                                            aria-label="Sizing example input" name="address"
-                                                            aria-describedby="inputGroup-sizing-default"
-                                                            placeholder="physical address">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">Email</span>
-                                                        <input type="email" class="form-control"
-                                                            aria-label="Sizing example input" name="email"
-                                                            aria-describedby="inputGroup-sizing-default"
-                                                            placeholder="xxxxxxx@gmail.com">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">P.O.Box</span>
-                                                        <input type="text" class="form-control" id="box"
-                                                            aria-label="box" name="box"
-                                                            aria-describedby="inputGroup-sizing-default"
-                                                            placeholder="P.O.Box 1331">
-                                                    </div>
-                                                </div>
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">Code</span>
-                                                        <input type="text" class="form-control" id="code"
-                                                            aria-label="Code" name="bank_code"
-                                                            aria-describedby="inputGroup-sizing-default"
-                                                            placeholder="bank code">
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <span class="input-group-text"
-                                                            id="inputGroup-sizing-default">Region</span>
-                                                        <select class="form-control" id="region" aria-label="region"
-                                                            name="region" aria-describedby="inputGroup-sizing-default">
-                                                            <option value="" selected disabled>--select region--
-                                                            </option>
-                                                            @foreach ($regions as $region)
-                                                                <option value="{{ $region->id }}">{{ $region->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-4 mb-3">
-                                                    <div class="input-group mb-3">
-                                                        <button type="submit" class="btn btn-primary">Save Data</button>
-                                                    </div>
-                                                </div>
-
                                             </div>
-                                        </form>
-                                    </div>
+
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">Account</span>
+                                                    <input type="string" class="form-control"
+                                                        aria-label="Sizing example input" name="account_name"
+                                                        aria-describedby="inputGroup-sizing-default"
+                                                        placeholder="account name">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">Number</span>
+                                                    <input type="number" class="form-control"
+                                                        aria-label="Sizing example input" name="account_number"
+                                                        aria-describedby="inputGroup-sizing-default"
+                                                        placeholder="account number" maxlength="10">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">Phone</span>
+                                                    <input type="string" class="form-control"
+                                                        aria-label="Sizing example input" name="phone"
+                                                        aria-describedby="inputGroup-sizing-default"
+                                                        placeholder="07xxxxxxxx" maxlength="10">
+                                                </div>
+                                            </div>
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">Address</span>
+                                                    <input type="text" class="form-control"
+                                                        aria-label="Sizing example input" name="address"
+                                                        aria-describedby="inputGroup-sizing-default"
+                                                        placeholder="physical address">
+                                                </div>
+                                            </div>
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">Email</span>
+                                                    <input type="email" class="form-control"
+                                                        aria-label="Sizing example input" name="email"
+                                                        aria-describedby="inputGroup-sizing-default"
+                                                        placeholder="xxxxxxx@gmail.com">
+                                                </div>
+                                            </div>
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">P.O.Box</span>
+                                                    <input type="text" class="form-control" id="box"
+                                                        aria-label="box" name="box"
+                                                        aria-describedby="inputGroup-sizing-default"
+                                                        placeholder="P.O.Box 1331">
+                                                </div>
+                                            </div>
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">Code</span>
+                                                    <input type="text" class="form-control" id="code"
+                                                        aria-label="Code" name="bank_code"
+                                                        aria-describedby="inputGroup-sizing-default"
+                                                        placeholder="bank code">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <span class="input-group-text"
+                                                        id="inputGroup-sizing-default">Region</span>
+                                                    <select class="form-control" id="region" aria-label="region"
+                                                        name="region" aria-describedby="inputGroup-sizing-default">
+                                                        <option value="" selected disabled>--select region--
+                                                        </option>
+                                                        @foreach ($regions as $region)
+                                                            <option value="{{ $region->id }}">{{ $region->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-4 mb-3">
+                                                <div class="input-group mb-3">
+                                                    <button type="submit" class="btn btn-primary">Save Data</button>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </form>
+                                    {{-- </div> --}}
                                 </div>
 
                             </div>

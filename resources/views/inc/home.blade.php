@@ -4,15 +4,24 @@
 @section('content')
     <div class="container">
         <div class="page-inner">
+            <div class="row mt-3">
+                <x-messages />
+            </div>
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
                 <div>
-                    <h3 class="fw-bold mb-3">Dashboard | <span class="text-primary">{{ $companyData->companyName }} </span></h3>
+                    <h3 class="fw-bold mb-3">Dashboard | <span class="text-primary">{{ $companyData->companyName }} </span>
+                    </h3>
                     <h6 class="op-7 mb-2">{{ \Carbon\Carbon::today()->format('M d, Y') }}</h6>
                 </div>
-                @if (false)
+                @if (true)
+                    @php
+                        $encryptedId = \Illuminate\Support\Facades\Crypt::encrypt($companyData->companyId);
+                    @endphp
                     <div class="ms-md-auto py-2 py-md-0">
-                        <a href="#" class="btn btn-label-info btn-round me-2">Manage</a>
-                        <a href="#" class="btn btn-primary btn-round">Add Customer</a>
+                        <a href="{{ route('users.management') }}" class="btn btn-label-info btn-round me-2"><i
+                                class="fa fa-plus"></i> Add Customer</a>
+                        <a href="{{ route('view.website.builder', $encryptedId) }}" target="__blank"
+                            class="btn btn-primary btn-round"><i class="fa fa-eye"></i> View Website</a>
                     </div>
                 @endif
             </div>

@@ -27,69 +27,75 @@
                                     @php
                                         $totalDiscount = 0;
                                         $totalAmountWithDiscount = 0;
-                                        $totalQuantity = 1;
+                                        $vatTotal = 0;
                                     @endphp
 
-                                    @if (true)
-                                        {{-- Product-based Invoice Items --}}
-                                        @if (count($profomaInvoiceItems) > 0)
-                                            <table class="table table-bordered table-striped">
-                                                <thead class="table-light">
-                                                    <tr><strong>Item List (Products):</strong></tr>
+                                    {{-- Product-based Invoice Items --}}
+                                    @if (count($profomaInvoiceItems) > 0)
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-light">
+                                                <tr><strong>Item List (Products):</strong></tr>
+                                                <tr>
+                                                    <th>S/N</th>
+                                                    <th>Item Name</th>
+                                                    <th>Unit Price</th>
+                                                    <th>Quantity</th>
+                                                    <th>Discount (%)</th>
+                                                    <th>Discount Value</th>
+                                                    <th>Total Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($profomaInvoiceItems as $item)
+                                                    @php
+                                                        $itemTotal = $item->unitPrice * $item->quantity;
+                                                        $discountValue = ($itemTotal * $item->discount) / 100;
+                                                        $amountAfterDiscount = $itemTotal - $discountValue;
+
+                                                        $totalDiscount += $discountValue;
+                                                        $totalAmountWithDiscount += $amountAfterDiscount;
+                                                    @endphp
                                                     <tr>
-                                                        <th>S/N</th>
-                                                        <th>Item Name</th>
-                                                        <th>Unit Price</th>
-                                                        <th>Quantity</th>
-                                                        <th>Discount (%)</th>
-                                                        <th>Discount Value</th>
-                                                        <th>Total Amount</th>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $item->itemName }}</td>
+                                                        <td>{{ number_format($item->unitPrice, 2) }}</td>
+                                                        <td>{{ $item->quantity }}</td>
+                                                        <td>{{ $item->discount }}%</td>
+                                                        <td>{{ number_format($discountValue, 2) }}</td>
+                                                        <td>{{ number_format($amountAfterDiscount, 2) }}</td>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($profomaInvoiceItems as $item)
-                                                        @php
-                                                            $discountValue = $item->quantity * $item->discount;
-                                                            $itemTotal = $item->unitPrice * $item->quantity;
-                                                            $totalDiscount = $discountValue;
-                                                            $totalAmountWithDiscount += $itemTotal;
-                                                        @endphp
-                                                        <tr>
-                                                            <td>{{ $loop->iteration }}</td>
-                                                            <td>{{ $item->itemName }}</td>
-                                                            <td>{{ number_format($item->unitPrice, 2) }}</td>
-                                                            <td>{{ $item->quantity }}</td>
-                                                            <td>{{ $item->discount }}</td>
-                                                            <td>{{ number_format($discountValue, 2) }}</td>
-                                                            <td>{{ number_format($itemTotal, 2) }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                                <tfoot>
-                                                    @if ($item->vrn != null)
-                                                        @php
-                                                            $vatTotal = $itemTotal * 0.18;
-                                                        @endphp
-                                                        <tr>
-                                                            <td class="text-nowrap">VAT (18%)</td>
-                                                            <td colspan="5"></td>
-                                                            <td>{{ number_format($vatTotal, 2) }}</td>
-                                                        </tr>
-                                                    @endif
-                                                    <tr class="text-nowrap">
-                                                        <td><strong>Totals (TSH)</strong></td>
-                                                        <td colspan="4"></td>
-                                                        <td><strong>{{ number_format($totalDiscount, 2) }}</strong></td>
-                                                        <td><strong>{{ number_format($totalAmountWithDiscount - $totalDiscount + $vatTotal, 2) }}</strong>
-                                                        </td>
+                                                @endforeach
+                                            </tbody>
+                                            <tfoot>
+                                                @if (!empty($item->vrn))
+                                                    @php
+                                                        $vatTotal = $totalAmountWithDiscount * 0.18;
+                                                    @endphp
+                                                    <tr>
+                                                        <td class="text-nowrap">VAT (18%)</td>
+                                                        <td colspan="5"></td>
+                                                        <td>{{ number_format($vatTotal, 2) }}</td>
                                                     </tr>
-                                                </tfoot>
-                                            </table>
-                                        @endif
+                                                @endif
+                                                <tr class="text-nowrap">
+                                                    <td><strong>Totals (TSH)</strong></td>
+                                                    <td colspan="4"></td>
+                                                    <td><strong>{{ number_format($totalDiscount, 2) }}</strong></td>
+                                                    <td><strong>{{ number_format($totalAmountWithDiscount + $vatTotal, 2) }}</strong>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
                                     @endif
 
                                     {{-- Service-based Invoice Items --}}
                                     @if (count($serviceProfomas) > 0)
+                                        @php
+                                            $serviceTotalDiscount = 0;
+                                            $serviceAmountWithDiscount = 0;
+                                            $serviceVatTotal = 0;
+                                        @endphp
+
                                         <table class="table table-bordered table-striped mt-4">
                                             <thead class="table-light">
                                                 <tr><strong>Item List (Services):</strong></tr>
@@ -106,49 +112,47 @@
                                             <tbody>
                                                 @foreach ($serviceProfomas as $item)
                                                     @php
-                                                        $discountValue = $item->unitPrice * ($item->discount / 100);
-                                                        $itemTotal = $item->unitPrice;
-                                                        $totalDiscount += $discountValue;
-                                                        $totalAmountWithDiscount += $itemTotal;
-                                                        $totalQuantity = $item->quantity;
+                                                        $itemTotal = $item->unitPrice * $item->quantity;
+                                                        $discountValue = ($itemTotal * $item->discount) / 100;
+                                                        $amountAfterDiscount = $itemTotal - $discountValue;
+
+                                                        $serviceTotalDiscount += $discountValue;
+                                                        $serviceAmountWithDiscount += $amountAfterDiscount;
                                                     @endphp
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{ $item->itemName }}</td>
                                                         <td>{{ number_format($item->unitPrice, 2) }}</td>
-                                                        <td>{{ $item->discount }}</td>
+                                                        <td>{{ $item->discount }}%</td>
                                                         <td>{{ number_format($discountValue, 2) }}</td>
-                                                        <td>{{ number_format($item->quantity) ?? 1 }}</td>
-                                                        <td>{{ number_format($itemTotal, 2) }}</td>
+                                                        <td>{{ $item->quantity }}</td>
+                                                        <td>{{ number_format($amountAfterDiscount, 2) }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
-                                            @php
-                                                $vatTotal = 0;
-                                            @endphp
                                             <tfoot>
-                                                @if ($item->vrn != null)
+                                                @if (!empty($item->vrn))
                                                     @php
-                                                        $vatTotal = $itemTotal * 0.18;
+                                                        $serviceVatTotal = $serviceAmountWithDiscount * 0.18;
                                                     @endphp
                                                     <tr>
                                                         <td class="text-nowrap">VAT (18%)</td>
                                                         <td colspan="5"></td>
-                                                        <td>{{ number_format($vatTotal, 2) }}</td>
+                                                        <td>{{ number_format($serviceVatTotal, 2) }}</td>
                                                     </tr>
                                                 @endif
-                                                <tr>
-                                                    <td class="text-nowrap"><strong>Totals (TSH)</strong></td>
+                                                <tr class="text-nowrap">
+                                                    <td><strong>Totals (TSH)</strong></td>
                                                     <td colspan="3"></td>
-                                                    <td><strong>{{ number_format($totalDiscount, 2) }}</strong></td>
-                                                    <td><strong>{{ number_format($totalDiscount * $totalQuantity, 2) }}</strong>
-                                                    </td>
-                                                    <td><strong>{{ number_format($totalAmountWithDiscount - $totalDiscount * $totalQuantity + $vatTotal, 2) }}</strong>
+                                                    <td><strong>{{ number_format($serviceTotalDiscount, 2) }}</strong></td>
+                                                    <td></td>
+                                                    <td><strong>{{ number_format($serviceAmountWithDiscount + $serviceVatTotal, 2) }}</strong>
                                                     </td>
                                                 </tr>
                                             </tfoot>
                                         </table>
                                     @endif
+
 
                                     <hr class="mt-5 mb-5">
 

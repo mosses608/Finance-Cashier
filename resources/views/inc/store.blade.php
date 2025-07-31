@@ -24,6 +24,13 @@
                                 </div>
                                 <div class="col-md-6 col-lg-4">
                                     <div class="form-group">
+                                        <label for="serial_no">Serial No</label>
+                                        <input type="text" class="form-control" id="serial_no" name="serial_no"
+                                            value="{{ old('serial_no') }}" placeholder="Serial number" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="form-group">
                                         <label for="email2">Units (SKU)</label>
                                         <input type="text" class="form-control" id="email2" name="sku"
                                             value="{{ old('sku') }}" placeholder="Stock Keeping Unit eg. mm, cm, kg"
@@ -65,7 +72,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-6 col-lg-4">
+                                <div class="col-md-6 col-lg-4 w-100">
                                     <div class="form-group">
                                         <label for="email2">Item Picture (optional)</label>
                                         <input type="file" class="form-control" id="email2" name="item_pic"

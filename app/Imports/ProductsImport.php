@@ -15,13 +15,8 @@ class ProductsImport implements ToModel, WithHeadingRow, WithCustomCsvSettings
     public function model(array $row)
     {
         $store = Store::where('store_name', $row['store_name'])->first();
-
-        $companyId = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.id AS companyId')
-            ->where('A.phone', Auth::user()->username)
-            ->orWhere('A.email', Auth::user()->username)
-            ->first();
+        
+        $companyId = Auth::user()->company_id;
             
         if (
             empty($row['name']) ||
@@ -29,6 +24,7 @@ class ProductsImport implements ToModel, WithHeadingRow, WithCustomCsvSettings
             empty($row['description']) ||
             empty($row['cost_price']) ||
             empty($row['selling_price']) ||
+            empty($row['serial_no']) ||
             !$store
         ) {
             return null;
@@ -41,7 +37,8 @@ class ProductsImport implements ToModel, WithHeadingRow, WithCustomCsvSettings
             'cost_price'     => $row['cost_price'],
             'selling_price'  => $row['selling_price'],
             'store_id'       => $store->id,
-            'company_id' => $companyId->companyId
+            'company_id' => $companyId,
+            'serial_no' => $row['serial_no'],
         ]);
     }
 
