@@ -600,6 +600,12 @@ class InvoiceController extends Controller
             return $th->getMessage();
         }
 
+        $profomaAccepted = DB::table('profoma_invoice AS PI')
+            ->join('invoice AS I', 'PI.invoice_id', '=', 'I.id')
+            ->where('I.is_profoma', 0)
+            ->where('PI.id', $profomaInvoiceId)
+            ->first();
+
         $serviceProfomas = DB::table('invoive_service_items AS ITM')
             ->join('service AS SV', 'ITM.service_id', '=', 'SV.id')
             ->join('profoma_invoice AS PI', 'ITM.invoice_id', '=', 'PI.invoice_id')
@@ -640,7 +646,12 @@ class InvoiceController extends Controller
 
         // dd($profomaInvoiceId);
 
-        return view('inc.view-profoma', compact('profomaInvoiceItems', 'profomaInvoiceId', 'serviceProfomas'));
+        return view('inc.view-profoma', compact([
+            'profomaAccepted',
+            'profomaInvoiceItems',
+            'profomaInvoiceId',
+            'serviceProfomas'
+        ]));
     }
 
     public function cancelProfoma(Request $request)
@@ -712,6 +723,17 @@ class InvoiceController extends Controller
             })
             ->first();
 
+        $bankInformation = DB::table('banks')
+            ->select([
+                'bank_name',
+                'account_name',
+                'account_number',
+                'bank_code',
+            ])
+            ->where('company_id', $companyData->id)
+            ->where('soft_delete', 0)
+            ->first();
+
         $logoPath = storage_path('app/public/' . $companyData->logo);
         $logoBase64 = null;
 
@@ -754,6 +776,7 @@ class InvoiceController extends Controller
             'customerDetails' => $customerDetails,
             'logoBase64' => $logoBase64,
             'companyData' => $companyData,
+            'bankInformation' => $bankInformation,
         ])->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,

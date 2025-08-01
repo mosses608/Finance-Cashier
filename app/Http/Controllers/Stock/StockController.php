@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Stock;
 
+use Carbon\Carbon;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StockController extends Controller
 {
@@ -63,7 +64,7 @@ class StockController extends Controller
 
         // dd($stockOutTransactions);
 
-        return view('inc.stock-in', compact('products', 'stocks','stockOutTransactions'));
+        return view('inc.stock-in', compact('products', 'stocks', 'stockOutTransactions'));
     }
 
     public function stockInQuantity(Request $request)
@@ -206,5 +207,127 @@ class StockController extends Controller
         // dd($stockOuts);
 
         return view('inc.stock-out-receipt', compact('stockOuts'));
+    }
+
+    public function downloadStockImportFile(Request $request)
+    {
+        $request->validate([
+            'storage_item_id' => 'required|array',
+            'storage_item_id.*' => 'required|integer',
+        ]);
+
+        $productIds = $request->storage_item_id;
+
+        $productData = DB::table('products')
+            ->select('id', 'name', 'sku', 'cost_price', 'selling_price', 'serial_no')
+            ->whereIn('id', $productIds)
+            ->where('soft_delete', 0)
+            ->get();
+
+        $companyName = DB::table('companies')
+            ->select('company_name')
+            ->where('id', Auth::user()->company_id)
+            ->value('company_name');
+
+        $response = new StreamedResponse(function () use ($productData, $companyName) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['Company Name:', $companyName ?? '']);
+
+            fputcsv($handle, []);
+
+            fputcsv($handle, ['Storage Id', 'Serial No', 'SKU', 'Product Name', 'Cost Price', 'Selling Price', 'Stock-in Quantity']);
+
+            foreach ($productData as $index => $row) {
+                fputcsv($handle, [
+                    $row->id,
+                    $row->serial_no,
+                    $row->sku,
+                    $row->name,
+                    number_format($row->cost_price, 2),
+                    number_format($row->selling_price, 2),
+                    '',
+                ]);
+            }
+
+            fclose($handle);
+        });
+
+        $filename = $companyName . ' ' . ' - ' . ' ' . Carbon::now()->format('Y_m_d_His') . '.csv';
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', "attachment; filename={$filename}");
+
+        return $response;
+    }
+
+    public function uploadCSVFile(Request $request)
+    {
+        $request->validate([
+            'file_upload' => 'required|file',
+        ]);
+
+        $csvData = [];
+
+        if (($handle = fopen($request->file('file_upload')->getRealPath(), 'r')) !== false) {
+            // Skip the first 3 rows (Company Name, blank line, header)
+            fgetcsv($handle);
+            fgetcsv($handle);
+            fgetcsv($handle);
+
+            while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+                if (count($row) < 7) {
+                    continue; // Skip malformed rows
+                }
+
+                $csvData[] = [
+                    'storageId'  => $row[0],
+                    'itemPrice'  => round((float)str_replace(',', '', $row[5]), 2),
+                    'quantityIn' => (int)$row[6],
+                ];
+            }
+
+            fclose($handle);
+        }
+
+        $inserted = false;
+        $updated = false;
+
+        foreach ($csvData as $entry) {
+            if (!empty($entry['quantityIn']) && is_numeric($entry['quantityIn'])) {
+                $stock = DB::table('stocks')
+                    ->where('storage_item_id', $entry['storageId'])
+                    ->where('soft_delete', 0)
+                    ->first();
+
+                if ($stock) {
+                    DB::table('stocks')
+                        ->where('storage_item_id', $entry['storageId'])
+                        ->update([
+                            'quantity_in' => $stock->quantity_in + $entry['quantityIn'],
+                            'quantity_total' => $stock->quantity_total + $entry['quantityIn'],
+                            'updated_at' => now(),
+                        ]);
+                    $updated = true;
+                } else {
+                    DB::table('stocks')->insert([
+                        'storage_item_id' => $entry['storageId'],
+                        'quantity_in' => $entry['quantityIn'],
+                        'quantity_total' => $entry['quantityIn'],
+                        'item_price' => $entry['itemPrice'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $inserted = true;
+                }
+            }
+        }
+
+        if ($inserted) {
+            return redirect()->back()->with('success_msg', 'Product stocks saved successfully!');
+        } elseif ($updated) {
+            return redirect()->back()->with('success_msg', 'Stock quantities updated successfully!');
+        } else {
+            return redirect()->back()->with('error_msg', 'No valid data found in CSV.');
+        }
     }
 }

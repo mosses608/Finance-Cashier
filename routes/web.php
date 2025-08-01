@@ -56,7 +56,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/stockIn-quantity', [App\Http\Controllers\Stock\StockController::class, 'stockInQuantity'])->name('stockIn.Quantity');
     Route::post('/stockOut', [App\Http\Controllers\Stock\StockController::class, 'stockOutProduct'])->name('stock.out.product');
     Route::get('/stock-out-receipt/{encryptedId}', [App\Http\Controllers\Stock\StockController::class, 'stockOutReceipt'])->name('stock.out.receipt');
-
+    Route::get('/download-stock-import-file', [App\Http\Controllers\Stock\StockController::class, 'downloadStockImportFile'])->name('download.csv.file');
+    Route::post('/upload-file', [App\Http\Controllers\Stock\StockController::class, 'uploadCSVFile'])->name('upload.csv');
 
     // INVOICES
     Route::post('/create-invoice', [App\Http\Controllers\Invoice\InvoiceController::class, 'storeInvoice'])->name('create.invoice');

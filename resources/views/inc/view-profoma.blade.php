@@ -210,29 +210,43 @@
                 </div>
 
                 {{-- Action Buttons --}}
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="col-6 mt-3 w-100">
-                            <form action="{{ route('profoma.cancell.invoice') }}" method="POST">
-                                @csrf
-                                @method('PUT')
-                                <input type="hidden" name="profoma_invoice_id" value="{{ $profomaInvoiceId }}" />
-                                <button type="submit" class="btn"
-                                    style="background-color: red; border-color: orange; color: #FFF;">
-                                    Cancel Profoma
-                                </button>
+                @if (!$profomaAccepted)
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="col-6 mt-3 w-100">
+                                <form action="{{ route('profoma.cancell.invoice') }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="profoma_invoice_id" value="{{ $profomaInvoiceId }}" />
+                                    <button type="submit" class="btn"
+                                        style="background-color: red; border-color: orange; color: #FFF;">
+                                        Cancel Profoma
+                                    </button>
 
-                                @php
-                                    $encryptedPrpfomaId = Crypt::encrypt($profomaInvoiceId);
-                                @endphp
-                                <a href="{{ route('download.profoma', $encryptedPrpfomaId) }}"
-                                    class="btn btn-primary float-end" style="border-color: #007BFF; color: #FFF;">
-                                    Download Profoma
-                                </a>
-                            </form>
+                                    @php
+                                        $encryptedPrpfomaId = Crypt::encrypt($profomaInvoiceId);
+                                    @endphp
+                                    <a href="{{ route('download.profoma', $encryptedPrpfomaId) }}"
+                                        class="btn btn-primary float-end" style="border-color: #007BFF; color: #FFF;">
+                                        Download Profoma
+                                    </a>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
+                @else
+                    <div class="row">
+                        <div class="col-4">
+                            @php
+                                $encryptedPrpfomaId = Crypt::encrypt($profomaInvoiceId);
+                            @endphp
+                            <a href="{{ route('download.profoma', $encryptedPrpfomaId) }}"
+                                class="btn btn-primary float-start" style="border-color: #007BFF; color: #FFF;">
+                                <i class="fa fa-download"></i> Download Profoma
+                            </a>
+                        </div>
+                    </div>
+                @endif
 
             </div>
         </div>

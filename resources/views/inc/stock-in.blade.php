@@ -9,70 +9,83 @@
                     <div class="card mt-5">
                         <x-messages />
                         <div class="card-header">
-                            <h4 class="card-title">Stock List</h4>
+                            <h4 class="card-title">Stock List <span
+                                    class="text-secondary">({{ number_format(count($products)) }} )<sup>stocks</sup></span>
+                            </h4>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table id="basic-datatablesx0x" class="display table table-striped table-hover">
-                                    <thead>
-                                        <tr class="text-nowrap">
-                                            <th>S/N</th>
-                                            <th>Name</th>
-                                            <th>SKU</th>
-                                            <th>Qty In</th>
-                                            <th>Qty Out</th>
-                                            <th>Available Qty</th>
-                                            <th>Cost Price</th>
-                                            <th>Selling Price</th>
-                                            <th>Exp profit</th>
-                                            <th>Store</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($products as $product)
-                                            @php
-                                                $quantityStocks = $stocks->firstWhere('storage_item_id', $product->id);
-                                                $stockOutQuantity = $stockOutTransactions
-                                                    ->where('product_id', $product->id)
-                                                    ->sum('stockout_quantity');
-                                            @endphp
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $product->productName }}</td>
-                                                <td>{{ $product->sku }}</td>
-                                                <td class="text-start">
-                                                    {{ number_format($quantityStocks->quantity_total ?? 0) }}
-                                                </td>
-                                                <td class="text-start">
-                                                    @if (!$quantityStocks)
-                                                        {{ number_format(0) }}
-                                                    @else
-                                                        {{ number_format($stockOutQuantity) }}
-                                                    @endif
-                                                </td>
-                                                <td class="text-start">
-                                                    @if (!$quantityStocks)
-                                                        {{ number_format(0) }}
-                                                    @else
-                                                        {{ number_format($quantityStocks->quantity_total - $stockOutQuantity) }}
-                                                    @endif
-                                                </td>
-                                                <td class="text-start">{{ number_format($product->cost_price, 2) }}</td>
-                                                <td class="text-start">{{ number_format($product->selling_price, 2) }}</td>
-                                                <td class="text-nowrap text-primary text-start">{{ number_format($quantityStocks->quantity_total ?? 0 * ($product->selling_price - $product->cost_price), 2 ) }}</td>
-                                                <td>{{ $product->storeName }}</td>
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <button type="button" class="btn btn-success btn-sm"
-                                                            data-bs-toggle="modal" data-bs-target="#updateQuantityModal"
-                                                            data-product-id="{{ $product->id }}"
-                                                            data-product-name="{{ $product->productName }}"
-                                                            data-quantity="{{ $quantityStocks->quantity_total ?? 0 }}"
-                                                            data-selling-price="{{ $product->selling_price }}">
-                                                            <i class="fas fa-arrow-circle-down"></i>
-                                                        </button>
-
+                            <form action="{{ route('download.csv.file') }}" method="GET">
+                                <div class="table-responsive">
+                                    <table id="basic-datatablesx0x" class="display table table-striped table-hover">
+                                        <thead>
+                                            <tr class="text-nowrap">
+                                                <th>#</th>
+                                                <th>Serial No</th>
+                                                <th>Name</th>
+                                                <th>SKU</th>
+                                                <th>Qty In</th>
+                                                <th>Qty Out</th>
+                                                <th>Available Qty</th>
+                                                <th>Cost Price</th>
+                                                <th>Selling Price</th>
+                                                <th>Exp profit</th>
+                                                <th>Store</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($products as $product)
+                                                @php
+                                                    $quantityStocks = $stocks->firstWhere(
+                                                        'storage_item_id',
+                                                        $product->id,
+                                                    );
+                                                    $stockOutQuantity = $stockOutTransactions
+                                                        ->where('product_id', $product->id)
+                                                        ->sum('stockout_quantity');
+                                                @endphp
+                                                <tr>
+                                                    <td><input type="checkbox" name="storage_item_id[]"
+                                                            value="{{ $product->id }}" id=""></td>
+                                                    <td>#####</td>
+                                                    <td>{{ $product->productName }}</td>
+                                                    <td>{{ $product->sku }}</td>
+                                                    <td class="text-start">
+                                                        {{ number_format($quantityStocks->quantity_total ?? 0) }}
+                                                    </td>
+                                                    <td class="text-start">
+                                                        @if (!$quantityStocks)
+                                                            {{ number_format(0) }}
+                                                        @else
+                                                            {{ number_format($stockOutQuantity) }}
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-start">
+                                                        @if (!$quantityStocks)
+                                                            {{ number_format(0) }}
+                                                        @else
+                                                            {{ number_format($quantityStocks->quantity_total - $stockOutQuantity) }}
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-start">{{ number_format($product->cost_price, 2) }}
+                                                    </td>
+                                                    <td class="text-start">{{ number_format($product->selling_price, 2) }}
+                                                    </td>
+                                                    <td class="text-nowrap text-primary text-start">
+                                                        {{ number_format($quantityStocks->quantity_total ?? 0 * ($product->selling_price - $product->cost_price), 2) }}
+                                                    </td>
+                                                    <td>{{ $product->storeName }}</td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <button type="button" class="btn btn-success btn-sm"
+                                                                data-bs-toggle="modal" data-bs-target="#updateQuantityModal"
+                                                                data-product-id="{{ $product->id }}"
+                                                                data-product-name="{{ $product->productName }}"
+                                                                data-quantity="{{ $quantityStocks->quantity_total ?? 0 }}"
+                                                                data-selling-price="{{ $product->selling_price }}">
+                                                                <i class="fas fa-arrow-circle-down"></i>
+                                                            </button>
+                                                            {{-- 
                                                         <form action="{{ route('products.destroy') }}" method="POST"
                                                             onsubmit="return confirm('Are you sure you want to delete this product?');"
                                                             class="m-0 p-0">
@@ -84,14 +97,34 @@
                                                                 class="btn btn-danger btn-sm d-flex align-items-center justify-content-center">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                                                        </form> --}}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="row mt-3 mb-3">
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary float-end"><i
+                                                class="fa fa-download"></i> Download CSV</button>
+                                    </div>
+                                </div>
+                            </form>
+                            <hr>
+                            <form action="{{ route('upload.csv') }}" method="POST" enctype="multipart/form-data" class="row mt-3 mb-3">
+                                @csrf
+                                <div class="col-8">
+                                    <input type="file" name="file_upload" class="form-control" accept=".csv,text/csv"
+                                        required>
+                                </div>
+                                <div class="col-4">
+                                    <button type="submit" class="btn btn-secondary float-end"><i class="fa fa-upload"></i>
+                                        Upload CSV
+                                        File</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

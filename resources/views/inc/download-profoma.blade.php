@@ -2,53 +2,64 @@
 <html>
 
 <head>
-    <title>Profoma Invoice</title>
+    <title>Proforma Invoice</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 13px;
             margin: 20px;
-            color: #333;
+            color: #000;
         }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 10px;
-            color: #007BFF;
-        }
-
-        .invoice-header {
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f8f9fa;
-            margin-bottom: 25px;
-        }
-
-        .invoice-row {
+        .header-section {
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        .invoice-col {
-            flex: 0 0 33.33%;
-            min-width: 250px;
+        .logo {
+            max-height: 70px;
         }
 
-        .invoice-col h4 {
-            margin: 4px 0;
-            font-weight: normal;
+        .company-info {
+            text-align: right;
+            font-size: 13px;
         }
 
-        .invoice-col strong {
+        .title {
+            text-align: center;
             color: #007BFF;
+            font-weight: bold;
+            margin: 10px 0;
+            letter-spacing: 1px;
+        }
+
+        .invoice-meta {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .bill-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .bill-column {
+            width: 48%;
+        }
+
+        .bill-column h4 {
+            margin: 4px 0;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 20px;
         }
 
         th {
@@ -59,46 +70,49 @@
         }
 
         td {
-            padding: 6px;
+            padding: 8px;
             border: 1px solid #ccc;
         }
 
         tfoot td {
-            background-color: #f1f1f1;
             font-weight: bold;
+            background-color: #f2f2f2;
         }
 
         .text-right {
             text-align: right;
         }
 
-        .qr-section {
+        .bank-info {
             margin-top: 40px;
+        }
+
+        .bank-info p {
+            margin: 3px 0;
+        }
+
+        .total-box {
+            width: 300px;
+            float: right;
+            margin-top: 20px;
+        }
+
+        .total-box table {
+            width: 100%;
+            border: none;
+        }
+
+        .total-box td {
+            padding: 5px;
+            border: none;
+        }
+
+        .qr-section {
             text-align: center;
-        }
-
-        .qr-section img {
-            margin-top: 10px;
-        }
-
-        .logo-container {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .logo-container img {
-            max-height: 80px;
+            margin-top: 60px;
         }
 
         @media print {
-            body {
-                margin: 0;
-            }
-
-            .invoice-header {
-                page-break-inside: avoid;
-            }
-
             .qr-section {
                 page-break-before: avoid;
             }
@@ -108,114 +122,103 @@
 
 <body>
 
-    <h2>Profoma Invoice</h2>
-
-    <div class="logo-container">
-        @if (isset($logoBase64))
-            <img src="{{ $logoBase64 }}" alt="Company Logo">
-        @endif
+    <div class="header-section">
+        <div class="logo">
+            @if (isset($logoBase64))
+                <img src="{{ $logoBase64 }}" alt="Company Logo" class="logo">
+            @endif
+        </div>
+        <div class="company-info">
+            <strong style="text-transform: uppercase;">{{ $companyData->company_name }}</strong><br>
+            {{ $companyData->address }}, Tanzania<br>
+            {{ $companyData->company_reg_no }}<br>
+            {{ $companyData->company_email }}<br>
+            TIN: {{ $companyData->tin }}<br>
+            VRN: {{ $companyData->vrn ?? ' ' }}
+        </div>
     </div>
 
-    <div class="invoice-header">
-        <div class="invoice-row">
-            <div class="invoice-col">
-                <h4><strong>Invoice #:</strong> {{ str_pad($profomaInvoiceId, 4, '0', STR_PAD_LEFT) }}</h4>
-                <h4><strong>Issued:</strong> {{ \Carbon\Carbon::parse($issuesDate->created_at)->format('M d, Y') }}</h4>
-            </div>
+    <div class="title">PROFORMA INVOICE</div>
 
-            <div class="invoice-col">
-                <h4><strong>Bill From:</strong></h4>
-                <h4>{{ $companyData->company_name }} - {{ $companyData->company_reg_no }}</h4>
-                <h4>{{ $companyData->address }}</h4>
-                <h4>TIN: {{ $companyData->tin }}</h4>
-                <h4>Email: {{ $companyData->company_email }}</h4>
-            </div>
+    <div class="invoice-meta">
+        <strong>Invoice No:</strong> S/{{ str_pad($profomaInvoiceId, 5, '0', STR_PAD_LEFT) }}<br>
+        <strong>Date:</strong> {{ \Carbon\Carbon::parse($issuesDate->created_at)->format('jS F Y') }}
+    </div>
 
-            <div class="invoice-col">
-                <h4><strong>Bill To:</strong></h4>
-                <h4>{{ $customerDetails->customerName }}</h4>
-                @if ($customerDetails->address)
-                    <h4>{{ $customerDetails->address }}</h4>
-                @endif
-                <h4>TIN: {{ $customerDetails->TIN }}</h4>
-                <h4>VRN: {{ $customerDetails->VRN ?? '—' }}</h4>
-                <h4>Phone: {{ $customerDetails->phoneNumber }}</h4>
-            </div>
+    <div class="bill-section">
+        <div class="bill-column">
+            <h4><strong>Bill to</strong></h4>
+            <h4>{{ $customerDetails->customerName }}</h4>
+            <h4>{{ $customerDetails->address }}</h4>
+            <h4>Tel: {{ $customerDetails->phoneNumber }}</h4>
+            <h4>TIN: {{ $customerDetails->TIN }}</h4>
+            <h4>VRN: {{ $customerDetails->VRN ?? '—' }}</h4>
         </div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>S/N</th>
-                <th>Item Name</th>
-                <th>Unit Price</th>
-                <th>Quantity</th>
-                <th>Discount (%)</th>
-                <th>Discount Value</th>
-                <th>Total Amount</th>
+                <th>#</th>
+                <th>Item and Description</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Amount</th>
             </tr>
         </thead>
         <tbody>
             @php
-                $totalDiscount = 0;
-                $totalAmountWithoutDiscount = 0;
-            @endphp
-            @php
-                $totalDiscount = 0;
-                $totalAmountWithoutDiscount = 0;
+                $total = 0;
             @endphp
             @foreach ($profomaInvoiceItems as $item)
                 @php
                     $lineTotal = $item->unitPrice * $item->quantity;
-                    $discountValue = $lineTotal * ($item->discount / 100);
-                    $totalDiscount += $discountValue;
-                    $totalAmountWithoutDiscount += $lineTotal;
+                    $total += $lineTotal;
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $item->itemName }}</td>
+                    <td>{{ number_format($item->quantity, 2) }}</td>
                     <td>{{ number_format($item->unitPrice, 2) }}</td>
-                    <td>{{ number_format($item->quantity) }}</td>
-                    <td>{{ $item->discount }}</td>
-                    <td>{{ number_format($discountValue, 2) }}</td>
                     <td>{{ number_format($lineTotal, 2) }}</td>
                 </tr>
             @endforeach
-
         </tbody>
-        <tfoot>
-            @php
-                $finalAmount = $totalAmountWithoutDiscount - $totalDiscount;
-            @endphp
-            <tr>
-                <td colspan="6" class="text-right">Sub Total</td>
-                <td>{{ number_format($totalAmountWithoutDiscount, 2) }}</td>
-            </tr>
-            <tr>
-                <td colspan="6" class="text-right">Total Discount</td>
-                <td>{{ number_format($totalDiscount, 2) }}</td>
-            </tr>
-            @if (!$customerDetails->VRN)
-                <tr>
-                    <td colspan="6" class="text-right">VAT (0%)</td>
-                    <td>{{ number_format(0, 2) }}</td>
-                </tr>
-            @else
-                @php
-                    $vat = $finalAmount * 0.18;
-                @endphp
-                <tr>
-                    <td colspan="6" class="text-right">VAT (18%)</td>
-                    <td>{{ number_format($vat, 2) }}</td>
-                </tr>
-            @endif
-            <tr>
-                <td colspan="6" class="text-right"><strong>Grand Total (TSH)</strong></td>
-                <td><strong>{{ number_format($finalAmount + $vat, 2) }}</strong></td>
-            </tr>
-        </tfoot>
     </table>
+
+    @php
+        $vat = $customerDetails->VRN ? $total * 0.18 : 0;
+        $grandTotal = $total + $vat;
+    @endphp
+
+    <div class="total-box">
+        <table>
+            <tr>
+                <td class="text-right">Sub Total:</td>
+                <td class="text-right">{{ number_format($total, 2) }}</td>
+            </tr>
+            <tr>
+                <td class="text-right">VAT(18%):</td>
+                <td class="text-right">{{ number_format($vat, 2) }}</td>
+            </tr>
+            <tr>
+                <td class="text-right"><strong>Total:</strong></td>
+                <td class="text-right"><strong>TZS {{ number_format($grandTotal, 2) }}</strong></td>
+            </tr>
+            <tr>
+                <td class="text-right" colspan="2" style="color: blue;"><strong>Balance Due: TZS
+                        {{ number_format($grandTotal, 2) }}</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bank-info">
+        <p><strong>Account Name:</strong style="text-transform: uppercase;"> {{ $bankInformation->account_name }}</p>
+        <p><strong>Bank Name:</strong> {{ $bankInformation->bank_name }}</p>
+        <p><strong>Account Number:</strong> {{ $bankInformation->account_number }}</p>
+        <p><strong>Bank Code:</strong> {{ $bankInformation->bank_code ?? ' ' }}</p>
+        <p><strong>Swift Code:</strong> {{ $bankInformation->bank_code ?? ' ' }}</p>
+    </div>
 
     <div class="qr-section">
         <p><strong>QR Code</strong></p>
