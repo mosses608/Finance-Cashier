@@ -208,6 +208,7 @@ class BudgetController extends Controller
             ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
+            ->distinct()
             ->pluck('budget_year');
 
         $budgetCodes = DB::table('budgets')
@@ -444,6 +445,7 @@ class BudgetController extends Controller
             ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
+            ->distinct()
             ->pluck('budget_year');
 
         $budgetCodes = DB::table('budgets')
@@ -717,6 +719,7 @@ class BudgetController extends Controller
             ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('id', 'DESC')
+            ->distinct()
             ->get();
 
         $projects = DB::table('budgets')
@@ -771,8 +774,6 @@ class BudgetController extends Controller
             ->where('SBC.soft_delete', 0)
             ->orderBy('SBC.id', 'DESC')
             ->get();
-
-        // dd($projectName);
 
         return view('templates.staff-budget-codes', compact(
             'years',
@@ -884,5 +885,94 @@ class BudgetController extends Controller
             Log::error('Import error: ' . $e->getMessage());
             return back()->with('error_msg', 'Import failed: ' . $e->getMessage());
         }
+    }
+
+    public function registerAllowances()
+    {
+        $companyId = Auth::user()->company_id;
+
+        $companyAllowances = DB::table('allowance')
+            ->select([
+                'id',
+                'name',
+                'default_amount',
+                'created_at',
+            ])
+            ->where('company_id', $companyId)
+            ->where('soft_delete', 0)
+            ->orderBy('name', 'ASC')
+            ->get();
+
+        return view('templates.allowance', compact([
+            'companyAllowances',
+        ]));
+    }
+
+    public function storeAllowance(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'default_amount' => 'nullable|numeric',
+        ]);
+
+        $companyId = Auth::user()->company_id;
+        $userId = Auth::user()->user_id;
+
+        $allowanceExists = DB::table('allowance')
+            ->where('name', $request->name)
+            ->where('company_id', $companyId)
+            ->where('soft_delete', 0)
+            ->exists();
+
+        if ($allowanceExists == true) {
+            return redirect()->back()->with('error_msg', 'Allowance name ' . ' ' . $request->name . ' ' . 'already exists in our database!');
+        }
+
+        DB::table('allowance')->insert([
+            'name' => $request->name,
+            'default_amount' => $request->default_amount,
+            'company_id' => $companyId,
+            'created_by' => $userId,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]);
+
+        return redirect()->back()->with('success_msg', 'Allowance name' . ' ' . $request->name . ' ' . 'registered successfully!');
+    }
+
+    public function updateAllowance(Request $request)
+    {
+        $request->validate([
+            'autoId' => 'required|string',
+            'name' => 'required|string',
+            'default_amount' => 'required|string',
+        ]);
+
+        try {
+            $decryptedId = Crypt::decrypt($request->autoId);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $allowance = DB::table('allowance')
+            ->where('id', $decryptedId)
+            ->first();
+
+        if (!$allowance) {
+            return redirect()->back()->with('error_msg', 'Allowance name' . ' ' . $request->name . ' ' . 'is not found!');
+        }
+
+        $cleanAmount = str_replace(',', '', $request->default_amount);
+
+        DB::table('allowance')->where('id', $decryptedId)->update([
+            'name' => $request->name,
+            'default_amount' => $cleanAmount,
+        ]);
+
+        return redirect()->back()->with('success_msg', 'Allowance updated successfully!');
+    }
+
+    public function monthlyAllowance(){
+        dd('Monthly Allowance');
     }
 }

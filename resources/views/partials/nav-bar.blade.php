@@ -253,12 +253,17 @@
                     <div class="collapse" id="payroll">
                         <ul class="nav nav-collapse">
                             <li>
+                                <a href="{{ route('register.alowances') }}">
+                                    <span class="sub-item">Register Allowances</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('assign.budget.code') }}">
                                     <span class="sub-item">Staff Budget Codes</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="{{ route('monthly.allowance') }}">
                                     <span class="sub-item">Monthly Allowances</span>
                                 </a>
                             </li>

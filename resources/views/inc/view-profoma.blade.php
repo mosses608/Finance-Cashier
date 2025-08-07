@@ -67,7 +67,7 @@
                                                 @endforeach
                                             </tbody>
                                             <tfoot>
-                                                @if (!empty($item->vrn))
+                                                @if ($hasVrn)
                                                     @php
                                                         $vatTotal = $totalAmountWithDiscount * 0.18;
                                                     @endphp
@@ -75,6 +75,12 @@
                                                         <td class="text-nowrap">VAT (18%)</td>
                                                         <td colspan="5"></td>
                                                         <td>{{ number_format($vatTotal, 2) }}</td>
+                                                    </tr>
+                                                @else
+                                                <tr>
+                                                        <td class="text-nowrap">VAT (18%)</td>
+                                                        <td colspan="5"></td>
+                                                        <td>{{ number_format(0, 2) }}</td>
                                                     </tr>
                                                 @endif
                                                 <tr class="text-nowrap">
@@ -131,7 +137,7 @@
                                                 @endforeach
                                             </tbody>
                                             <tfoot>
-                                                @if (!empty($item->vrn))
+                                                @if ($hasVrn)
                                                     @php
                                                         $serviceVatTotal = $serviceAmountWithDiscount * 0.18;
                                                     @endphp
@@ -139,6 +145,12 @@
                                                         <td class="text-nowrap">VAT (18%)</td>
                                                         <td colspan="5"></td>
                                                         <td>{{ number_format($serviceVatTotal, 2) }}</td>
+                                                    </tr>
+                                                @else
+                                                    <tr>
+                                                        <td class="text-nowrap">VAT (18%)</td>
+                                                        <td colspan="5"></td>
+                                                        <td>{{ number_format(0, 2) }}</td>
                                                     </tr>
                                                 @endif
                                                 <tr class="text-nowrap">

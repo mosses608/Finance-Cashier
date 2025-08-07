@@ -1,11 +1,10 @@
 @extends('layouts.part')
 @include('partials.nav-bar')
 @section('content')
-
 <div class="container my-5">
     <div class="page-inner">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
+            <div class="col-lg-10 mt-5">
                 <div class="card shadow-sm">
                     <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 text-primary">Sales Receipt</h5>
@@ -60,7 +59,7 @@
                         @php
                             $totalDiscount = 0;
                             $totalAmountWithDiscount = 0;
-                            $hasVAT = !empty($customerData->vrn);
+                            $hasVAT = $hasVrn;
                             $serial = 1;
                         @endphp
 
@@ -150,7 +149,7 @@
                         </div>
 
                         @php $encryptedReceiptId = Crypt::encrypt($saleAutoId); @endphp
-                        <div class="text-end mt-4">
+                        <div class="text-start mt-4">
                             <a href="{{ route('download.receipt', $encryptedReceiptId) }}" class="btn btn-primary">
                                 <i class="fa fa-download me-1"></i> Download Receipt
                             </a>

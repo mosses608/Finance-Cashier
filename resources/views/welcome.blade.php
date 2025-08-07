@@ -32,7 +32,7 @@
                     </div>
 
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary col-12">Sign In</button>
+                        <button type="submit" class="btn btn-primary col-12">Sign In <i class="fa fa-sign-in"></i></button>
                     </div>
                     <div class="row py-3">
                         <div class="col-6">

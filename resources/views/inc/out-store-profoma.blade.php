@@ -130,7 +130,7 @@
                             @endphp
                             <a href="{{ route('download.profoma.out', $encryptedPrpfomaAutoId) }}"
                                 class="btn btn-primary float-end" border-color: #007BFF; color: #FFFF;">
-                                Download Profoma
+                                <i class="fa fa-download"></i> Download Profoma
                             </a>
                         </form>
                     </div>

@@ -63,7 +63,7 @@
                                                         $totalDiscount += $discountValue;
                                                         $totalAmountWithDiscount += $amountAfterDiscount;
 
-                                                        if ($item->vrn !== null) {
+                                                        if ($hasVrn) {
                                                             $hasVAT = true;
                                                         }
                                                     @endphp
@@ -92,6 +92,12 @@
                                                         <td class="text-nowrap">VAT (18%)</td>
                                                         <td colspan="5"></td>
                                                         <td>{{ number_format($vatTotal, 2) }}</td>
+                                                    </tr>
+                                                @else
+                                                <tr>
+                                                        <td class="text-nowrap">VAT (18%)</td>
+                                                        <td colspan="5"></td>
+                                                        <td>{{ number_format(0, 2) }}</td>
                                                     </tr>
                                                 @endif
 
@@ -136,7 +142,7 @@
                                                         $totalDiscount += $discountValue;
                                                         $totalAmountWithDiscount += $amountAfterDiscount;
 
-                                                        if ($item->vrn !== null) {
+                                                        if ($hasVrn) {
                                                             $hasVAT = true;
                                                         }
                                                     @endphp
@@ -165,6 +171,12 @@
                                                         <td class="text-nowrap">VAT (18%)</td>
                                                         <td colspan="5"></td>
                                                         <td>{{ number_format($vatTotal, 2) }}</td>
+                                                    </tr>
+                                                @else
+                                                <tr>
+                                                        <td class="text-nowrap">VAT (18%)</td>
+                                                        <td colspan="5"></td>
+                                                        <td>{{ number_format(0, 2) }}</td>
                                                     </tr>
                                                 @endif
 
@@ -224,7 +236,7 @@
                                                 $itemTotal = $totalAmountWithoutDiscount - $totalDiscount;
 
                                                 $vatTotal = 0;
-                                                if (!empty($itemsOutOfStore) && !empty($itemsOutOfStore[0]->vrn)) {
+                                                if (!empty($itemsOutOfStore) && $hasVrn) {
                                                     $vatTotal = $itemTotal * 0.18;
                                                 }
                                             @endphp
@@ -234,6 +246,12 @@
                                                         <td class="text-nowrap">VAT (18%)</td>
                                                         <td colspan="5"></td>
                                                         <td>{{ number_format($vatTotal, 2) }}</td>
+                                                    </tr>
+                                                @else
+                                                <tr>
+                                                        <td class="text-nowrap">VAT (18%)</td>
+                                                        <td colspan="5"></td>
+                                                        <td>{{ number_format(0, 2) }}</td>
                                                     </tr>
                                                 @endif
                                                 <tr class="text-nowrap">

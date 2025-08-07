@@ -244,12 +244,19 @@ class InvoiceController extends Controller
             ->where('invoice_id', $invoiceId)
             ->first();
 
+        $companyData = DB::table('companies')
+            ->where('id', Auth::user()->company_id)
+            ->first();
+
+        $hasVrn = $companyData->vrn ?? null;
+
         return view('inc.view-invoice', compact([
             'invoiceId',
             'invoiceItems',
             'invoiceServiceItems',
             'itemsOutOfStore',
-            'transaction'
+            'transaction',
+            'hasVrn'
         ]));
     }
 
@@ -632,7 +639,7 @@ class InvoiceController extends Controller
             ->join('stakeholders AS STK', 'STK.id', '=', 'PI.customer_id')
             ->select([
                 'PR.name AS itemName',
-                'ITM.amount AS unitPrice',
+                'PR.selling_price AS unitPrice',
                 'ITM.quantity AS quantity',
                 'ITM.amount AS invoiceAmount',
                 'ITM.discount AS discount',
@@ -644,13 +651,18 @@ class InvoiceController extends Controller
             ->where('ITM.soft_delete', 0)
             ->get();
 
-        // dd($profomaInvoiceId);
+        $companyData = DB::table('companies')
+            ->where('id', Auth::user()->company_id)
+            ->first();
+
+        $hasVrn = $companyData->vrn ?? null;
 
         return view('inc.view-profoma', compact([
             'profomaAccepted',
             'profomaInvoiceItems',
             'profomaInvoiceId',
-            'serviceProfomas'
+            'serviceProfomas',
+            'hasVrn'
         ]));
     }
 
@@ -714,14 +726,21 @@ class InvoiceController extends Controller
             ->first();
         // dd($customerDetails);
 
-        $companyData = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-            ->select('C.*')
-            ->where(function ($query) {
-                $query->where('A.phone', Auth::user()->username)
-                    ->orWhere('A.email', Auth::user()->username);
-            })
+        // $companyData = DB::table('companies AS C')
+        //     ->join('administrators AS A', 'C.id', '=', 'A.company_id')
+        //     ->select('C.*')
+        //     ->where(function ($query) {
+        //         $query->where('A.phone', Auth::user()->username)
+        //             ->orWhere('A.email', Auth::user()->username);
+        //     })
+        //     ->first();
+
+        $companyData = DB::table('companies')
+            ->select('*')
+            ->where('id', Auth::user()->company_id)
             ->first();
+
+        $hasVrn = $companyData->vrn ?? null;
 
         $bankInformation = DB::table('banks')
             ->select([
@@ -777,6 +796,7 @@ class InvoiceController extends Controller
             'logoBase64' => $logoBase64,
             'companyData' => $companyData,
             'bankInformation' => $bankInformation,
+            'hasVrn' => $hasVrn,
         ])->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,
@@ -800,9 +820,20 @@ class InvoiceController extends Controller
             ])
             ->where('POS.id', $profomaAutoId)
             ->get();
+
+        $companyData = DB::table('companies')
+            ->where('id', Auth::user()->company_id)
+            ->first();
+
+        $hasVrn = $companyData->vrn ?? null;
+
         // dd($profomaInvoiceItems);
 
-        return view('inc.out-store-profoma', compact('profomaAutoId', 'profomaInvoiceItems'));
+        return view('inc.out-store-profoma', compact([
+            'profomaAutoId',
+            'profomaInvoiceItems',
+            'hasVrn'
+        ]));
         // dd($profomaAutoId);
     }
 
@@ -843,6 +874,17 @@ class InvoiceController extends Controller
             ->select('C.*')
             ->where('A.phone', Auth::user()->username)
             ->orWhere('A.email', Auth::user()->username)
+            ->first();
+
+        $bankInformation = DB::table('banks')
+            ->select([
+                'bank_name',
+                'account_name',
+                'account_number',
+                'bank_code',
+            ])
+            ->where('company_id', $companyData->id)
+            ->where('soft_delete', 0)
             ->first();
 
         $logoPath = storage_path('app/public/' . $companyData->logo);
@@ -887,6 +929,7 @@ class InvoiceController extends Controller
             'customerDetails' => $customerDetails,
             'companyData' => $companyData,
             'logoBase64' => $logoBase64,
+            'bankInformation' => $bankInformation,
         ])->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,

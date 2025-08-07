@@ -166,6 +166,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/staff-budget-codes', [App\Http\Controllers\Budget\BudgetController::class, 'staffSubBudgetCodes'])->name('staff.budget.codes');
     Route::get('/budget-file-download', [App\Http\Controllers\Budget\BudgetController::class, 'downloadBudgetFileSample'])->name('download.csv.budget');
     Route::post('/bulk-budget-create', [App\Http\Controllers\Budget\BudgetController::class, 'bulkBudgetCreate'])->name('bulk.budget.create');
+    
+    Route::get('/register-allowance', [App\Http\Controllers\Budget\BudgetController::class, 'registerAllowances'])->name('register.alowances');
+    Route::post('/allowance', [App\Http\Controllers\Budget\BudgetController::class, 'storeAllowance'])->name('store.allowance');
+    Route::put('/update-laoowance', [App\Http\Controllers\Budget\BudgetController::class, 'updateAllowance'])->name('update.allowance');
+    Route::get('/monthly-allowance', [App\Http\Controllers\Budget\BudgetController::class, 'monthlyAllowance'])->name('monthly.allowance');
 
     // ACCOUNT
     Route::get('/account-balance', [App\Http\Controllers\Accounts\AccountController::class, 'accountBalance'])->name('account.balance');

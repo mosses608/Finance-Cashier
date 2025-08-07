@@ -68,7 +68,7 @@
             font-weight: bold;
         }
 
-        .text-right {
+        .text-end {
             text-align: right;
         }
 
@@ -144,7 +144,7 @@
         </div>
     </div>
 
-    <table class="table table-bordered">
+    <table>
         <thead>
             <tr>
                 <th>S/N</th>
@@ -204,7 +204,6 @@
             </tr>
         </tfoot>
     </table>
-
 
     <div class="qr-section">
         <p><strong>QR Code</strong></p>

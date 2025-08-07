@@ -8,7 +8,7 @@
     <title> AkiliSoft ERP & Finance | Welcome </title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="icon" href="{{ asset('assets/images/121616.png') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" type="image/x-icon" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
 
@@ -65,10 +65,10 @@
                     <!-- If you plan to use an image logo, uncomment this if it is commented-->
 
                     <!-- logo dark--><img class="logo dark img-fluid" width="100px" height="70px"
-                        src="{{ asset('assets/images/121616.png') }}" alt="image placeholder">
+                        src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" alt="image placeholder">
 
                     <!-- logo light--><img class="logo light img-fluid" width="100px" height="70px"
-                        src="{{ asset('assets/images/121616.png') }}" alt="image placeholder">
+                        src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" alt="image placeholder">
 
                 </a>
                 <!-- End Logo-->
@@ -89,11 +89,11 @@
 
 
                                 <!-- logo dark--><img class="logo dark img-fluid"
-                                    src="{{ asset('assets/images/121616.png') }}"
+                                    src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}"
                                     alt="image placeholder">
 
                                 <!-- logo light--><img class="logo light img-fluid"
-                                    src="{{ asset('assets/images/121616.png') }}"
+                                    src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}"
                                     alt="image placeholder"></a>
 
                         </div>

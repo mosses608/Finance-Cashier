@@ -48,7 +48,7 @@
                                                 Year</span>
                                             <input type="year" class="form-control" aria-label="Sizing example input"
                                                 name="searchYear" aria-describedby="inputGroup-sizing-default"
-                                                placeholder="budget year" id="searchYear" required>
+                                                placeholder="budget year" value="{{ \Carbon\Carbon::now()->year }}" id="searchYear" required>
                                         </div>
                                     </div>
                                     <script>

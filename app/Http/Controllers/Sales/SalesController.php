@@ -231,21 +231,20 @@ class SalesController extends Controller
             ->first();
 
         $companyData = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
             ->select([
                 'C.company_name AS name',
                 'C.address AS address',
                 'C.tin AS TIN',
+                'C.vrn AS vrn',
                 'C.company_email AS email',
                 'C.logo AS logo',
                 'C.website AS webiste'
             ])
-            ->where(function ($join) {
-                $join->where('A.phone', Auth::user()->username)
-                    ->orWhere('A.email', Auth::user()->username);
-            })
+            ->where('id', Auth::user()->company_id)
             ->where('C.soft_delete', 0)
             ->first();
+
+        $hasVrn = $companyData->vrn ?? null;
 
         $paymentData = DB::table('sales')
             ->where('id', $saleAutoId)
@@ -289,7 +288,8 @@ class SalesController extends Controller
             'paymentData',
             'customerData',
             'salesReceiptFromServices',
-            'companyData'
+            'companyData',
+            'hasVrn'
         ]));
     }
 
@@ -309,21 +309,20 @@ class SalesController extends Controller
             ->first();
 
         $companyData = DB::table('companies AS C')
-            ->join('administrators AS A', 'C.id', '=', 'A.company_id')
             ->select([
                 'C.company_name AS name',
                 'C.address AS address',
                 'C.tin AS TIN',
+                'C.vrn AS vrn',
                 'C.company_email AS email',
                 'C.logo AS logo',
                 'C.website AS webiste'
             ])
-            ->where(function ($join) {
-                $join->where('A.phone', Auth::user()->username)
-                    ->orWhere('A.email', Auth::user()->username);
-            })
+            ->where('id', Auth::user()->company_id)
             ->where('C.soft_delete', 0)
             ->first();
+
+        $hasVrn = $companyData->vrn ?? null;
 
         $logoPath = storage_path('app/public/' . $companyData->logo);
         $base64Logo = null;
@@ -384,7 +383,8 @@ class SalesController extends Controller
             'saleAutoId',
             'salesReceiptFromServices',
             'companyData',
-            'base64Logo'
+            'base64Logo',
+            'hasVrn'
         ));
 
         return $pdf->download('sales_receipt_' . str_pad($saleAutoId, 4, '0', STR_PAD_LEFT) . '.pdf');
