@@ -22,5 +22,6 @@ class Company extends Model
         'address',
         'logo',
         'soft_delete',
+        'status',
     ];
 }

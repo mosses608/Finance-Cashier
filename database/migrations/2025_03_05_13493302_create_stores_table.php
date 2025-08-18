@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('stores', function (Blueprint $table) {
             $table->id();
-            $table->string('store_name')->unique();
+            $table->string('store_name');
             $table->string('city')->nullable();
             $table->string('location')->nullable();
             $table->string('store_keeper')->nullable();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pages;
 
 use Carbon\Carbon;
 use App\Models\Bank;
+use App\Models\User;
 use App\Models\Employees;
 use App\Models\Stakeholder;
 use App\Models\Transaction;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Crypt;
 
 class PageController extends Controller
 {
@@ -135,7 +137,7 @@ class PageController extends Controller
 
             $userId = DB::table('administrators')->insertGetId([
                 'names' => $request->first_name . ' ' . $request->last_name,
-                'role_id' => 1,
+                'role_id' => 2,
                 'email' => $request->personal_email,
                 'phone' => $request->phone,
                 'created_at' => Carbon::now(),
@@ -143,21 +145,160 @@ class PageController extends Controller
                 'company_id' => $comapanyId,
             ]);
 
-            DB::table('auth')->insert([
+            $userId = DB::table('auth')->insertGetId([
                 'user_id' => $userId,
                 'username' => $request->phone,
                 'password' => Hash::make($request->password),
-                'role_id' => 1,
+                'role_id' => 2,
                 'company_id' => $comapanyId,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
 
-            return redirect()->route('login')->with('success_msg', 'Company with registration number ' . ' ' . $request->company_reg_no . ' ' . 'has been registered successfully!');
+            $user = User::where('user_id', $userId)->where('company_id', $comapanyId)->first();
+
+            Auth::login($user);
+
+            return redirect()->route('available.features')->with('success_msg', 'One more step, finish up by selecting features that should be included in your dashboard!');
+
+            // return redirect()->route('login')->with('success_msg', 'Company with registration number ' . ' ' . $request->company_reg_no . ' ' . 'has been registered successfully!');
         } catch (\Throwable $th) {
             return $th->getMessage();
         }
-        // dd($comapnyExists);
+    }
+
+    public function availableFeatures()
+    {
+        $parentModules = DB::table('auth_user_modules')
+            ->select([
+                'id',
+                'module_name',
+                'module_icon'
+            ])
+            ->whereNull('module_parent_id')
+            ->where('soft_delete', 0)
+            ->orderBy('module_name', 'ASC')
+            ->get();
+
+        $childModules = DB::table('auth_user_modules')
+            ->select([
+                'id',
+                'module_parent_id',
+                'module_name'
+            ])
+            ->whereNotNull('module_parent_id')
+            ->where('soft_delete', 0)
+            ->orderBy('module_name', 'ASC')
+            ->get();
+
+        return view('templates.features', compact([
+            'parentModules',
+            'childModules',
+        ]));
+    }
+
+    public function modules()
+    {
+        $companyId = Auth::user()->company_id;
+        $parentModules = DB::table('auth_user_modules')
+            ->select([
+                'id',
+                'module_name',
+                'module_icon'
+            ])
+            ->whereNull('module_parent_id')
+            ->where('soft_delete', 0)
+            ->orderBy('module_name', 'ASC')
+            ->get();
+
+        $childModules = DB::table('auth_user_modules')
+            ->select([
+                'id',
+                'module_parent_id',
+                'module_name'
+            ])
+            ->whereNotNull('module_parent_id')
+            ->where('soft_delete', 0)
+            ->orderBy('module_name', 'ASC')
+            ->get();
+
+        $existingModules = DB::table('company_modules')
+            ->select('child_module_id')
+            ->where('company_id', $companyId)
+            ->where('soft_delete', 0)
+            ->pluck('child_module_id')
+            ->toArray();
+
+        return view('templates.modules', compact([
+            'parentModules',
+            'childModules',
+            'existingModules',
+        ]));
+    }
+
+    public function moduleSelect(Request $request)
+    {
+        try {
+            $request->validate([
+                'modules' => 'required|array',
+                'modules.*' => 'required|string',
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error_msg', 'Error: ' . ' ' . $th->getMessage());
+        }
+
+        $decryptedModules = [];
+        $decodedModules = [];
+        $companyId = Auth::user()->company_id;
+        foreach ($request->modules as $module) {
+            $decryptedModules[] = Crypt::decrypt($module);
+        }
+
+        foreach ($decryptedModules as $module) {
+            $decodedModules[] = json_decode($module);
+        }
+
+        $existingModules = [];
+        $addedModules = [];
+
+        foreach ($decodedModules as $module) {
+            $exists = DB::table('company_modules')
+                ->where('parent_module_id', $module->parent_module_id)
+                ->where('child_module_id', $module->child_module_id)
+                ->where('company_id', $companyId)
+                ->where('soft_delete', 0)
+                ->exists();
+
+            if ($exists) {
+                $existingModules[] = $module;
+            } else {
+                DB::table('company_modules')->insert([
+                    'parent_module_id' => $module->parent_module_id,
+                    'child_module_id' => $module->child_module_id,
+                    'company_id' => $companyId,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+                $addedModules[] = $module;
+            }
+        }
+
+        // if (count($existingModules) > 0) {
+        //     return redirect()->back()->with('error_msg', 'Some modules were not added because they already exist in your dashboard!');
+        // }
+
+        $companyHasLogo = DB::table('companies')
+            ->select([
+                'logo'
+            ])
+            ->where('id', $companyId)
+            ->first();
+
+        if ($companyHasLogo->logo == null) {
+            return redirect()->route('upload.logo')->with('success_msg', 'Modules added, please finish up uploading a company logo here!');
+        }
+
+        return redirect()->back()->with('success_msg', 'Modules added successfully!');
     }
 
     public function dashboard()
@@ -399,15 +540,17 @@ class PageController extends Controller
 
         $existingGroup = DB::table('customer_groups')
             ->where('name', $request->name)
+            ->where('company_id', Auth::user()->company_id)
             ->where('soft_delete', 0)
             ->exists();
 
         if ($existingGroup == true) {
-            return redirect()->back()->with('error_msg', 'Group name' . ' ' . $request->name . ' ' . 'is already in the our database, try anaother name!');
+            return redirect()->back()->with('error_msg', 'Group name' . ' ' . $request->name . ' ' . 'already exists in  our database, try anaother name!');
         }
 
         DB::table('customer_groups')->insert([
             'name' => $request->name,
+            'company_id' => Auth::user()->company_id,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
@@ -797,5 +940,54 @@ class PageController extends Controller
         // ]);
 
         return redirect()->back()->with('success_msg', 'New employee created_successfully!');
+    }
+
+    public function uploadLogo()
+    {
+        return view('inc.logo-upload');
+    }
+
+    public function saveLogoUpload(Request $request)
+    {
+        $request->validate([
+            'logo_image' => 'required|image',
+        ]);
+
+        if ($request->hasFile('logo_image')) {
+            $filePath = $request->file('logo_image')->store('logos', 'public');
+        }
+
+        $companyId = Auth::user()->company_id;
+
+        $companyExists = DB::table('companies')->where('id', $companyId)->where('status', 1)->exists();
+
+        if ($companyExists === false) {
+            Auth::logout();
+            return redirect()->route('login')->with('error_msg', 'Comapny account might be inactive, please contact our support team for more help!');
+        }
+
+        DB::table('companies')->where('id', $companyId)->update([
+            'logo' => $filePath,
+        ]);
+
+        $modules = DB::table('auth_user_modules AS AUM')
+            ->join('company_modules AS CM', 'AUM.id', '=', 'CM.parent_module_id')
+            ->select([
+                'AUM.module_parent_id AS module_parent_id',
+                'AUM.module_name AS module_name',
+                'AUM.module_path AS module_path',
+                'AUM.module_icon AS module_icon',
+                'CM.parent_module_id AS module_id',
+            ])
+            ->whereNull('AUM.is_admin')
+            ->where('CM.company_id', $companyId)
+            ->get()
+            ->unique('module_id');
+
+        if ($modules->isEmpty()) {
+            return redirect()->route('modules')->with('success_msg', 'Logo uploaded, but your dashboard looks empty. Please start up with at least one feature it is free!');
+        }
+
+        return redirect()->route('home')->with('success_msg', 'Logged in and logo uploaded successfully!');
     }
 }

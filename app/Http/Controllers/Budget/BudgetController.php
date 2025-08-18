@@ -973,6 +973,6 @@ class BudgetController extends Controller
     }
 
     public function monthlyAllowance(){
-        dd('Monthly Allowance');
+        return view('templates.monthly-allowance');
     }
 }

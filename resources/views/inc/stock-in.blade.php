@@ -30,7 +30,7 @@
                                                 <th>Selling Price</th>
                                                 <th>Exp profit</th>
                                                 <th>Store</th>
-                                                <th>Action</th>
+                                                {{-- <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -47,7 +47,7 @@
                                                 <tr>
                                                     <td><input type="checkbox" name="storage_item_id[]"
                                                             value="{{ $product->id }}" id=""></td>
-                                                    <td>#####</td>
+                                                    <td>{{ $product->serialNumber }}</td>
                                                     <td>{{ $product->productName }}</td>
                                                     <td>{{ $product->sku }}</td>
                                                     <td class="text-start">
@@ -72,20 +72,82 @@
                                                     <td class="text-start">{{ number_format($product->selling_price, 2) }}
                                                     </td>
                                                     <td class="text-nowrap text-primary text-start">
-                                                        {{ number_format($quantityStocks->quantity_total ?? 0 * ($product->selling_price - $product->cost_price), 2) }}
+                                                        {{ number_format(($quantityStocks->quantity_total ?? 0) * $product->selling_price - ($quantityStocks->quantity_total ?? 0) * $product->cost_price, 2) }}
                                                     </td>
-                                                    <td>{{ $product->storeName }}</td>
-                                                    <td>
+                                                    <td>{{ $product->storeName ?? 'unsigned' }}</td>
+                                                    {{-- <td>
                                                         <div class="d-flex align-items-center gap-2">
-                                                            <button type="button" class="btn btn-success btn-sm"
-                                                                data-bs-toggle="modal" data-bs-target="#updateQuantityModal"
+                                                            <button type="button" class="btn btn-primary btn-sm"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#updateQuantityModal-{{ $product->id }}"
                                                                 data-product-id="{{ $product->id }}"
                                                                 data-product-name="{{ $product->productName }}"
                                                                 data-quantity="{{ $quantityStocks->quantity_total ?? 0 }}"
                                                                 data-selling-price="{{ $product->selling_price }}">
                                                                 <i class="fas fa-arrow-circle-down"></i>
                                                             </button>
-                                                            {{-- 
+
+                                                            <div class="modal fade"
+                                                                id="updateQuantityModal-{{ $product->id }}" tabindex="-1"
+                                                                aria-labelledby="updateQuantityModalLabel"
+                                                                aria-hidden="true">
+                                                                <div class="modal-dialog">
+                                                                    <form action="{{ route('stockIn.Quantity') }}"
+                                                                        method="POST">
+                                                                        @csrf
+                                                                        @method('PUT')
+                                                                        <div class="modal-content">
+                                                                            <div class="modal-header">
+                                                                                <h5 class="modal-title"
+                                                                                    id="updateQuantityModalLabel">
+                                                                                    Stock in: <strong
+                                                                                        id="modal_product_name"></strong>
+                                                                                </h5>
+
+                                                                                <button type="button" class="btn-close"
+                                                                                    data-bs-dismiss="modal"
+                                                                                    aria-label="Close"></button>
+                                                                            </div>
+                                                                            <div class="modal-body">
+                                                                                <input type="hidden" name="auto_id"
+                                                                                    id="modal_product_id">
+                                                                                <div class="row mb-3">
+                                                                                    <div class="col-6 mb-3">
+                                                                                        <input type="number"
+                                                                                            class="form-control"
+                                                                                            name="quantity"
+                                                                                            id="modal_product_quantity_1"
+                                                                                            placeholder="stock-in quantity"
+                                                                                            required>
+                                                                                    </div>
+                                                                                    <div class="col-6 mb-3">
+                                                                                        <input type="number"
+                                                                                            class="form-control"
+                                                                                            name="seling_price"
+                                                                                            id="modal_selling_price"
+                                                                                            placeholder="Selling Price"
+                                                                                            readonly>
+                                                                                    </div>
+                                                                                    <div class="col-12 mb-3">
+                                                                                        <input type="number"
+                                                                                            class="form-control"
+                                                                                            name="available_quantity"
+                                                                                            id="modal_quantity_available"
+                                                                                            placeholder="Availlable Quantity"
+                                                                                            readonly>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="modal-footer">
+                                                                                <button type="submit"
+                                                                                    class="btn btn-primary">Save
+                                                                                    Data</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            
                                                         <form action="{{ route('products.destroy') }}" method="POST"
                                                             onsubmit="return confirm('Are you sure you want to delete this product?');"
                                                             class="m-0 p-0">
@@ -97,9 +159,9 @@
                                                                 class="btn btn-danger btn-sm d-flex align-items-center justify-content-center">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
-                                                        </form> --}}
+                                                        </form>
                                                         </div>
-                                                    </td>
+                                                    </td> --}}
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -113,8 +175,13 @@
                                 </div>
                             </form>
                             <hr>
-                            <form action="{{ route('upload.csv') }}" method="POST" enctype="multipart/form-data" class="row mt-3 mb-3">
+                            <form action="{{ route('upload.csv') }}" method="POST" enctype="multipart/form-data"
+                                class="row mt-3 mb-3">
                                 @csrf
+                                <div class="col-12">
+                                    <h4 class="text-success fs-5">To stock-in multiple products, check at least one product
+                                        on the checkbox then download the csv file, fill it wil data then upload it.</h4>
+                                </div>
                                 <div class="col-8">
                                     <input type="file" name="file_upload" class="form-control" accept=".csv,text/csv"
                                         required>
@@ -129,46 +196,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Single Global Modal -->
-    <div class="modal fade" id="updateQuantityModal" tabindex="-1" aria-labelledby="updateQuantityModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <form action="{{ route('stockIn.Quantity') }}" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="updateQuantityModalLabel">
-                            Stocking In: <strong id="modal_product_name"></strong>
-                        </h5>
-
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="auto_id" id="modal_product_id">
-                        <div class="row mb-3">
-                            <div class="col-6 mb-3">
-                                <input type="number" class="form-control" name="quantity" id="modal_product_quantity_1"
-                                    placeholder="Stock In Quantity" required>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <input type="number" class="form-control" name="seling_price" id="modal_selling_price"
-                                    placeholder="Selling Price" readonly>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <input type="number" class="form-control" name="available_quantity"
-                                    id="modal_quantity_available" placeholder="Availlable Quantity" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Save Data</button>
-                    </div>
-                </div>
-            </form>
         </div>
     </div>
 

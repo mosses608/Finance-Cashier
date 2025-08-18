@@ -15,7 +15,7 @@
                                     aria-controls="nav-home" aria-selected="true">Service List</button>
                                 <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab"
                                     data-bs-target="#nav-create-service" type="button" role="tab"
-                                    aria-controls="nav-profile" aria-selected="false">Create Service</button>
+                                    aria-controls="nav-profile" aria-selected="false">Create Bulk Service</button>
                                 <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab"
                                     data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact"
                                     aria-selected="false">Service Profoma Invoice</button>
@@ -43,17 +43,19 @@
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{ $service->name }}</td>
-                                                        <td>{{ number_format($service->price, 2) }}</td>
+                                                        <td>{{ number_format($service->price ?? 0, 2) }}</td>
                                                         <td>{{ $service->category ?? 'Unavaillable' }}</td>
                                                         <td>
                                                             @if ($service->active == true)
-                                                                <i class="fa fa-circle"></i> {{ __('Active') }}
+                                                                <i class="fa fa-circle text-success"></i> {{ __('Active') }}
                                                             @else
-                                                            <i class="fa fa-circle text-secondary"></i> {{ __('Inactive') }}
+                                                                <i class="fa fa-circle text-secondary"></i>
+                                                                {{ __('Inactive') }}
                                                             @endif
                                                         </td>
                                                         <td class="text-center">
-                                                            <a href="#" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a>
+                                                            <a href="#" class="btn btn-primary btn-sm"><i
+                                                                    class="fa fa-eye"></i></a>
                                                         </td>
                                                     </tr>
                                                 @endforeach

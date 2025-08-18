@@ -19,7 +19,7 @@ return new class extends Migration
             // $table->integer('quantity')->default(0);
             $table->decimal('cost_price', 10, 2); 
             $table->decimal('selling_price', 10, 2);
-            $table->integer('store_id');
+            $table->integer('store_id')->nullable();
             $table->string('item_pic')->nullable();
             $table->integer('soft_delete')->default(0);
             $table->timestamps();

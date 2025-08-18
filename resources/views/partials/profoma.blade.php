@@ -38,8 +38,7 @@
 
                 <div class="col-6">
                     <label class="input-label p-2"><strong>Item Discount</strong></label>
-                    <input type="text" name="discount[]" class="form-control"
-                        placeholder="discount @ eg 0.5">
+                    <input type="text" name="discount[]" class="form-control" placeholder="discount @ eg 0.5">
                 </div>
             </div>
         </div>
@@ -64,29 +63,31 @@
             </select>
         </div>
 
-        <div class="row">
+        @if (false)
+            <div class="row">
 
-            <div class="col-6" id="custom-name" style="display:none;">
-                <label class="input-label p-2"><strong>Customer Name</strong></label>
-                <input type="text" name="name" class="form-control" placeholder="Customer Name">
+                <div class="col-6" id="custom-name" style="display:none;">
+                    <label class="input-label p-2"><strong>Customer Name</strong></label>
+                    <input type="text" name="name" class="form-control" placeholder="Customer Name">
+                </div>
+
+                <div class="col-6" id="custom-phone" style="display:none;">
+                    <label class="input-label p-2"><strong>Phone Number</strong></label>
+                    <input type="tel" name="phone" class="form-control" placeholder="Phone Number">
+                </div>
+
+                <div class="col-6" id="custom-tin" style="display:none;">
+                    <label class="input-label p-2"><strong>TIN</strong></label>
+                    <input type="text" name="TIN" class="form-control" placeholder="Tax Identification Number">
+                </div>
+
+                <div class="col-6" id="custom-address" style="display:none;">
+                    <label class="input-label p-2"><strong>Address</strong></label>
+                    <input type="text" name="address" class="form-control" placeholder="Customer Address">
+                </div>
+
             </div>
-
-            <div class="col-6" id="custom-phone" style="display:none;">
-                <label class="input-label p-2"><strong>Phone Number</strong></label>
-                <input type="tel" name="phone" class="form-control" placeholder="Phone Number">
-            </div>
-
-            <div class="col-6" id="custom-tin" style="display:none;">
-                <label class="input-label p-2"><strong>TIN</strong></label>
-                <input type="text" name="TIN" class="form-control" placeholder="Tax Identification Number">
-            </div>
-
-            <div class="col-6" id="custom-address" style="display:none;">
-                <label class="input-label p-2"><strong>Address</strong></label>
-                <input type="text" name="address" class="form-control" placeholder="Customer Address">
-            </div>
-
-        </div>
+        @endif
 
         <!-- Action Buttons -->
         <div class="col-6 mt-3 w-100">
@@ -106,7 +107,7 @@
     <!-- Invoice Preview -->
     <div class="w-50">
         <div class="border p-2 bg-light rounded mt-4" id="custom-invoice-preview">
-            <p class="text-center p-5 blink">Invoice Preview will appear here!</p>
+            <p class="text-center p-5 blink">Profoma Invoice Preview will appear here!</p>
         </div>
     </div>
 </div>
@@ -207,7 +208,7 @@
             if (!select.value || !quantity) return;
 
             const totalPrice = price * quantity;
-            const discountPrice = discount * price;
+            const discountPrice = discount * price * quantity;
             const finalTotal = totalPrice - discountPrice;
             grandTotal += finalTotal;
 

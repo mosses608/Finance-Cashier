@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SalesController extends Controller
 {
@@ -36,18 +37,38 @@ class SalesController extends Controller
     public function createSales(Request $request)
     {
         $invoiceData = collect();
+        $suupliers = collect();
 
         if ($request->ajax()) {
             $request->validate([
                 'invoice_id' => 'required|integer|min:0',
             ]);
 
+            $purchaseOrderNumber = $request->invoice_id;
+
+            $invoiceId = DB::table('purchases_orders')
+                ->select('invoice_id')
+                ->where('po_number', $request->invoice_id)
+                ->value('invoice_id');
+
+            $suupliers = DB::table('stakeholders')
+                ->select('name', 'id')
+                ->where('stakeholder_category', 2)
+                ->where('company_id', Auth::user()->company_id)
+                ->get();
+
+            if (!$invoiceId) {
+                return response()->json(['html' => "<p class='text-danger'>No purchase order found.</p>"]);
+            }
+
             $invoiceData = DB::table('invoice AS I')
                 ->join('stakeholders AS C', 'I.customer_id', '=', 'C.id')
                 ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
+                ->join('purchases_orders AS PO', 'PO.invoice_id', '=', 'I.id')
                 ->where('I.soft_delete', 0)
                 ->where('C.soft_delete', 0)
-                ->where('I.id', $request->invoice_id)
+                ->where('I.company_id', Auth::user()->company_id)
+                ->where('I.id', $invoiceId)
                 ->where('I.is_profoma', 0)
                 ->select([
                     'I.*',
@@ -56,36 +77,41 @@ class SalesController extends Controller
                     'C.TIN',
                     'IST.name AS statusName',
                     'C.vrn AS vrn',
-                    'I.status AS status'
+                    'I.status AS status',
+                    'PO.po_number AS po_number',
                 ])
                 ->first();
-
-            $vrn = $invoiceData->vrn;
 
             if (!$invoiceData) {
                 return response()->json(['html' => "<p class='text-danger'>No invoice found.</p>"]);
             }
 
-            $html = view('partials.fetched-invoice', compact('invoiceData'))->render();
+            $hasVrn = DB::table('companies')->where('id', Auth::user()->company_id)->select('vrn')->value('vrn') ?? null;
+
+            $html = view('partials.fetched-invoice', compact('invoiceData', 'hasVrn', 'purchaseOrderNumber', 'suupliers'))->render();
             return response()->json(['html' => $html]);
         }
 
-        $currentDaySales = DB::table('sales')
+        $currentDaySales = DB::table('sales AS S')
+            ->join('purchases_orders AS PO', 'S.invoice_id', '=', 'PO.invoice_id')
+            ->join('stakeholders AS SH', 'PO.supplier_id', '=', 'SH.id')
             ->select([
-                'invoice_id',
-                'amount_paid',
-                'payment_method',
-                'status',
-                'created_at',
-                'id AS autoId',
-                'updated_at',
+                'PO.po_number AS po_number',
+                'S.invoice_id',
+                'S.amount_paid',
+                'SH.name AS stakeholder',
+                'SH.phone AS phoneNumber',
+                'S.status',
+                'S.created_at',
+                'S.id AS autoId',
+                'S.updated_at',
             ])
-            ->where('soft_delete', 0)
-            ->whereDate('created_at', Carbon::today())
-            ->orderByDesc('id', 'DESC')
+            ->where('SH.stakeholder_category', 2)
+            ->where('S.company_id', Auth::user()->company_id)
+            ->where('S.soft_delete', 0)
+            ->whereDate('S.created_at', Carbon::today())
+            ->orderByDesc('S.id', 'DESC')
             ->get();
-
-        // dd($currentDaySales);
 
         return view('sales.create-sales', compact('invoiceData', 'currentDaySales'));
     }
@@ -116,56 +142,157 @@ class SalesController extends Controller
     {
         $companyId = Auth::user()->company_id;
 
-        $salesReports = DB::table('sales')
+        $salesReports = DB::table('sales AS S')
+            ->join('purchases_orders AS PO', 'S.invoice_id', '=', 'PO.invoice_id')
+            ->join('stakeholders AS SH', 'PO.supplier_id', '=', 'SH.id')
             ->select([
-                'invoice_id',
-                'amount_paid',
-                'payment_method',
-                'status',
-                'created_at',
-                'id AS autoId',
-                'updated_at',
+                'S.invoice_id',
+                'S.amount_paid',
+                'SH.name AS stakeholder',
+                'SH.phone AS phoneNumber',
+                'S.status',
+                'S.created_at',
+                'S.id AS autoId',
+                'S.updated_at',
+                'PO.po_number AS po_number'
             ])
-            ->where('company_id', $companyId)
-            ->where('soft_delete', 0)
-            ->orderByDesc('id', 'DESC')
+            ->where('SH.stakeholder_category', 2)
+            ->where('S.company_id', $companyId)
+            ->where('S.soft_delete', 0)
+            ->orderByDesc('S.id', 'DESC')
             ->get();
+
+        $from = null;
+        $to = null;
 
         if ($request->has('from') && $request->has('to') && $request->from != null && $request->to != null) {
             $from = $request->from;
             $to = $request->to;
 
-            $salesReports = DB::table('sales')
+            $salesReports = DB::table('sales AS S')
+                ->join('purchases_orders AS PO', 'S.invoice_id', '=', 'PO.invoice_id')
+                ->join('stakeholders AS SH', 'PO.supplier_id', '=', 'SH.id')
                 ->select([
-                    'invoice_id',
-                    'amount_paid',
-                    'payment_method',
-                    'status',
-                    'created_at',
-                    'id AS autoId',
-                    'updated_at',
+                    'S.invoice_id',
+                    'S.amount_paid',
+                    'SH.name AS stakeholder',
+                    'SH.phone AS phoneNumber',
+                    'S.status',
+                    'S.created_at',
+                    'S.id AS autoId',
+                    'S.updated_at',
+                    'PO.po_number AS po_number'
                 ])
-                ->whereBetween('created_at', [$from, $to])
-                ->where('company_id', $companyId)
-                ->where('soft_delete', 0)
-                ->orderByDesc('id', 'DESC')
+                ->where('SH.stakeholder_category', 2)
+                ->whereBetween('S.created_at', [$from, $to])
+                ->where('S.company_id', $companyId)
+                ->where('S.soft_delete', 0)
+                ->orderByDesc('S.id', 'DESC')
                 ->get();
         }
 
-        return view('sales.sales-reports', compact('salesReports'));
+        return view('sales.sales-reports', compact('salesReports', 'from', 'to'));
+    }
+
+    public function downloadReport($validData)
+    {
+        try {
+            $decryptedData = Crypt::decrypt($validData);
+            $decodedData = json_decode($decryptedData, true);
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
+
+        $from = $decodedData['from'];
+        $to = $decodedData['to'];
+        $companyId = Auth::user()->company_id;
+
+        $salesReports = DB::table('sales AS S')
+            ->join('purchases_orders AS PO', 'S.invoice_id', '=', 'PO.invoice_id')
+            ->join('stakeholders AS SH', 'PO.supplier_id', '=', 'SH.id')
+            ->select([
+                'S.invoice_id AS invoiceId',
+                'S.amount_paid AS amount',
+                'SH.name AS stakeholder',
+                'SH.phone AS phoneNumber',
+                'S.status AS status',
+                'S.created_at AS date',
+                'S.id AS autoId',
+                'S.updated_at',
+                'PO.po_number AS po_number'
+            ])
+            ->where('SH.stakeholder_category', 2)
+            ->whereBetween('S.created_at', [$from, $to])
+            ->where('S.company_id', $companyId)
+            ->where('S.soft_delete', 0)
+            ->orderByDesc('S.id', 'DESC')
+            ->get();
+
+        $response = new StreamedResponse(function () use ($salesReports, $from, $to) {
+            set_time_limit(0);
+            ini_set('output_buffering', 'off');
+            ini_set('zlib.output_compression', false);
+            ob_implicit_flush(true);
+
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['From Date:', Carbon::parse($from)->format('M d, Y') ?? '']);
+            fputcsv($handle, ['To Date:', Carbon::parse($to)->format('M d, Y') ?? '']);
+            fputcsv($handle, []);
+            fputcsv($handle, ['Purchase Order No', 'Invoice Number', 'Supplier', 'Amount', 'Status', 'Due Date']);
+
+            $n = 1;
+            foreach ($salesReports as $report) {
+                fputcsv($handle, [
+                    $n++,
+                    $report->po_number,
+                    $report->invoiceId,
+                    $report->stakeholder . ' - ' . $report->phoneNumber,
+                    number_format($report->amount),
+                    $report->status,
+                    Carbon::parse($report->date)->format('M d, Y'),
+                ]);
+                ob_flush();
+                flush();
+            }
+            fclose($handle);
+        });
+
+        $filename = 'purchase-order-report.csv';
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+        return $response;
     }
 
     public function storeSales(Request $request)
     {
-        $request->validate([
-            'invoice_id' => 'required|integer|min:1',
-            'tax' => 'nullable|numeric',
-            'amount_paid' => 'required|numeric',
-            'notes' => 'nullable|string|max:255',
-            'checked' => 'required|integer',
-        ]);
+        try {
+            $request->validate([
+                'invoice_id' => 'required|integer|min:1',
+                'tax' => 'nullable|string',
+                'amount_paid' => 'required|numeric',
+                'notes' => 'nullable|string|max:255',
+                'checked' => 'required|integer',
+                'expected_delivery_date' => 'required|date',
+                'budget_year' => 'required|integer',
+                'supplier_id' => 'required|integer',
+                'purchase_order' => 'required|string',
+            ]);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error_msg', 'Error:' . $th->getMessage());
+        }
+
+        try {
+            $purchaseOrder = Crypt::decrypt($request->purchase_order);
+        } catch (\Throwable $err) {
+            return redirect()->back()->with('error_msg', 'Error:' . $err->getMessage());
+        }
 
         $userId = Auth::user()->id ?? 1;
+
+        $companyId = Auth::user()->company_id;
 
         $invoiceItems = DB::table('invoice_items')->select('item_id', 'quantity')
             ->where('invoice_id', $request->invoice_id)
@@ -184,15 +311,11 @@ class SalesController extends Controller
             }
         }
 
-        // dd('Mohammed');
-
-        $companyId = Auth::user()->company_id;
-
         DB::table('sales')->insert([
             'company_id' => $companyId,
             'user_id' => $userId,
             'invoice_id' => $request->invoice_id,
-            'tax' => $request->tax,
+            'tax' => str_replace(',', '', $request->tax),
             'balance' => $request->amount_paid,
             'amount_paid' => $request->amount_paid,
             'status' => 1,
@@ -207,6 +330,18 @@ class SalesController extends Controller
             ->update([
                 'status' => 3,
             ]);
+
+        DB::table('purchases_orders')->where('po_number', $purchaseOrder)->update([
+            'budget_year' => $request->budget_year,
+            'supplier_id' => $request->supplier_id,
+            'order_date' => Carbon::now(),
+            'expected_delivery_date' => $request->expected_delivery_date,
+            'status' => 'approved',
+            'notes' => $request->notes,
+            'issued_by' => Auth::user()->user_id,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]);
 
         return redirect()->back()->with('success_msg', 'New sales created successfully!');
     }

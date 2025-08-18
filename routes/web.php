@@ -23,7 +23,14 @@ Route::post('/authenticate', [App\Http\Controllers\Authenticates\AuthenticateCon
 
 Route::post('/subscribe', [App\Http\Controllers\Pages\PageController::class, 'subscribe'])->name('subscribe.user');
 
+Route::get('/availabe-features', [App\Http\Controllers\Pages\PageController::class, 'availableFeatures'])->name('available.features');
+
 Route::middleware('auth')->group(function () {
+
+    // ADMIN
+    Route::get('/admin-dashboard', [App\Http\Controllers\Admin\AdminController::class, 'adminDashboard'])->name('admin.dashboard');
+
+
     // USERS
     Route::get('/users', [App\Http\Controllers\Users\UsersController::class, 'users'])->name('users')->middleware('auth');
     Route::post('/store', [App\Http\Controllers\Users\UsersController::class, 'storeUsers'])->name('store.users')->middleware('auth');
@@ -34,17 +41,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/password-resets', [App\Http\Controllers\Users\UsersController::class, 'passwordRest'])->name('password.resets');
     Route::put('/reset-password', [App\Http\Controllers\Users\UsersController::class, 'resetPasswords'])->name('reset.password');
     Route::get('/users-reports', [App\Http\Controllers\Users\UsersController::class, 'usersReports'])->name('users.system.reports');
-
+    Route::get('/modules', [App\Http\Controllers\Pages\PageController::class, 'modules'])->name('modules');
+    Route::post('/module-check', [App\Http\Controllers\Pages\PageController::class, 'moduleSelect'])->name('module.check');
 
     // STORAGE
-    Route::get('/store', [App\Http\Controllers\Storage\StorageController::class, 'storeManage'])->name('storage.manage')->middleware('auth');
+    Route::get('/stock-management', [App\Http\Controllers\Storage\StorageController::class, 'storeManage'])->name('storage.manage')->middleware('auth');
     Route::post('/register', [App\Http\Controllers\Storage\StorageController::class, 'register'])->name('comp.store')->middleware('auth');
     Route::get('/add-store', [App\Http\Controllers\Storage\StorageController::class, 'storePage'])->name('add.store');
     Route::get('/store-lists', [App\Http\Controllers\Storage\StorageController::class, 'storeLists'])->name('store.list');
     Route::get('/view-store/{encryptedStoreId}', [App\Http\Controllers\Storage\StorageController::class, 'viewStore'])->name('store.view');
+    Route::post('/store-change-logs', [App\Http\Controllers\Storage\StorageController::class, 'storeChangeLogs'])->name('store.change.logs');
 
+    // new routes to be seeded
+    Route::get('/stock-change-history', [App\Http\Controllers\Storage\StorageController::class, 'stockChange'])->name('stock.change');
+    Route::get('/stock-out-report', [App\Http\Controllers\Storage\StorageController::class, 'stockOutReport'])->name('stock.out.report');
+    Route::post('/approve-reject-stock-chnage', [App\Http\Controllers\Storage\StorageController::class, 'approveRejectStockChange'])->name('approve.reject.stock.change');
+    Route::get('/download-stockout-report/{validData}', [App\Http\Controllers\Storage\StorageController::class, 'downloadStockOutReport'])->name('download.stock.out.report');
+    // new routes to be seeded
 
     // PRODUCT
+    Route::post('/approve-reject-transactions', [App\Http\Controllers\Stock\StockController::class, 'approveRejectTransactions'])->name('approve.reject.transactions');
     Route::post('/storeProduct', [ProductController::class, 'storeProduct'])->name('store.products');
     Route::get('/product/{product}', [App\Http\Controllers\Products\ProductController::class, 'singleProduct'])->name('single.product')->middleware('auth');
     Route::post('/stock', [App\Http\Controllers\Stock\StockController::class, 'stock'])->name('stock.store')->middleware('auth');
@@ -78,17 +94,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/adjust-invoice', [App\Http\Controllers\Invoice\InvoiceController::class, 'invoiceAdjustSave'])->name('adjust.invoice');
 
 
-
     // TRANSACTION || SALES
     Route::get('/sales', [App\Http\Controllers\TransactionController::class, 'transactions'])->name('sales')->middleware('auth');
     Route::post('/storeTransaction', [App\Http\Controllers\TransactionController::class, 'storeTransaction'])->name('store.sales')->middleware('auth');
-    Route::get('/create-sales', [App\Http\Controllers\Sales\SalesController::class, 'createSales'])->name('create.new.sales');
+    Route::get('/issue-purchase-order', [App\Http\Controllers\Sales\SalesController::class, 'createSales'])->name('create.new.sales');
     Route::get('/sales-list', [App\Http\Controllers\Sales\SalesController::class, 'salesList'])->name('sales.list');
     Route::post('/store-sales', [App\Http\Controllers\Sales\SalesController::class, 'storeSales'])->name('store.sales');
     Route::get('/sales-receipt/{encryptedSaleId}', [App\Http\Controllers\Sales\SalesController::class, 'viewReceipt'])->name('sale.receipt');
     Route::get('/download-receipt/{encryptedReceiptId}', [App\Http\Controllers\Sales\SalesController::class, 'downloadReceipt'])->name('download.receipt');
     Route::get('/sales-reports', [App\Http\Controllers\Sales\SalesController::class, 'salesReports'])->name('sales.reports');
-
+    // Route::get('/purchase-order-delivery', [App\Http\Controllers\Sales\SalesController::class, 'purchaseOrderDelivery'])->name('purchase.oder.delivery');
+    Route::get('/download-report/{validData}', [App\Http\Controllers\Sales\SalesController::class, 'downloadReport'])->name('download.report');
 
     // SERVICES
     Route::get('/services', [App\Http\Controllers\Services\ServiceController::class, 'servicePage'])->name('service.page');
@@ -166,7 +182,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/staff-budget-codes', [App\Http\Controllers\Budget\BudgetController::class, 'staffSubBudgetCodes'])->name('staff.budget.codes');
     Route::get('/budget-file-download', [App\Http\Controllers\Budget\BudgetController::class, 'downloadBudgetFileSample'])->name('download.csv.budget');
     Route::post('/bulk-budget-create', [App\Http\Controllers\Budget\BudgetController::class, 'bulkBudgetCreate'])->name('bulk.budget.create');
-    
+
     Route::get('/register-allowance', [App\Http\Controllers\Budget\BudgetController::class, 'registerAllowances'])->name('register.alowances');
     Route::post('/allowance', [App\Http\Controllers\Budget\BudgetController::class, 'storeAllowance'])->name('store.allowance');
     Route::put('/update-laoowance', [App\Http\Controllers\Budget\BudgetController::class, 'updateAllowance'])->name('update.allowance');
@@ -187,8 +203,9 @@ Route::middleware('auth')->group(function () {
 
 
     Route::get('/dashboard', [App\Http\Controllers\Pages\PageController::class, 'dashboardFx'])->name('home')->middleware('auth');
+    Route::get('/upload-logo', [App\Http\Controllers\Pages\PageController::class, 'uploadLogo'])->name('upload.logo');
+    Route::post('/logo-upload', [App\Http\Controllers\Pages\PageController::class, 'saveLogoUpload'])->name('upload.logo.image');
 
     // WEBSITE BUILDER
     Route::get('/website/{encryptedId}', [App\Http\Controllers\Website\WebsiteBuilderController::class, 'websiteBuilder'])->name('view.website.builder');
 });
-

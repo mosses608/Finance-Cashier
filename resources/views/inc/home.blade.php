@@ -20,8 +20,10 @@
                     <div class="ms-md-auto py-2 py-md-0">
                         <a href="{{ route('users.management') }}" class="btn btn-label-info btn-round me-2"><i
                                 class="fa fa-plus"></i> Add Customer</a>
-                        <a href="{{ route('view.website.builder', $encryptedId) }}" target="__blank"
-                            class="btn btn-primary btn-round"><i class="fa fa-eye"></i> View Website</a>
+                        <a href="{{ route('modules') }}" target="__blank"
+                            class="btn btn-primary btn-round"><i class="fa fa-plus"></i> Add Modules</a>
+                        {{-- <a href="{{ route('view.website.builder', $encryptedId) }}" target="__blank"
+                            class="btn btn-primary btn-round"><i class="fa fa-eye"></i> View Website</a> --}}
                     </div>
                 @endif
             </div>

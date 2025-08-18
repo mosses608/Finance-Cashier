@@ -5,7 +5,7 @@
         <center class="center">
             <span><i class="fa fa-area-chart" style="color: gold;"></i></span>
             {{-- <img src="{{ asset('assets/images/logo-finance.png') }}" alt="Logo Finance" width="100" height="100"> --}}
-            <h3>{{ __('AkiliSoft ERP') }}</h3>
+            <h3 class="text-success">{{ __('AkiliSoft ERP') }}</h3>
         </center>
         <div class="row justify-content-center">
             <div class="col-md-4">
@@ -32,13 +32,13 @@
                     </div>
 
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary col-12">Sign In <i class="fa fa-sign-in"></i></button>
+                        <button type="submit" class="btn btn-success p-3 col-12">Sign In <i class="fa fa-sign-in"></i></button>
                     </div>
                     <div class="row py-3">
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <a class="float-start" href="{{ route('get.started') }}">Don't have an account?</a>
                         </div>
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <a class="float-end" href="{{ route('forgot.password') }}">Forgot Password?</a>
                         </div>
                     </div>

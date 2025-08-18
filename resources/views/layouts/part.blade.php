@@ -3,9 +3,9 @@
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>{{ __('Accounting & ERP') }}</title>
+    <title>{{ __('Akili Soft ERP & Finance') }}</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="{{ asset('assets/images/121616.png') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('assets/images/akilisoft-logo-image.png') }}" type="image/x-icon" />
 
     <!-- Fonts and icons -->
     <script src="assets/js/plugin/webfont/webfont.min.js"></script>
@@ -61,10 +61,10 @@
                 <div class="main-header">
                     <div class="main-header-logo">
                         <!-- Logo Header -->
-                        <div class="logo-header" data-background-color="dark">
-                            <a href="index.html" class="logo">
-                                <img src="{{ asset('/assets/img/kaiadmin/logo_light.svg') }}" alt="navbar brand"
-                                    class="navbar-brand" height="20" />
+                        <div class="logo-header" ata-background-color="dark" style="background-color: #00a670;">
+                            <a href="{{ route('home') }}" class="logo">
+                                <img width="90" src="{{ asset('assets/images/akilisoft-logo-image.png') }}"
+                                    alt="navbar brand" class="navbar-brand" height="10" />
                             </a>
                             <div class="nav-toggle">
                                 <button class="btn btn-toggle toggle-sidebar">
@@ -78,7 +78,6 @@
                                 <i class="gg-more-vertical-alt"></i>
                             </button>
                         </div>
-                        <!-- End Logo Header -->
                     </div>
                     <!-- Navbar Header -->
                     <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
@@ -115,7 +114,7 @@
                                         aria-expanded="false">
                                         <i class="fa fa-envelope"></i>
                                     </a>
-                                    <ul class="dropdown-menu messages-notif-box animated fadeIn"
+                                    <ul class="dropdown-menu messages-notif-box animated fadeIn d-none"
                                         aria-labelledby="messageDropdown">
                                         <li>
                                             <div
@@ -190,7 +189,7 @@
                                         <i class="fa fa-bell"></i>
                                         <span class="notification">4</span>
                                     </a>
-                                    <ul class="dropdown-menu notif-box animated fadeIn"
+                                    <ul class="dropdown-menu notif-box animated fadeIn d-none"
                                         aria-labelledby="notifDropdown">
                                         <li>
                                             <div class="dropdown-title">
@@ -255,7 +254,7 @@
                                         aria-expanded="false">
                                         <i class="fas fa-layer-group"></i>
                                     </a>
-                                    <div class="dropdown-menu quick-actions animated fadeIn">
+                                    <div class="dropdown-menu quick-actions animated fadeIn d-none">
                                         <div class="quick-actions-header">
                                             <span class="title mb-1">Quick Actions</span>
                                             <span class="subtitle op-7">Shortcuts</span>
@@ -318,15 +317,8 @@
                                 </li>
 
                                 @php
-                                    $company = DB::table('companies AS C')
-                                        ->join('administrators AS A', 'C.id', '=', 'A.company_id')
-                                        ->select([
-                                            'C.company_name AS companyName',
-                                            'C.logo AS logo',
-                                            'C.company_email AS company_email',
-                                        ])
-                                        ->where('A.phone', Auth::user()->username)
-                                        ->orWhere('A.email', Auth::user()->username)
+                                    $company = DB::table('companies')
+                                        ->where('id', Auth::user()->company_id)
                                         ->first();
                                 @endphp
 
@@ -335,8 +327,8 @@
                                         aria-expanded="false">
                                         <div class="avatar-sm">
                                             @if ($company->logo == null)
-                                                <img src="assets/img/profile.jpg" alt="..."
-                                                    class="avatar-img rounded-circle" />
+                                                <img src="{{ asset('assets/images/default-user-icon.jpg') }}"
+                                                    alt="..." class="avatar-img rounded-circle" />
                                             @else
                                                 <img src="{{ asset('storage/' . $company->logo) }}" alt="..."
                                                     class="avatar-img rounded-circle" />
@@ -353,8 +345,8 @@
                                                 <div class="user-box">
                                                     <div class="avatar-lg">
                                                         @if ($company->logo == null)
-                                                            <img src="assets/img/profile.jpg" alt="..."
-                                                                class="avatar-img rounded-circle" />
+                                                            <img src="{{ asset('assets/images/default-user-icon.jpg') }}"
+                                                                alt="..." class="avatar-img rounded-circle" />
                                                         @else
                                                             <img src="{{ asset('storage/' . $company->logo) }}"
                                                                 alt="..." class="avatar-img rounded-circle" />
@@ -363,9 +355,9 @@
                                                     <div class="u-text">
                                                         <h4>{{ $company->companyName ?? '' }}</h4>
                                                         <p class="text-muted">{{ $company->company_email }}</p>
-                                                        <a href="profile.html"
+                                                        {{-- <a href="profile.html"
                                                             class="btn btn-xs btn-secondary btn-sm">View
-                                                            Profile</a>
+                                                            Profile</a> --}}
                                                     </div>
                                                 </div>
                                             </li>
@@ -376,7 +368,7 @@
                                                 <div class="dropdown-divider"></div>
                                                 <a class="dropdown-item" href="#">Account Setting</a>
                                                 <div class="dropdown-divider"></div>
-                                                <a class="dropdown-item" href="{{ route('logout') }}">Logout</a>
+                                                <a class="dropdown-item text-danger" href="{{ route('logout') }}"><i class="fa fa-sign-out"></i> Logout</a>
                                             </li>
                                         </div>
                                     </ul>
@@ -429,8 +421,8 @@
 <script src="{{ asset('assets/js/kaiadmin.min.js') }}"></script>
 
 <!-- Kaiadmin DEMO methods, don't include it in your project! -->
-<script src="{{ asset('assets/js/setting-demo.js') }}"></script>
-<script src="{{ asset('assets/js/demo.js') }}"></script>
+{{-- <script src="{{ asset('assets/js/setting-demo.js') }}"></script> --}}
+{{-- <script src="{{ asset('assets/js/demo.js') }}"></script> --}}
 <script>
     $("#lineChart").sparkline([102, 109, 120, 99, 110, 105, 115], {
         type: "line",

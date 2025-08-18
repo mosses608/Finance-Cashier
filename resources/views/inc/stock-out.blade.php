@@ -23,39 +23,157 @@
                         <div class="card-body">
                             <div class="tab-content mt-3" id="nav-tabContent">
                                 {{-- Stock Out List --}}
-                                <div class="tab-pane fade show active" id="nav-list" role="tabpanel"
+                                <form action="{{ route('approve.reject.transactions') }}" method="POST"
+                                    class="tab-pane fade show active" id="nav-list" role="tabpanel"
                                     aria-labelledby="nav-profile-tab">
-                                    {{-- <h4>Today's Stock Outs</h4> --}}
+                                    @csrf
+                                    <h4 class="fs-6 text-success">Today's Stock Outs | <span
+                                            class="text-primary">{{ \Carbon\Carbon::today()->format('M d, Y') }}</span></h4>
                                     <div class="table-responsive">
                                         <table id="basic-datatables" class="display table table-striped table-hover">
                                             <thead>
                                                 <tr>
                                                     <th>S/N</th>
+                                                    <th>Serial No</th>
                                                     <th>Product Name</th>
                                                     <th>Quantity Out</th>
                                                     <th>Staff</th>
                                                     <th>Due Date</th>
+                                                    <th>Status</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                               @foreach ($todayStockOuts as $stock)
-                                                   <tr>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ $stock->productName }}</td>
-                                                    <td>{{ number_format($stock->quantityOut, 0) }}</td>
-                                                    <td>{{ $stock->userName }}</td>
-                                                    <td>{{ \Carbon\Carbon::parse($stock->dueDate)->format('M d, Y') }}</td>
+                                                @foreach ($todayStockOuts as $stock)
                                                     @php
-                                                        $encryptedId = Crypt::encrypt($stock->autoId)
+                                                        $status = $stock->status;
+                                                        $data = [
+                                                            'tranxt' => $stock->autoId,
+                                                        ];
+                                                        $validData = \Illuminate\Support\Facades\Crypt::encrypt(
+                                                            json_encode($data),
+                                                        );
                                                     @endphp
-                                                    <td class="text-center"><a href="{{ route('stock.out.receipt', $encryptedId) }}" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a></td>
-                                                   </tr>
-                                               @endforeach
+                                                    <tr>
+                                                        <td>
+                                                            @if (in_array($stock->autoId, $stockOutExistsIds))
+                                                                <input type="checkbox" disabled name=""
+                                                                    id="">
+                                                            @else
+                                                                <input type="checkbox" name="transaction_id[]"
+                                                                    value="{{ $validData }}" id="">
+                                                            @endif
+                                                        </td>
+                                                        <td>{{ $stock->serialNo }}</td>
+                                                        <td>{{ $stock->productName }}</td>
+                                                        <td>{{ number_format($stock->quantityOut, 0) }}</td>
+                                                        <td>{{ $stock->userName }}</td>
+                                                        <td>{{ \Carbon\Carbon::parse($stock->dueDate)->format('M d, Y') }}
+                                                        </td>
+                                                        <td class="text-nowrap">
+                                                            @if ($status == null)
+                                                                <span class="text-warning"><i
+                                                                        class="fas fa-spinner fa-spin"></i>
+                                                                    pending...</span>
+                                                            @endif
+                                                            @if ($status == 1)
+                                                                <span class="text-success"><i
+                                                                        class="fas fa-check-circle text-success"></i>
+                                                                    approved...</span>
+                                                            @endif
+                                                            @if ($status == 2)
+                                                                <span class="text-danger"><i
+                                                                        class="fas fa-times-circle text-danger"></i>
+                                                                    rejected...</span>
+                                                            @endif
+                                                        </td>
+                                                        @php
+                                                            $encryptedId = Crypt::encrypt($stock->autoId);
+                                                        @endphp
+                                                        <td class="text-center"><a
+                                                                href="{{ route('stock.out.receipt', $encryptedId) }}"
+                                                                class="btn btn-primary btn-sm"><i class="fa fa-eye"></i></a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
+                                    @if (count($todayStockOuts) > 0)
+                                        <div class="row mt-3 px-3">
+                                            <div class="col-12">
+                                                <h5 class="fs-6">
+                                                    To approve or reject these request, check on the check boxes the <strong
+                                                        class="text-success">approve</strong> or <strong
+                                                        class="text-danger">reject</strong> the request
+                                                </h5>
+                                            </div>
+                                            <div class="col-6 mt-3 mb-3">
+                                                <button type="button" data-bs-toggle="modal"
+                                                    data-bs-target="#exampleModal-approve" class="btn btn-primary">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    Approve</button>
+
+                                                <button type="button" data-bs-toggle="modal"
+                                                    data-bs-target="#exampleModal-reject" class="btn btn-danger">
+                                                    <i class="fas fa-times-circle"></i>
+                                                    Reject</button>
+                                            </div>
+                                            {{-- approve modal --}}
+                                            <div class="modal fade" id="exampleModal-approve" tabindex="-1"
+                                                aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Approve with
+                                                                comments
+                                                            </h1>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="form-floating">
+                                                                <textarea class="form-control" name="approve_comment" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
+                                                                <label for="floatingTextarea">Comments</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="submit" name="action" value="accept"
+                                                                class="btn btn-primary">Approve</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- reject modal --}}
+                                            <div class="modal fade" id="exampleModal-reject" tabindex="-1"
+                                                aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Reject
+                                                                with
+                                                                comments
+                                                            </h1>
+                                                            <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="form-floating">
+                                                                <textarea class="form-control" name="reject_comment" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
+                                                                <label for="floatingTextarea">Comments</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="submit" name="action" value="reject"
+                                                                class="btn btn-danger">Reject</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </form>
                                 {{-- Stock out product --}}
                                 <div class="tab-pane fade" id="nav-profile" role="tabpanel"
                                     aria-labelledby="nav-profile-tab">

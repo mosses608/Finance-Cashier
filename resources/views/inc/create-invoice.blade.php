@@ -10,10 +10,10 @@
                         <div class="card-header">
                             <x-messages />
                             <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                                <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab"
+                                {{-- <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab"
                                     data-bs-target="#nav-invoice" type="button" role="tab" aria-controls="nav-home"
-                                    aria-selected="true">Invoice</button>
-                                <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab"
+                                    aria-selected="true">Invoice</button> --}}
+                                <button class="nav-link active" id="nav-profile-tab" data-bs-toggle="tab"
                                     data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile"
                                     aria-selected="false">Profoma From Store</button>
                                 <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab"
@@ -24,15 +24,15 @@
                         <div class="card-body">
                             <div class="tab-content mt-3" id="nav-tabContent">
                                 <!-- Invoice Tab -->
-                                <div class="tab-pane fade show active" id="nav-invoice" role="tabpanel"
+                                {{-- <div class="tab-pane fade show active" id="nav-invoice" role="tabpanel"
                                     aria-labelledby="nav-home-tab">
                                     <form action="{{ route('create.invoice') }}" method="POST" id="nav-invoice">
                                         @include('partials.invoice-create')
                                     </form>
-                                </div>
+                                </div> --}}
 
                                 <!-- Profoma Invoice Tab -->
-                                <div class="tab-pane fade" id="nav-profile" role="tabpanel"
+                                <div class="tab-pane fade show active" id="nav-profile" role="tabpanel"
                                     aria-labelledby="nav-profile-tab">
                                     <form action="{{ route('create.profoma.invoice') }}" method="POST">
                                         @include('partials.profoma')

@@ -42,8 +42,8 @@ class ServiceController extends Controller
             'service_name' => 'required|array',
             'service_name.*' => 'required|string',
 
-            'amount' => 'required|array',
-            'amount.*' => 'required|numeric',
+            'amount' => 'nullable|array',
+            'amount.*' => 'nullable|numeric',
 
             'category' => 'nullable|array',
             'category.*' => 'nullable|string',
@@ -67,18 +67,17 @@ class ServiceController extends Controller
             DB::table('service')->insert([
                 'name' => $request->service_name[$key],
                 'description' => $request->description[$key],
-                'price' => $request->amount[$key],
+                'price' => $request->amount[$key] ?? null,
                 'category' => $request->category[$key],
-                'quantity' => $request->quantity[$key],
+                'quantity' => $request->quantity[$key] ?? null,
                 'company_id' => $companyId,
-                'created_by' => Auth::user()->id ?? 1,
+                'created_by' => Auth::user()->id ?? null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
         }
 
         return redirect()->back()->with('success_msg', 'Service added successfully!');
-        // dd($request->all());
     }
 
     public function serviceProfomaInvoice(Request $request)
@@ -108,7 +107,7 @@ class ServiceController extends Controller
             'amountTotal' => 'required|numeric',
         ]);
 
-         $companyId = Auth::user()->company_id;
+        $companyId = Auth::user()->company_id;
 
         if ($request->filled('TIN')) {
             $existingCustomer = DB::table('stakeholders')
@@ -277,10 +276,16 @@ class ServiceController extends Controller
             'profoma_status' => 'Accepted',
         ]);
 
-        return redirect('/invoice-list')->with('success_msg', 'Invoice has been approved successfully!');
+        // PURCHASE ORDER
+        $purchaseOderId = DB::table('purchases_orders')->insertGetId([
+            'invoice_id' => $decryptedId,
+        ]);
+
+        return redirect()->route('create.new.sales')->with('success_msg', 'Invoice accepted, Your purchase order is . ' . ' ' . $purchaseOderId);
     }
 
-    public function acceptProfomaOutStore(Request $request){
+    public function acceptProfomaOutStore(Request $request)
+    {
         $request->validate([
             'invoiceId' => 'required|string',
             'profomaId' => 'required|string',

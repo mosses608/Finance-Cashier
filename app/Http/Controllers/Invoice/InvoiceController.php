@@ -95,7 +95,7 @@ class InvoiceController extends Controller
     {
         $companyId = Auth::user()->company_id;
 
-        $invoices = DB::table('invoice AS i')
+        $invoices = DB::table('invoice AS I')
             ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
             ->join('stakeholders AS C', 'I.customer_id', '=', 'C.id')
             ->select([
@@ -105,7 +105,7 @@ class InvoiceController extends Controller
                 'I.created_at AS invoiceDate',
                 'I.id AS invoiceId'
             ])
-            ->where('i.company_id', $companyId)
+            ->where('I.company_id', $companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 1)
@@ -113,7 +113,7 @@ class InvoiceController extends Controller
             ->orderBy('I.updated_at', 'DESC')
             ->get();
 
-        $paidinvoices = DB::table('invoice AS i')
+        $paidinvoices = DB::table('invoice AS I')
             ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
             ->join('stakeholders AS C', 'I.customer_id', '=', 'C.id')
             ->select([
@@ -123,7 +123,7 @@ class InvoiceController extends Controller
                 'I.created_at AS invoiceDate',
                 'I.id AS invoiceId'
             ])
-            ->where('i.company_id', $companyId)
+            ->where('I.company_id', $companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 3)
@@ -131,7 +131,7 @@ class InvoiceController extends Controller
             ->orderBy('I.id', 'DESC')
             ->get();
 
-        $cancelledinvoices = DB::table('invoice AS i')
+        $cancelledinvoices = DB::table('invoice AS I')
             ->join('invoice_status AS IST', 'I.status', '=', 'IST.id')
             ->join('stakeholders AS C', 'I.customer_id', '=', 'C.id')
             ->select([
@@ -141,7 +141,7 @@ class InvoiceController extends Controller
                 'I.updated_at AS cancelledDate',
                 'I.id AS invoiceId'
             ])
-            ->where('i.company_id', $companyId)
+            ->where('I.company_id', $companyId)
             ->where('I.soft_delete', 0)
             ->where('C.soft_delete', 0)
             ->where('I.status', 2)
@@ -1093,6 +1093,8 @@ class InvoiceController extends Controller
 
     public function createInvoice()
     {
+        $companyId = Auth::user()->company_id;
+
         $stockProducts = DB::table('products as PR')
             ->join('stocks AS STK', 'PR.id', '=', 'STK.storage_item_id')
             ->select([
@@ -1101,6 +1103,7 @@ class InvoiceController extends Controller
                 'STK.quantity_total AS availableQuantity',
                 'STK.item_price AS sellingPrice',
             ])
+            ->where('PR.company_id', $companyId)
             ->where('PR.soft_delete', 0)
             ->where('STK.soft_delete', 0)
             ->orderBy('PR.name', 'ASC')
@@ -1108,6 +1111,7 @@ class InvoiceController extends Controller
 
         $customers = DB::table('stakeholders')
             ->select('id', 'name')
+            ->where('company_id', $companyId)
             ->where('soft_delete', 0)
             ->orderBy('name', 'ASC')
             ->get();

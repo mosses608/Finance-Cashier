@@ -5,7 +5,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title> AkiliSoft ERP & Finance | Welcome </title>
+    <title> AkiliSoft ERP & Finance | Get Started </title>
+    <meta name="description"
+    content="A powerful ERP system to manage sales, inventory, HR, and finance in one place. Increase productivity and streamline operations with MyCompany ERP.">
+
+    <meta name="keywords"
+        content="ERP system, business management software, inventory management, HR system, sales tracking, accounting software">
+
+    <meta name="author" content="Akili Soft Limited">
+
+    <meta property="og:title" content="ERP System for Business Management">
+    <meta property="og:description"
+        content="Manage sales, inventory, HR, and finance in one place. Boost your business productivity with MyCompany ERP.">
+    <meta property="og:image" content="{{ asset('assets/images/akilisoft-logo-image.png') }}">
+    <meta property="og:url" content="https://www.akilisofterp.com">
+        <link rel="icon" href="{{ asset('assets/images/akilisoft-logo-image.png') }}" type="image/x-icon" />
+
+
+    <link rel="canonical" href="https://www.akilisofterp.com">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="icon" href="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" type="image/x-icon" />
@@ -33,12 +50,14 @@
     </script>
 
     <style>
-        @media(max-width: 768px){
-            .hero__v6, .section{
+        @media(max-width: 768px) {
+
+            .hero__v6,
+            .section {
                 width: 100% !important;
             }
 
-            #get-started{
+            #get-started {
                 width: 100% !important;
             }
         }
@@ -65,10 +84,10 @@
                     <!-- If you plan to use an image logo, uncomment this if it is commented-->
 
                     <!-- logo dark--><img class="logo dark img-fluid" width="100px" height="70px"
-                        src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" alt="image placeholder">
+                        src="{{ asset('assets/images/pakilisoft-logo-image.png') }}" alt="image placeholder">
 
                     <!-- logo light--><img class="logo light img-fluid" width="100px" height="70px"
-                        src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" alt="image placeholder">
+                        src="{{ asset('assets/images/pakilisoft-logo-image.png') }}" alt="image placeholder">
 
                 </a>
                 <!-- End Logo-->
@@ -89,11 +108,11 @@
 
 
                                 <!-- logo dark--><img class="logo dark img-fluid"
-                                    src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}"
+                                    src="{{ asset('aassets/images/pakilisoft-logo-image.png') }}"
                                     alt="image placeholder">
 
                                 <!-- logo light--><img class="logo light img-fluid"
-                                    src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}"
+                                    src="{{ asset('assets/images/pakilisoft-logo-image.png') }}"
                                     alt="image placeholder"></a>
 
                         </div>
@@ -152,8 +171,8 @@
             <section class="hero__v6 section" id="get-started">
                 <div class="container">
                     <div class="row">
-                        <x-messages />
-                        <div class="card col-8 p-4 mx-auto">
+                        <div class="card col-md-8 p-4 mx-auto">
+                            <x-messages />
                             <h4 class="mt-1 mb-3 fs-5">Sign Up</h4>
                             <form action="{{ route('signup.account') }}" method="POST" class="row g-3"
                                 enctype="multipart/form-data">
@@ -196,8 +215,7 @@
                                                         <label for="tin" class="form-label">
                                                             VRN</label>
                                                         <input type="text" class="form-control" id="vrn"
-                                                            maxlength="10" name="vrn" placeholder="company vrn"
-                                                            required>
+                                                            maxlength="12" name="vrn" placeholder="company vrn">
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         <label for="companyEmail" class="form-label">
@@ -207,7 +225,7 @@
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         <label for="companyWebsite" class="form-label">Website</label>
-                                                        <input type="url" class="form-control"
+                                                        <input type="text" class="form-control"
                                                             id="companyWebsite" name="website"
                                                             placeholder="https://example.com">
                                                     </div>
@@ -265,7 +283,7 @@
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         {{-- <label for="personalEmail" class="form-label">Personal
-                                                            Email</label> --}}
+                                                                Email</label> --}}
                                                         <input type="email" class="form-control" id="personalEmail"
                                                             name="personal_email" placeholder="Personal email"
                                                             required>
@@ -284,7 +302,7 @@
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         {{-- <label for="confirmPassword" class="form-label">Confirm
-                                                            Password</label> --}}
+                                                                Password</label> --}}
                                                         <input type="password" class="form-control"
                                                             id="confirmPassword" name="password_confirmation"
                                                             placeholder="Confirm password" autocomplete="off"
@@ -298,7 +316,8 @@
 
                                 <!-- Submit Button -->
                                 <div class="col-12 mt-4">
-                                    <button type="submit" class="btn btn-primary px-5">Submit</button>
+                                    <button type="submit" class="btn btn-primary px-5">Next Step <i
+                                            class="bi bi-arrow-right"></i></button>
                                 </div>
                             </form>
 
@@ -316,9 +335,10 @@
                             <p>Stay updated with our latest templates and offers—join our newsletter today!</p>
                         </div>
                         <div class="col-md-5">
-                            <form class="d-flex gap-2">
-                                <input class="form-control" type="email" placeholder="Email your email"
-                                    required="">
+                            <form action="{{ route('subscribe.user') }}" method="POST" class="d-flex gap-2">
+                                @csrf
+                                <input class="form-control" name="email" type="email"
+                                    placeholder="Email your email" required="">
                                 <button class="btn btn-primary fs-6" type="submit">Subscribe</button>
                             </form>
                         </div>
@@ -351,11 +371,11 @@
                                 <div class="col-md-6 col-lg-4 mb-4 mb-lg-0 quick-contact">
                                     <h3 class="mb-3">Contact</h3>
                                     <p class="d-flex mb-3"><i class="bi bi-geo-alt-fill me-3"></i><span>
-                                            St Upendo Ferry Kigamboni, <br> Dar es salaam Tanzania</span></p><a
+                                            Maneno St, Plot No 65 1st Floor, <br> Temeke Dar es salaam</span></p><a
                                         class="d-flex mb-3" href="mailto:info@akilisofterp.com"><i
                                             class="bi bi-envelope-fill me-3"></i><span>info@akilisofterp.com</span></a><a
                                         class="d-flex mb-3" href="tel://255694235858"><i
-                                            class="bi bi-telephone-fill me-3"></i><span>+255 694 235 858</span></a>
+                                            class="bi bi-telephone-fill me-3"></i><span>+255690300300</span></a>
                                 </div>
                             </div>
                         </div>
@@ -402,7 +422,7 @@
         });
 
         document.getElementById('vrn').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '').substring(0, 10);
+            let value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
             e.target.value = value;
         });
     </script>

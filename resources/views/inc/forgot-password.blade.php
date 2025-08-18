@@ -5,7 +5,7 @@
     <center class="center">
         <span><i class="fa fa-area-chart" style="color: gold;"></i></span>
         <!-- <img src="{{ asset('assets/images/logo-finance.png') }}" alt="Logo Finance"> -->
-        <h3>{{__('Reset Password')}}</h3>
+        <h3 class="text-success">{{__('Reset Password')}}</h3>
     </center>
     <div class="row justify-content-center">
         <div class="col-md-4">
@@ -19,7 +19,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">Request Rest Link</button>
+                <button type="submit" class="btn btn-success p-3 w-100">Request Rest Link</button>
                 <a href="{{ route('login') }}">Back To Login</a>
             </form>
         </div>

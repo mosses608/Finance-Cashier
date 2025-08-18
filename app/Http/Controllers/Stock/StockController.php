@@ -41,6 +41,7 @@ class StockController extends Controller
             ->join('stores AS ST', 'PR.store_id', '=', 'ST.id')
             // ->join('stock_out_transaction AS STK', 'PR.id', '=', 'STK.product_id')
             ->select([
+                'PR.serial_no  AS serialNumber',
                 'PR.name AS productName',
                 'PR.sku AS sku',
                 'PR.cost_price AS cost_price',
@@ -59,6 +60,7 @@ class StockController extends Controller
 
         $stockOutTransactions = DB::table('stock_out_transaction')
             ->select('stockout_quantity', 'product_id')
+            ->where('status', 1)
             ->where('soft_delete', 0)
             ->get();
 
@@ -113,6 +115,8 @@ class StockController extends Controller
 
     public function stockOut()
     {
+        $companyId = Auth::user()->company_id;
+
         $stockProducts = DB::table('products as PR')
             ->join('stocks AS STK', 'PR.id', '=', 'STK.storage_item_id')
             ->select([
@@ -120,38 +124,99 @@ class StockController extends Controller
                 'PR.name AS productName',
                 'STK.quantity_total AS availableQuantity',
                 'STK.item_price AS sellingPrice',
+                'PR.serial_no AS serialNo'
             ])
+            ->where('PR.company_id', $companyId)
             ->where('PR.soft_delete', 0)
             ->where('STK.soft_delete', 0)
             ->orderBy('PR.name', 'ASC')
             ->get();
 
-        $customers = DB::table('customer')
+        $customers = DB::table('stakeholders')
             ->select('id', 'name')
             ->where('soft_delete', 0)
+            ->where('company_id', $companyId)
             ->orderBy('name', 'ASC')
             ->get();
 
         $todayStockOuts = DB::table('stock_out_transaction AS SOUT')
             ->join('products AS PR', 'SOUT.product_id', '=', 'PR.id')
-            ->join('emplyees AS U', 'SOUT.user_id', '=', 'U.id')
+            ->leftJoin('emplyees AS E', 'SOUT.user_id', '=', 'E.id')
+            ->leftJoin('administrators AS A', 'SOUT.user_id', '=', 'A.id')
             ->select([
                 'PR.name AS productName',
                 'SOUT.stockout_quantity AS quantityOut',
-                'U.first_name AS userName',
+                DB::raw("COALESCE(E.first_name, A.names) AS userName"),
                 'SOUT.created_at AS dueDate',
-                'SOUT.id AS autoId'
+                'SOUT.id AS autoId',
+                'PR.serial_no AS serialNo',
+                'SOUT.status AS status',
             ])
+            ->where('PR.company_id', $companyId)
             ->where('SOUT.soft_delete', 0)
             ->where('PR.soft_delete', 0)
-            ->where('U.soft_delete', 0)
             ->whereDate('SOUT.created_at', Carbon::today())
             ->orderBy('SOUT.id', 'DESC')
             ->get();
 
+        $stockOutExistsIds = DB::table('stock_out_transaction')->select('id')
+            ->whereIn('status', [1, 2])
+            ->pluck('id')
+            ->toArray();
+
         // dd($todayStockOuts);
 
-        return view('inc.stock-out', compact('stockProducts', 'customers', 'todayStockOuts'));
+        return view('inc.stock-out', compact([
+            'stockProducts',
+            'customers',
+            'todayStockOuts',
+            'stockOutExistsIds'
+        ]));
+    }
+
+    public function approveRejectTransactions(Request $request)
+    {
+        $request->validate([
+            'transaction_id' => 'required|array',
+            'transaction_id.*' => 'required|string',
+
+            'approve_comment' => 'nullable|string',
+            'action' => 'required|string',
+            'reject_comment' => 'nullable|string',
+        ]);
+
+        $transactionIds = [];
+        $decodedIds = [];
+
+        foreach ($request->transaction_id as $tranx) {
+            $transactionIds[] = Crypt::decrypt($tranx);
+        }
+
+        foreach ($transactionIds as $id) {
+            $decodedIds[] = json_decode($id);
+        }
+
+        if ($request->has('action') && $request->action == 'accept') {
+            foreach ($decodedIds as $id) {
+                DB::table('stock_out_transaction')->where('id', $id->tranxt)->update([
+                    'status' => 1,
+                    'comments' => $request->approve_comment,
+                ]);
+            }
+
+            return redirect()->back()->with('success_msg', 'Transaction accepted successfully!');
+        }
+
+        if ($request->has('action') && $request->action == 'reject') {
+            foreach ($decodedIds as $id) {
+                DB::table('stock_out_transaction')->where('id', $id->tranxt)->update([
+                    'status' => 2,
+                    'comments' => $request->reject_comment,
+                ]);
+            }
+
+            return redirect()->back()->with('success_msg', 'Transaction rejected successfully!');
+        }
     }
 
     public function stockOutProduct(Request $request)
@@ -187,24 +252,27 @@ class StockController extends Controller
             return $th->getMessage();
         }
 
+        $companyId = Auth::user()->company_id;
+
         $stockOuts = DB::table('stock_out_transaction AS SOUT')
             ->join('products AS PR', 'SOUT.product_id', '=', 'PR.id')
             ->join('stocks AS SK', 'PR.id', '=', 'SK.storage_item_id')
-            ->join('emplyees AS U', 'SOUT.user_id', '=', 'U.id')
+            ->leftJoin('emplyees AS E', 'SOUT.user_id', '=', 'E.id')
+            ->leftJoin('administrators AS A', 'SOUT.user_id', '=', 'A.id')
             ->select([
                 'PR.name AS productName',
                 'SOUT.stockout_quantity AS quantityOut',
-                'U.first_name AS userName',
+                DB::raw("COALESCE(E.first_name, A.names) AS userName"),
                 'SK.item_price AS price',
                 'SOUT.created_at AS dueDate',
+                'SOUT.status AS status'
             ])
             ->where('SOUT.id', $stockId)
             ->where('SOUT.soft_delete', 0)
             ->where('PR.soft_delete', 0)
-            ->where('U.soft_delete', 0)
+            // ->where('U.soft_delete', 0)
             ->get();
 
-        // dd($stockOuts);
 
         return view('inc.stock-out-receipt', compact('stockOuts'));
     }
@@ -269,14 +337,13 @@ class StockController extends Controller
         $csvData = [];
 
         if (($handle = fopen($request->file('file_upload')->getRealPath(), 'r')) !== false) {
-            // Skip the first 3 rows (Company Name, blank line, header)
             fgetcsv($handle);
             fgetcsv($handle);
             fgetcsv($handle);
 
             while (($row = fgetcsv($handle, 1000, ',')) !== false) {
                 if (count($row) < 7) {
-                    continue; // Skip malformed rows
+                    continue;
                 }
 
                 $csvData[] = [

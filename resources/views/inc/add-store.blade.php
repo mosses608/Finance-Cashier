@@ -4,11 +4,11 @@
 
     <div class="container mb-5">
         <div class="page-inner">
-            <x-messages />
-            <div class="row">
+            <div class="row mt-3">
+                <x-messages />
                 <form action="{{ route('comp.store') }}" method="POST" class="col-md-12">
                     @csrf
-                    <div class="card mt-5">
+                    <div class="card mt-1">
                         <div class="card-header">
                             <div class="card-title">Add New Store</div>
                         </div>

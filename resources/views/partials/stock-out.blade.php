@@ -12,7 +12,7 @@
                             <option value="{{ $stockPrd->productId }}"
                                 data-available-quantity="{{ $stockPrd->availableQuantity }}"
                                 data-selling-price="{{ $stockPrd->sellingPrice }}">
-                                {{ $stockPrd->productName }}
+                                {{ $stockPrd->productName . ' - (' . $stockPrd->serialNo . ')' }}
                             </option>
                         @endforeach
                     </select>

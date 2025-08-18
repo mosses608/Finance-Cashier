@@ -36,7 +36,15 @@
                                 </div>
                                 <div class="col-6">
                                     <button type="submit" class="btn btn-primary float-start">Search</button>
-                                    <button type="button" class="btn btn-secondary float-end"> Download</button>
+                                    @php
+                                        $data = [
+                                            'from' => $from,
+                                            'to' => $to,
+                                        ];
+                                        $validData = \Illuminate\Support\Facades\Crypt::encrypt(json_encode($data, true));
+                                    @endphp
+                                    <a role="button" href="{{ route('download.report', $validData) }}"
+                                        class="btn btn-secondary float-end"> Download</a>
                                 </div>
                             </form>
                             <div class="tab-content mt-3" id="nav-tabContent">
@@ -48,8 +56,9 @@
                                             <thead>
                                                 <tr>
                                                     <th>S/N</th>
+                                                    <th>Purchase Order No</th>
                                                     <th>Invoice ID</th>
-                                                    <th>Payment Method</th>
+                                                    <th>Supplier</th>
                                                     <th>Status</th>
                                                     <th>Date Paid</th>
                                                     <th>Amount Paid</th>
@@ -64,19 +73,19 @@
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td class="text-primary">
+                                                            <strong>#{{ str_pad($sale_receipt->po_number, 4, '0', STR_PAD_LEFT) }}</strong>
+                                                        </td>
+                                                        <td class="text-primary">
                                                             <strong>#{{ str_pad($sale_receipt->invoice_id, 4, '0', STR_PAD_LEFT) }}</strong>
                                                         </td>
-                                                        <td class="text-start">
-                                                            @if ($sale_receipt->status == 1)
-                                                                <span
-                                                                    class="p-1 text-secondary">{{ $sale_receipt->payment_method }}</span>
-                                                            @else
-                                                                <span class="btn btn-secondary w-100 p-1 rounded-5"><i
-                                                                        class="fas fa-spinner fa-spin text-warning me-2"></i>
-                                                                    Pending...</span>
-                                                            @endif
+                                                        <td class="text-center">
+                                                            <span
+                                                                class="btn btn-secondary w-100 p-1 rounded-5">{{ $sale_receipt->stakeholder }}
+                                                                - <strong
+                                                                    class="text-primary">{{ $sale_receipt->phoneNumber }}</strong></span>
+
                                                         </td>
-                                                        <td class="text-start">
+                                                        <td class="text-start text-nowrap">
                                                             @if ($sale_receipt->status == 0)
                                                                 <span><i
                                                                         class="fas fa-spinner fa-spin text-warning me-2"></i>
@@ -114,8 +123,8 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="5" class="text-primary"><strong> Total Amount
-                                                        (TZS)</strong>
+                                                    <td colspan="6" class="text-primary"><strong> Total Amount
+                                                            (TZS)</strong>
                                                     </td>
                                                     <td><strong>{{ number_format($totalAmount, 2) }}</strong></td>
                                                 </tr>

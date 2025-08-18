@@ -23,8 +23,6 @@
                                         <div class="d-flex justify-content-between align-items-start mb-3">
                                             <h4><strong>Stock Out Receipt</strong></h4>
                                         </div>
-
-                                        <!-- Table -->
                                         <div class="table-responsive mb-4">
                                             <table class="table table-bordered table-striped align-middle">
                                                 <thead class="table-primary text-center">
@@ -33,32 +31,53 @@
                                                         <th>Quantity</th>
                                                         <th>Unit Price</th>
                                                         <th>Date Due</th>
+                                                        <th>Status</th>
                                                     </tr>
                                                 </thead>
                                                 @php
                                                     $staff = null;
                                                 @endphp
                                                 @foreach ($stockOuts as $out)
-                                                @php
-                                                    $staff = $out->userName;
-                                                @endphp
+                                                    @php
+                                                        $staff = $out->userName ?? '';
+                                                        $status = $out->status;
+                                                    @endphp
                                                     <tr>
                                                         <td class="text-center">{{ $out->productName }}</td>
                                                         <td class="text-center">{{ number_format($out->quantityOut) }}</td>
                                                         <td class="text-center">{{ number_format($out->price, 2) }}</td>
-                                                        <td class="text-center">{{ \Carbon\Carbon::parse($out->dueDate)->format('M d, Y') }}</td>
+                                                        <td class="text-center">
+                                                            {{ \Carbon\Carbon::parse($out->dueDate)->format('M d, Y') }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            @if ($status == null)
+                                                                <span class="text-warning"><i
+                                                                        class="fas fa-spinner fa-spin"></i>
+                                                                    pending...</span>
+                                                            @endif
+                                                            @if ($status == 1)
+                                                                <span class="text-success"><i
+                                                                        class="fas fa-check-circle text-success"></i>
+                                                                    approved...</span>
+                                                            @endif
+                                                            @if ($status == 2)
+                                                                <span class="text-danger"><i
+                                                                        class="fas fa-times-circle text-danger"></i>
+                                                                    rejected...</span>
+                                                            @endif
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                                 </tbody>
                                             </table>
                                         </div>
                                         <div class="row p-3">
-                                                <span class="p-2">Staff Name: {{ $staff }}</span>
-                                                <span class="p-2">Reviewer Signature: ______________________</span>
-                                            </div>
+                                            <span class="p-2">Staff Name: {{ $staff }}</span>
+                                            <span class="p-2">Reviewer Signature: ______________________</span>
+                                        </div>
                                     </div>
-                                    <a href="#"
-                                        class="btn btn-primary float-end mt-4"><i class="fa fa-download"></i> Download
+                                    <a href="#" class="btn btn-primary float-end mt-4"><i class="fa fa-download"></i>
+                                        Download
                                         Receipt</a>
                                 </div>
                             </div>

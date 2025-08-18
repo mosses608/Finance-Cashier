@@ -56,6 +56,9 @@
                                     </tbody>
                                 </table>
                             </div>
+                            @if ($stores->isEmpty())
+                                <span class="text-warning p-3 mt-3">If you added stores and still don't see it here, try to assign products to this store, then you will see it here...</span>
+                            @endif
                         </div>
                     </div>
                 </div>

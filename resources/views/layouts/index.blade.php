@@ -6,6 +6,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title> AkiliSoft ERP & Finance | Welcome </title>
+    <meta name="description"
+    content="A powerful ERP system to manage sales, inventory, HR, and finance in one place. Increase productivity and streamline operations with MyCompany ERP.">
+
+    <meta name="keywords"
+        content="ERP system, business management software, inventory management, HR system, sales tracking, accounting software">
+
+    <meta name="author" content="Akili Soft Limited">
+
+    <meta property="og:title" content="ERP System for Business Management">
+    <meta property="og:description"
+        content="Manage sales, inventory, HR, and finance in one place. Boost your business productivity with MyCompany ERP.">
+    <meta property="og:image" content="{{ asset('assets/images/akilisoft-logo-image.png') }}">
+    <meta property="og:url" content="https://www.akilisofterp.com">
+
+    <link rel="canonical" href="https://www.akilisofterp.com">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="icon" href="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" type="image/x-icon" />
@@ -85,10 +100,10 @@
                     <!-- If you plan to use an image logo, uncomment this if it is commented-->
 
                     <!-- logo dark--><img class="logo dark img-fluid" width="100px" height="70px"
-                        src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" alt="FreeBootstrap.net image placeholder">
+                        src="{{ asset('assets/images/pakilisoft-logo-image.png') }}" alt="Logo">
 
                     <!-- logo light--><img class="logo light img-fluid" width="100px" height="70px"
-                        src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" alt="FreeBootstrap.net image placeholder">
+                        src="{{ asset('assets/images/pakilisoft-logo-image.png') }}" alt="Logo">
 
                 </a>
                 <!-- End Logo-->
@@ -108,10 +123,12 @@
                             <a class="logo-link" id="fbs__net-navbarsLabel" href="/">
 
                                 <!-- logo dark--><img class="logo dark img-fluid"
-                                    src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" alt="image placeholder">
+                                    src="{{ asset('assets/images/pakilisoft-logo-image.png') }}"
+                                    alt="image placeholder">
 
                                 <!-- logo light--><img class="logo light img-fluid"
-                                    src="{{ asset('assets/images/akilisoft-official-logo.jpg') }}" alt="image placeholder"></a>
+                                    src="{{ asset('assets/images/pakilisoft-logo-image.png') }}"
+                                    alt="image placeholder"></a>
 
                         </div>
                         <button class="btn-close btn-close-black" type="button" data-bs-dismiss="offcanvas"
@@ -192,7 +209,7 @@
                                         financial services.</p>
                                     <div class="cta d-flex gap-2 mb-4 mb-lg-5" data-aos="fade-up"
                                         data-aos-delay="300"><a class="btn" href="{{ route('get.started') }}">Get
-                                            Started Now</a><a class="btn btn-white-outline" href="#">Learn More
+                                            Started Now</a><a class="btn btn-white-outline" href="{{ route('available.features') }}">Available Features
                                             <svg class="lucide lucide-arrow-up-right"
                                                 xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                                                 viewbox="0 0 24 24" fill="none" stroke="currentColor"
@@ -997,7 +1014,7 @@
                             <div class="d-flex gap-5 flex-column">
                                 <div class="d-flex align-items-start gap-3" data-aos="fade-up" data-aos-delay="0">
                                     <div class="icon d-block"><i class="bi bi-telephone"></i></div><span> <span
-                                            class="d-block">Phone</span><strong>+(255 694 235 858)</strong></span>
+                                            class="d-block">Phone</span><strong>(+255690300300)</strong></span>
                                 </div>
                                 <div class="d-flex align-items-start gap-3" data-aos="fade-up" data-aos-delay="100">
                                     <div class="icon d-block"><i class="bi bi-send"></i></div><span> <span
@@ -1006,8 +1023,8 @@
                                 <div class="d-flex align-items-start gap-3" data-aos="fade-up" data-aos-delay="200">
                                     <div class="icon d-block"><i class="bi bi-geo-alt"></i></div><span> <span
                                             class="d-block">Address</span>
-                                        <address class="fw-bold">St Upendo Ferry Kigamboni, <br> Dar es salaam,
-                                            Tanzania</address>
+                                        <address class="fw-bold">Maneno St, Plot No 65 1st Floor, <br> Temeke,
+                                            Dar es salaam</address>
                                     </span>
                                 </div>
                             </div>
@@ -1098,11 +1115,11 @@
                                 <div class="col-md-6 col-lg-4 mb-4 mb-lg-0 quick-contact">
                                     <h3 class="mb-3">Contact</h3>
                                     <p class="d-flex mb-3"><i class="bi bi-geo-alt-fill me-3"></i><span>
-                                            St Upendo Ferry Kigamboni, <br> Dar es salaam Tanzania</span></p><a
+                                            Maneno St, Plot No 65 1st Floor, <br> Temeke Dar es salaam</span></p><a
                                         class="d-flex mb-3" href="mailto:info@akilisofterp.com"><i
                                             class="bi bi-envelope-fill me-3"></i><span>info@akilisofterp.com</span></a><a
                                         class="d-flex mb-3" href="tel://255694235858"><i
-                                            class="bi bi-telephone-fill me-3"></i><span>+255 694 235 858</span></a>
+                                            class="bi bi-telephone-fill me-3"></i><span>+255690300300</span></a>
                                 </div>
                             </div>
                         </div>

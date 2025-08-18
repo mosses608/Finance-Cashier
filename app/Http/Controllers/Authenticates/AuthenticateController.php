@@ -26,10 +26,19 @@ class AuthenticateController extends Controller
 
         $user = User::where('username', $request->username)->first();
 
-        // dd($user);
-
         if (!$user) {
             return redirect()->back()->with('error_msg', 'User does not exist!');
+        }
+
+        $company_id = $user->company_id;
+
+        $isCompanyActive = DB::table('companies')->where('id', $company_id)
+            ->where('status', 1)
+            ->where('soft_delete', 0)
+            ->exists();
+
+        if ($isCompanyActive == false) {
+            return redirect()->back()->with('error_msg', 'This company account is temporarily deactivated, please contact our help desk for more information!');
         }
 
         if ($user->blocked_at && Carbon::now()->lt(Carbon::parse($user->blocked_at)->addMinutes(30))) {
@@ -47,6 +56,37 @@ class AuthenticateController extends Controller
             DB::table('auth')->where('user_id', Auth::user()->user_id)->update([
                 'is_online' => 1,
             ]);
+
+            $companyId = Auth::user()->company_id;
+
+            $modules = DB::table('auth_user_modules AS AUM')
+                ->join('company_modules AS CM', 'AUM.id', '=', 'CM.parent_module_id')
+                ->select([
+                    'AUM.module_parent_id AS module_parent_id',
+                    'AUM.module_name AS module_name',
+                    'AUM.module_path AS module_path',
+                    'AUM.module_icon AS module_icon',
+                    'CM.parent_module_id AS module_id',
+                ])
+                ->whereNull('AUM.is_admin')
+                ->where('CM.company_id', $companyId)
+                ->get()
+                ->unique('module_id');
+
+            if ($modules->isEmpty()) {
+                return redirect()->route('modules')->with('success_msg', 'Logged in successfully, but your dashboard looks empty. Please select at least one feature to use in Akili Soft ERP, it is free!');
+            }
+
+            $companyHasLogo = DB::table('companies')
+                ->select([
+                    'logo'
+                ])
+                ->where('id', $companyId)
+                ->first();
+
+            if($companyHasLogo->logo == null){
+                return redirect()->route('upload.logo');
+            }
 
             return redirect()->route('home')->with('success_msg', 'Logged in successfully!');
         }
@@ -86,7 +126,16 @@ class AuthenticateController extends Controller
             return redirect()->back()->with('error_msg', 'User does not exist!');
         }
 
-        $userEmail = $user->email;
+        $email = DB::table('administrators')->where('id', $user->user_id)
+            ->select([
+                'email',
+            ])->value('email');
+
+        if (!$email) {
+            return redirect()->back()->with('error_msg', 'Email was not found in our database!, please contact your administrator');
+        }
+
+        $userEmail = $email;
 
         $token = Str::random(60);
         $user->update(['reset_token' => $token]);
@@ -100,7 +149,7 @@ class AuthenticateController extends Controller
             'token' => $token,
         ]);
 
-        return redirect('/')->with('success_msg',  'A password reset link has been sent to your email: ' . $maskedEmail);
+        return redirect()->back()->with('success_msg',  'A password reset link has been sent to your email: ' . $maskedEmail);
     }
 
     public function resetMail(Request $request)

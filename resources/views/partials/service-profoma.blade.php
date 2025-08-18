@@ -17,8 +17,7 @@
                 </div>
 
                 <div class="col-4">
-                    <input type="text" name="price[]" class="form-control custom-selling-price" placeholder="Price"
-                        readonly>
+                    <input type="number" name="price[]" class="form-control custom-selling-price" placeholder="Price">
                 </div>
 
                 <input type="hidden" name="category_id" value="7">
@@ -144,8 +143,8 @@
             </div>
             
                 <div class="col-4">
-                    <input type="text" name="price[]" class="form-control custom-selling-price" placeholder="Price"
-                        readonly>
+                    <input type="number" name="price[]" class="form-control custom-selling-price" placeholder="Price"
+                        >
                 </div>
 
                 <input type="hidden" name="category_id" value="7">
