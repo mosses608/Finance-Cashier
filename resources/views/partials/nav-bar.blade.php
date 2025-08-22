@@ -2,10 +2,17 @@
     <div class="sidebar" ata-background-color="dark" style="background-color: #00a670;">
         <div class="sidebar-logo">
             <div class="logo-header px-5">
-                <a href="{{ route('home') }}" class="logo">
-                    <img width="110" src="{{ asset('assets/images/akilisoft-logo-image.png') }}" alt="navbar brand"
-                        class="navbar-brand" height="70" />
-                </a>
+                @if (Auth::user()->role_id == 1)
+                    <a href="{{ route('admin.dashboard') }}" class="logo">
+                        <img width="110" src="{{ asset('assets/images/akilisoft-logo-image.png') }}" alt="navbar brand"
+                            class="navbar-brand" height="70" />
+                    </a>
+                @else
+                    <a href="{{ route('home') }}" class="logo">
+                        <img width="110" src="{{ asset('assets/images/akilisoft-logo-image.png') }}"
+                            alt="navbar brand" class="navbar-brand" height="70" />
+                    </a>
+                @endif
                 <div class="nav-toggle">
                     <button class="btn btn-toggle toggle-sidebar">
                         <i class="gg-menu-right text-white"></i>
@@ -19,48 +26,111 @@
                 </button>
             </div>
         </div>
-
-        <div class="sidebar-wrapper scrollbar scrollbar-inner">
-            <div class="sidebar-content">
-                <ul class="nav nav-secondary">
-                    <li class="nav-item">
-                        <a href="{{ route('home') }}" class="collapsed">
-                            <i class="fas fa-home"></i>
-                            <p>Dashboard</p>
-                            <span class="caret"></span>
-                        </a>
-                    </li>
-
-                    @foreach ($parentModules->where('module_parent_id', null) as $parent)
-                        @php
-                            $children = $childModules->where('parent_module_id', $parent->module_id);
-
-                            $collapseId = 'collapse-' . $parent->module_id;
-                        @endphp
-
+        @if (Auth::user()->role_id != 1)
+            <div class="sidebar-wrapper scrollbar scrollbar-inner">
+                <div class="sidebar-content">
+                    <ul class="nav nav-secondary">
                         <li class="nav-item">
-                            <a data-bs-toggle="collapse" href="#{{ $collapseId }}" role="button"
-                                aria-expanded="false" aria-controls="{{ $collapseId }}">
-                                {!! $parent->module_icon !!}
-                                <p>{{ $parent->module_name ?? '' }}</p>
+                            <a href="{{ route('home') }}" class="collapsed">
+                                <i class="fas fa-home"></i>
+                                <p>Dashboard</p>
                                 <span class="caret"></span>
                             </a>
-                            <div class="collapse" id="{{ $collapseId }}">
+                        </li>
+
+                        @foreach ($parentModules->where('module_parent_id', null) as $parent)
+                            @php
+                                $children = $childModules->where('parent_module_id', $parent->module_id);
+
+                                $collapseId = 'collapse-' . $parent->module_id;
+                            @endphp
+
+                            <li class="nav-item">
+                                <a data-bs-toggle="collapse" href="#{{ $collapseId }}" role="button"
+                                    aria-expanded="false" aria-controls="{{ $collapseId }}">
+                                    {!! $parent->module_icon !!}
+                                    <p>{{ $parent->module_name ?? '' }}</p>
+                                    <span class="caret"></span>
+                                </a>
+                                <div class="collapse" id="{{ $collapseId }}">
+                                    <ul class="nav nav-collapse">
+                                        @foreach ($children as $child)
+                                            <li>
+                                                <a href="/{{ $child->module_path }}">
+                                                    <span class="sub-item">{{ $child->module_name }}</span>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @elseif(Auth::user()->role_id == 1)
+            <div class="sidebar-wrapper scrollbar scrollbar-inner">
+                <div class="sidebar-content">
+                    <ul class="nav nav-secondary">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.dashboard') }}" class="collapsed">
+                                <i class="fas fa-home"></i>
+                                <p>Dashboard</p>
+                                <span class="caret"></span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a data-bs-toggle="collapse" href="#companies">
+                                <i class="fa-solid fa-briefcase"></i>
+                                <p>Companies Account</p>
+                                <span class="caret"></span>
+                            </a>
+                            <div class="collapse" id="companies">
                                 <ul class="nav nav-collapse">
-                                    @foreach ($children as $child)
-                                        <li>
-                                            <a href="/{{ $child->module_path }}">
-                                                <span class="sub-item">{{ $child->module_name }}</span>
-                                            </a>
-                                        </li>
-                                    @endforeach
+                                    <li>
+                                        <a href="{{ route('view-accounts') }}">
+                                            <span class="sub-item">View accounts</span>
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
-                    @endforeach
-                </ul>
+                        <li class="nav-item">
+                            <a data-bs-toggle="collapse" href="#users">
+                                <i class="fa-solid fa-users"></i>
+                                <p>User Accounts</p>
+                                <span class="caret"></span>
+                            </a>
+                            <div class="collapse" id="users">
+                                <ul class="nav nav-collapse">
+                                    <li>
+                                        <a href="{{ route('user.account') }}">
+                                            <span class="sub-item">System Users</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a data-bs-toggle="collapse" href="#logs">
+                                <i class="fa-solid fa-database"></i>
+                                <p>System Logs</p>
+                                <span class="caret"></span>
+                            </a>
+                            <div class="collapse" id="logs">
+                                <ul class="nav nav-collapse">
+                                    <li>
+                                        <a href="{{ route('user.logs') }}">
+                                            <span class="sub-item">Logs</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 @else
     <span class="text-danger">Please login to access this resource!</span>

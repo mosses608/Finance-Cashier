@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title> AkiliSoft ERP & Finance | Get Started </title>
     <meta name="description"
-    content="A powerful ERP system to manage sales, inventory, HR, and finance in one place. Increase productivity and streamline operations with MyCompany ERP.">
+        content="A powerful ERP system to manage sales, inventory, HR, and finance in one place. Increase productivity and streamline operations with MyCompany ERP.">
 
     <meta name="keywords"
         content="ERP system, business management software, inventory management, HR system, sales tracking, accounting software">
@@ -19,7 +19,7 @@
         content="Manage sales, inventory, HR, and finance in one place. Boost your business productivity with MyCompany ERP.">
     <meta property="og:image" content="{{ asset('assets/images/akilisoft-logo-image.png') }}">
     <meta property="og:url" content="https://www.akilisofterp.com">
-        <link rel="icon" href="{{ asset('assets/images/akilisoft-logo-image.png') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('assets/images/akilisoft-logo-image.png') }}" type="image/x-icon" />
 
 
     <link rel="canonical" href="https://www.akilisofterp.com">
@@ -145,8 +145,8 @@
                             data-bs-toggle="offcanvas" data-bs-target="#fbs__net-navbars"
                             aria-controls="fbs__net-navbars" aria-label="Toggle navigation" aria-expanded="false">
                             <svg class="fbs__net-icon-menu" xmlns="http://www.w3.org/2000/svg" width="24"
-                                height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
+                                height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="21" x2="3" y1="6" y2="6"></line>
                                 <line x1="15" x2="3" y1="12" y2="12"></line>
                                 <line x1="17" x2="3" y1="18" y2="18"></line>
@@ -208,26 +208,26 @@
                                                         <label for="tin" class="form-label">
                                                             TIN</label>
                                                         <input type="text" class="form-control" id="tin"
-                                                            maxlength="11" name="tin" placeholder="company tin"
+                                                            maxlength="11" name="tin" placeholder="tin"
                                                             required>
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         <label for="tin" class="form-label">
                                                             VRN</label>
                                                         <input type="text" class="form-control" id="vrn"
-                                                            maxlength="12" name="vrn" placeholder="company vrn">
+                                                            maxlength="12" name="vrn" placeholder="vrn">
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         <label for="companyEmail" class="form-label">
                                                             Email</label>
                                                         <input type="email" class="form-control" id="companyEmail"
-                                                            name="company_email" placeholder="company email">
+                                                            name="company_email" placeholder="email">
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         <label for="companyWebsite" class="form-label">Website</label>
                                                         <input type="text" class="form-control"
                                                             id="companyWebsite" name="website"
-                                                            placeholder="https://example.com">
+                                                            placeholder="website url (example.com)">
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         <label for="companyRegion" class="form-label">Region</label>
@@ -274,18 +274,18 @@
                                                     <div class="col-md-4 mt-3">
                                                         {{-- <label for="firstName" class="form-label">First Name</label> --}}
                                                         <input type="text" class="form-control" id="firstName"
-                                                            name="first_name" placeholder="First name" required>
+                                                            name="first_name" placeholder="first name" required>
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         {{-- <label for="lastName" class="form-label">Last Name</label> --}}
                                                         <input type="text" class="form-control" id="lastName"
-                                                            name="last_name" placeholder="Last name">
+                                                            name="last_name" placeholder="last name">
                                                     </div>
                                                     <div class="col-md-4 mt-3">
                                                         {{-- <label for="personalEmail" class="form-label">Personal
                                                                 Email</label> --}}
                                                         <input type="email" class="form-control" id="personalEmail"
-                                                            name="personal_email" placeholder="Personal email"
+                                                            name="personal_email" placeholder="personal email"
                                                             required>
                                                     </div>
                                                     <div class="col-md-4 mt-3">
@@ -297,7 +297,7 @@
                                                     <div class="col-md-4 mt-3">
                                                         {{-- <label for="password" class="form-label">Password</label> --}}
                                                         <input type="password" class="form-control" id="password"
-                                                            name="password" placeholder="Password" autocomplete="off"
+                                                            name="password" placeholder="password" autocomplete="off"
                                                             required>
                                                     </div>
                                                     <div class="col-md-4 mt-3">
@@ -305,7 +305,7 @@
                                                                 Password</label> --}}
                                                         <input type="password" class="form-control"
                                                             id="confirmPassword" name="password_confirmation"
-                                                            placeholder="Confirm password" autocomplete="off"
+                                                            placeholder="confirm password" autocomplete="off"
                                                             required>
                                                     </div>
                                                 </div>
@@ -392,7 +392,27 @@
                 </div>
             </footer>
             <!-- End Footer-->
+            <style>
+                label{
+                    display: none !important;
+                }
+                .form-control,
+                .form-select {
+                    border: none;
+                    border-bottom: 1px solid #ccc;
+                    border-radius: 0;
+                    box-shadow: none;
+                    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif !important;
+                    outline: none;
+                }
 
+                .form-control:focus,
+                .form-select:focus {
+                    border-bottom: 1px solid #007bff;
+                    box-shadow: none;
+                    outline: none;
+                }
+            </style>
         </main>
     </div>
 

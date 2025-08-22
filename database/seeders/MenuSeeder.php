@@ -47,15 +47,15 @@ class MenuSeeder extends Seeder
         ]);
 
         DB::table('auth_user_modules')->insert([
-            'module_name' => 'Stock Out Change',
-            'module_label' => 'stock out change',
+            'module_name' => 'Stock Change',
+            'module_label' => 'stock change',
             'module_path' => 'stock-change-history',
             'module_parent_id' => $parentId,
             'module_icon' => '',
         ]);
 
         DB::table('auth_user_modules')->insert([
-            'module_name' => 'Report',
+            'module_name' => 'Stock-Out Report',
             'module_label' => 'report',
             'module_path' => 'stock-out-report',
             'module_parent_id' => $parentId,

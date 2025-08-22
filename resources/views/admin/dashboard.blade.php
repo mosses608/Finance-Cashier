@@ -1,4 +1,4 @@
-@extends('layouts.part')
+@extends('layouts.admin')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @include('partials.nav-bar')
 @section('content')
@@ -9,11 +9,11 @@
             </div>
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
                 <div>
-                    <h3 class="fw-bold mb-3">Dashboard | <span class="text-primary"> </span>
+                    <h3 class="fw-bold mb-3">Admin Dashboard | <span class="text-primary"> {{ $adminData->first_name . ' ' . $adminData->last_name }} </span>
                     </h3>
                     <h6 class="op-7 mb-2">{{ \Carbon\Carbon::today()->format('M d, Y') }}</h6>
                 </div>
-                @if (true)
+                @if (false)
                     <div class="ms-md-auto py-2 py-md-0">
                         <a href="{{ route('users.management') }}" class="btn btn-label-info btn-round me-2"><i
                                 class="fa fa-plus"></i> Add Customer</a>
@@ -36,8 +36,8 @@
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Stakeholders</p>
-                                        <h4 class="card-title">{{ number_format(0) }}</h4>
+                                        <p class="card-category">Companies</p>
+                                        <h4 class="card-title">{{ number_format($companiesCounter) }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -50,13 +50,13 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-info bubble-shadow-small">
-                                        <i class="fas fa-money-bill-wave-alt"></i>
+                                        <i class="fas fa-user-circle text-success"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Expenses</p>
-                                        <h4 class="card-title">{{ number_format(0) }}</h4>
+                                        <p class="card-category">Active</p>
+                                        <h4 class="card-title">{{ number_format($activeCompanies) }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -68,14 +68,14 @@
                         <div class="card-body">
                             <div class="row align-items-center">
                                 <div class="col-icon">
-                                    <div class="icon-big text-center icon-success bubble-shadow-small">
-                                        <i class="fas fa-money-bill-wave"></i>
+                                    <div class="icon-big text-center icon-warning bubble-shadow-small">
+                                        <i class="fas fa-user-circle text-warning"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Income</p>
-                                        <h4 class="card-title"></h4>
+                                        <p class="card-category">Inactive</p>
+                                        <h4 class="card-title">{{ number_format($inactiveCompanies) }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -88,13 +88,13 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-secondary bubble-shadow-small">
-                                        <i class="fas fa-hand-holding-dollar"></i>
+                                        <i class="fas fa-users"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Loans</p>
-                                        <h4 class="card-title">{{ number_format(0) }}</h4>
+                                        <p class="card-category">Users</p>
+                                        <h4 class="card-title">{{ number_format($usersCounter) }}</h4>
                                     </div>
                                 </div>
                             </div>

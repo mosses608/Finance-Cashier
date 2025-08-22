@@ -31,9 +31,20 @@ class ServiceController extends Controller
             ->orderBy('name', 'ASC')
             ->get();
 
+        $regions = DB::table('city')->select([
+            'name',
+            'id',
+        ])
+            ->orderBy('name', 'ASC')
+            ->get();
+
         // dd($customers);
 
-        return view('services.service-page', compact('services', 'customers'));
+        return view('services.service-page', compact([
+            'services',
+            'customers',
+            'regions'
+        ]));
     }
 
     public function storeServices(Request $request)
@@ -101,7 +112,7 @@ class ServiceController extends Controller
 
             'name' => 'nullable|string',
             'phone' => 'nullable|string',
-            'TIN' => 'nullable|string',
+            'tin' => 'nullable|string',
             'address' => 'nullable|string',
 
             'amountTotal' => 'required|numeric',
@@ -109,9 +120,9 @@ class ServiceController extends Controller
 
         $companyId = Auth::user()->company_id;
 
-        if ($request->filled('TIN')) {
+        if ($request->filled('tin')) {
             $existingCustomer = DB::table('stakeholders')
-                ->where('tin', $request->TIN)
+                ->where('tin', $request->tin)
                 ->exists();
 
             if ($existingCustomer == true) {
@@ -121,7 +132,7 @@ class ServiceController extends Controller
             $customerId = DB::table('stakeholders')->insertGetId([
                 'name' => $request->name,
                 'phone' => $request->phone,
-                'tin' => $request->TIN,
+                'tin' => $request->tin,
                 'address' => $request->address,
             ]);
 
@@ -138,7 +149,7 @@ class ServiceController extends Controller
 
                 $invoiceItmId = DB::table('invoive_service_items')->insertGetId([
                     'invoice_id' => $invoiceId,
-                    'service_id' => $request->service_id[$key],
+                    'service_id' => $serviceId,
                     'amount' => $request->price[$key],
                     'discount' => $request->discount[$key],
                     'quantity' => $request->quantity[$key] ?? 0,
@@ -173,7 +184,7 @@ class ServiceController extends Controller
 
             $invoiceItmId = DB::table('invoive_service_items')->insertGetId([
                 'invoice_id' => $invoiceId,
-                'service_id' => $request->service_id[$key],
+                'service_id' => $serviceId,
                 'amount' => $request->price[$key],
                 'quantity' => $request->quantity[$key] ?? 0,
                 'discount' => $request->discount[$key] ?? 0,
@@ -197,6 +208,7 @@ class ServiceController extends Controller
 
     public function acceptProfoma()
     {
+        $companyId = Auth::user()->company_id;
         $profomaInvoices = DB::table('profoma_invoice AS PI')
             ->join('invoice AS INV', 'PI.invoice_id', '=', 'INV.id')
             ->join('stakeholders AS STK', 'PI.customer_id', '=', 'STK.id')
@@ -208,6 +220,7 @@ class ServiceController extends Controller
                 'PI.created_at AS dateDue',
                 'PI.invoice_id AS invoiceId',
             ])
+            ->where('I.company_id', $companyId)
             ->where('INV.is_profoma', 1)
             ->where('PI.soft_delete', 0)
             ->where('STK.soft_delete', 0)
@@ -225,6 +238,7 @@ class ServiceController extends Controller
                 'PI.created_at AS dateDue',
                 'PI.invoice_id AS invoiceId',
             ])
+            ->where('I.company_id', $companyId)
             ->where('INV.is_profoma', 1)
             ->where('PI.soft_delete', 0)
             ->where('STK.soft_delete', 0)

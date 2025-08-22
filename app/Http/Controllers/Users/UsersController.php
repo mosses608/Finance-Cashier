@@ -284,8 +284,6 @@ class UsersController extends Controller
             ->where('AD.company_id', $companyId)
             ->get();
 
-        // dd($systemUsersFromAdmin);
-
         $systemUsersFromEmploy = DB::table('emplyees AS EMP')
             ->join('auth AS AU', 'EMP.id', '=', 'AU.user_id')
             ->join('user_roles AS UR', 'EMP.role', '=', 'UR.id')

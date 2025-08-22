@@ -10,7 +10,7 @@
                     <div class="card mt-5">
                         <x-messages />
                         <div class="card-header">
-                            <h4 class="card-title">Store List</h4>
+                            <h4 class="card-title text-success">Store List <sup class="text-warning fs-6">({{ number_format($storesCounter) }}) stores</sup></h4>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">

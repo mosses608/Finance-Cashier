@@ -32,13 +32,15 @@ class AuthenticateController extends Controller
 
         $company_id = $user->company_id;
 
-        $isCompanyActive = DB::table('companies')->where('id', $company_id)
-            ->where('status', 1)
-            ->where('soft_delete', 0)
-            ->exists();
+        if ($company_id) {
+            $isCompanyActive = DB::table('companies')->where('id', $company_id)
+                ->where('status', 1)
+                ->where('soft_delete', 0)
+                ->exists();
 
-        if ($isCompanyActive == false) {
-            return redirect()->back()->with('error_msg', 'This company account is temporarily deactivated, please contact our help desk for more information!');
+            if ($isCompanyActive == false) {
+                return redirect()->back()->with('error_msg', 'This account is temporarily suspended, please contact our help desk for more information!');
+            }
         }
 
         if ($user->blocked_at && Carbon::now()->lt(Carbon::parse($user->blocked_at)->addMinutes(30))) {
@@ -57,38 +59,44 @@ class AuthenticateController extends Controller
                 'is_online' => 1,
             ]);
 
-            $companyId = Auth::user()->company_id;
-
-            $modules = DB::table('auth_user_modules AS AUM')
-                ->join('company_modules AS CM', 'AUM.id', '=', 'CM.parent_module_id')
-                ->select([
-                    'AUM.module_parent_id AS module_parent_id',
-                    'AUM.module_name AS module_name',
-                    'AUM.module_path AS module_path',
-                    'AUM.module_icon AS module_icon',
-                    'CM.parent_module_id AS module_id',
-                ])
-                ->whereNull('AUM.is_admin')
-                ->where('CM.company_id', $companyId)
-                ->get()
-                ->unique('module_id');
-
-            if ($modules->isEmpty()) {
-                return redirect()->route('modules')->with('success_msg', 'Logged in successfully, but your dashboard looks empty. Please select at least one feature to use in Akili Soft ERP, it is free!');
+            if (Auth::user()->role_id === 1) {
+                return redirect()->route('admin.dashboard')->with('success_msg', 'Admin logged in successfully!');
             }
 
-            $companyHasLogo = DB::table('companies')
-                ->select([
-                    'logo'
-                ])
-                ->where('id', $companyId)
-                ->first();
+            if (Auth::user()->role_id != 1) {
+                $companyId = Auth::user()->company_id;
 
-            if($companyHasLogo->logo == null){
-                return redirect()->route('upload.logo');
+                $modules = DB::table('auth_user_modules AS AUM')
+                    ->join('company_modules AS CM', 'AUM.id', '=', 'CM.parent_module_id')
+                    ->select([
+                        'AUM.module_parent_id AS module_parent_id',
+                        'AUM.module_name AS module_name',
+                        'AUM.module_path AS module_path',
+                        'AUM.module_icon AS module_icon',
+                        'CM.parent_module_id AS module_id',
+                    ])
+                    ->whereNull('AUM.is_admin')
+                    ->where('CM.company_id', $companyId)
+                    ->get()
+                    ->unique('module_id');
+
+                if ($modules->isEmpty()) {
+                    return redirect()->route('modules')->with('success_msg', 'Logged in successfully, but your dashboard looks empty. Please select at least one feature to use in Akili Soft ERP, it is free!');
+                }
+
+                $companyHasLogo = DB::table('companies')
+                    ->select([
+                        'logo'
+                    ])
+                    ->where('id', $companyId)
+                    ->first();
+
+                if ($companyHasLogo->logo == null) {
+                    return redirect()->route('upload.logo');
+                }
+
+                return redirect()->route('home')->with('success_msg', 'Logged in successfully!');
             }
-
-            return redirect()->route('home')->with('success_msg', 'Logged in successfully!');
         }
 
         $user->increment('login_attempts');

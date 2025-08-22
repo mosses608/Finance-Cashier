@@ -208,20 +208,20 @@
             if (!select.value || !quantity) return;
 
             const totalPrice = price * quantity;
-            const discountPrice = discount * price * quantity;
+            const discountPrice = (discount / 100) * totalPrice;
             const finalTotal = totalPrice - discountPrice;
             grandTotal += finalTotal;
 
             rowsHtml += `
-                <tr>
-                    <td>${productName}</td>
-                    <td>${quantity}</td>
-                    <td>${price.toLocaleString()}</td>
-                    <td>${totalPrice.toLocaleString()}</td>
-                    <td>${discount || '0'}</td>
-                    <td>${discountPrice.toLocaleString()}</td>
-                    <td>${finalTotal.toLocaleString()}</td>
-                </tr>`;
+                    <tr>
+                        <td>${productName}</td>
+                        <td>${quantity}</td>
+                        <td>${price.toLocaleString()}</td>
+                        <td>${totalPrice.toLocaleString()}</td>
+                        <td>${discount || '0'}%</td>
+                        <td>${discountPrice.toLocaleString()}</td>
+                        <td>${finalTotal.toLocaleString()}</td>
+                    </tr>`;
         });
 
         if (!rowsHtml) {

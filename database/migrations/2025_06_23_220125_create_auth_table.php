@@ -14,7 +14,7 @@ return new class extends Migration
         if (!Schema::hasTable('auth')) {
             Schema::create('auth', function (Blueprint $table) {
                 $table->id();
-                $table->integer('user_id')->unique()->nullable();
+                $table->integer('user_id')->nullable();
                 $table->string('username')->unique();
                 $table->string('password')->nullable();
                 $table->integer('role_id');

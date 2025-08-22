@@ -92,26 +92,36 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Customer selector behavior
-        document.getElementById('order-customer-selector').addEventListener('change', function () {
+        document.getElementById('order-customer-selector').addEventListener('change', function() {
             const selected = this.value;
             const show = id => document.getElementById(id).style.display = 'block';
             const hide = id => document.getElementById(id).style.display = 'none';
 
             if (selected === '1') {
                 show('order-existing-customer');
-                hide('order-name'); hide('order-phone'); hide('order-tin'); hide('order-address');
+                hide('order-name');
+                hide('order-phone');
+                hide('order-tin');
+                hide('order-address');
             } else if (selected === '2') {
                 hide('order-existing-customer');
-                show('order-name'); show('order-phone'); show('order-tin'); show('order-address');
+                show('order-name');
+                show('order-phone');
+                show('order-tin');
+                show('order-address');
             } else {
-                hide('order-existing-customer'); hide('order-name'); hide('order-phone'); hide('order-tin'); hide('order-address');
+                hide('order-existing-customer');
+                hide('order-name');
+                hide('order-phone');
+                hide('order-tin');
+                hide('order-address');
             }
         });
 
         // Add new product row
-        document.getElementById('order-add-btn').addEventListener('click', function () {
+        document.getElementById('order-add-btn').addEventListener('click', function() {
             const container = document.getElementById('order-product-container');
             const newGroup = document.createElement('div');
             newGroup.classList.add('row', 'g-2', 'mb-3', 'order-product-group');
@@ -138,7 +148,7 @@
         });
 
         // Preview invoice
-        document.getElementById('order-preview-btn').addEventListener('click', function () {
+        document.getElementById('order-preview-btn').addEventListener('click', function() {
             const productGroups = document.querySelectorAll('.order-product-group');
             const customerSelect = document.querySelector('[name="order_customer_id"]');
             const customerInput = document.querySelector('[name="order_name"]');
@@ -156,13 +166,15 @@
             productGroups.forEach(group => {
                 const product = group.querySelector('[name="product_name[]"]')?.value || '';
                 const qty = parseFloat(group.querySelector('[name="quantity[]"]')?.value || 0);
-                const price = parseFloat(group.querySelector('[name="amountPay[]"]')?.value || 0);
-                const discount = parseFloat(group.querySelector('[name="discount[]"]')?.value || 0);
+                const price = parseFloat(group.querySelector('[name="amountPay[]"]')?.value ||
+                    0);
+                const discount = parseFloat(group.querySelector('[name="discount[]"]')?.value ||
+                    0);
 
                 if (!product || qty === 0) return;
 
                 const total = price * qty;
-                const discountTotal = discount * price;
+                const discountTotal = discount * price * qty;
                 const final = total - discountTotal;
                 grandTotal += final;
 
@@ -215,7 +227,10 @@
             document.getElementById('order-add-btn').style.display = 'none';
             document.getElementById('order-preview-btn').style.display = 'none';
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         });
     });
 </script>

@@ -28,7 +28,12 @@ Route::get('/availabe-features', [App\Http\Controllers\Pages\PageController::cla
 Route::middleware('auth')->group(function () {
 
     // ADMIN
-    Route::get('/admin-dashboard', [App\Http\Controllers\Admin\AdminController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/admin', [App\Http\Controllers\Admin\AdminController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/view-accounts', [App\Http\Controllers\Admin\AdminController::class, 'viewAccounts'])->name('view-accounts');
+    Route::get('/user-accounts', [App\Http\Controllers\Admin\AdminController::class, 'userAccounts'])->name('user.account');
+    Route::post('/suspend-account', [App\Http\Controllers\Admin\AdminController::class, 'suspendAccount'])->name('suspend.account');
+    Route::post('/activate-account', [App\Http\Controllers\Admin\AdminController::class, 'activateAccount'])->name('activate.account');
+    Route::get('/logs', [App\Http\Controllers\Admin\AdminController::class, 'logs'])->name('user.logs');
 
 
     // USERS

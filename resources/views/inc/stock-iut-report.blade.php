@@ -18,14 +18,12 @@
                             <div class="tab-content mt-1" id="nav-tabContent">
                                 <form action="{{ route('stock.out.report') }}" method="GET" class="row mb-3">
                                     <div class="col-md-4">
-                                        {{-- <label for="date_from" class="form-label">From</label> --}}
                                         <input type="date" id="date_from"
                                             max="{{ \Carbon\Carbon::today()->format('Y-m-d') }}"
                                             value="{{ old('date_from', \Carbon\Carbon::today()->format('Y-m-d')) }}"
                                             name="date_from" class="form-control">
                                     </div>
                                     <div class="col-md-4">
-                                        {{-- <label for="date_to" class="form-label">To</label> --}}
                                         <input type="date" id="date_to"
                                             value="{{ old('date_to', \Carbon\Carbon::today()->format('Y-m-d')) }}"
                                             name="date_to" class="form-control">
@@ -36,27 +34,6 @@
                                             onclick="submitSearch()">Search</button>
                                     </div>
                                 </form>
-
-                                {{-- <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                ...
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-bs-dismiss="modal">Close</button>
-                                                <button type="button" class="btn btn-primary">Save changes</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div> --}}
 
                                 <div class="tab-pane fade show active" id="nav-list" role="tabpanel"
                                     aria-labelledby="nav-profile-tab">
@@ -132,9 +109,16 @@
                                         );
                                     @endphp
                                     <div class="col-md-6">
-                                        <a href="{{ route('download.stock.out.report', $validData) }}"
+                                        @if ($reports->isEmpty())
+                                             <button
+                                            class="btn btn-primary float-end" disabled><i class="fa fa-download"></i>
+                                            Download Report</button>
+                                        @else
+                                         <a href="{{ route('download.stock.out.report', $validData) }}"
                                             class="btn btn-primary float-end"><i class="fa fa-download"></i>
                                             Download Report</a>
+                                        @endif
+                                       
                                     </div>
                                 </div>
                             </div>

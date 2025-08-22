@@ -97,6 +97,11 @@ class StorageController extends Controller
     {
         $companyId = Auth::user()->company_id;
 
+        $storesCounter = DB::table('stores')
+            ->where('company_id', $companyId)
+            ->where('soft_delete', 0)
+            ->count();
+
         $stores = DB::table('stores AS ST')
             ->join('products AS PR', 'ST.id', '=', 'PR.store_id')
             ->select([
@@ -123,7 +128,10 @@ class StorageController extends Controller
 
         // dd($stores);
 
-        return view('inc.store-list', compact(['stores']));
+        return view('inc.store-list', compact([
+            'stores',
+            'storesCounter',
+        ]));
     }
 
     public function viewStore($encryptedStoreId)
@@ -168,6 +176,7 @@ class StorageController extends Controller
             ->where('soft_delete', 0)
             ->where('company_id', $companyId)
             ->get();
+        // dd($storeData);
 
         return view('inc.view-store', compact([
             'storageData',
@@ -278,6 +287,10 @@ class StorageController extends Controller
         if ($request->has('date_from') && $request->has('date_to') && $request->date_from != null && $request->date_to != null) {
             $fromDate = $request->date_from;
             $toDate = $request->date_to;
+
+            if ($fromDate > $toDate) {
+                return redirect()->back()->with('error_msg', 'This date range is invalid!');
+            }
 
             $reports = DB::table('stock_out_transaction AS SOUT')
                 ->join('products AS PR', 'SOUT.product_id', '=', 'PR.id')
@@ -406,8 +419,8 @@ class StorageController extends Controller
                 $product = DB::table('storage_change_logs')->where('id', $log['logId'])->first();
                 $existingProductData =  DB::table('products')->where('id', $product->product_id)->first();
                 DB::table('products')->where('id', $product->product_id)->update([
-                    'selling_price' => $product->change_price ?? $existingProductData->selling_price,
-                    'store_id' => $log->change_store_id ?? $existingProductData->store_id,
+                    'selling_price' => $product->change_price,
+                    'store_id' => $log->change_store_id,
                 ]);
 
                 DB::table('storage_change_logs')->where('id', $log['logId'])->update([

@@ -1,5 +1,4 @@
 @extends('layouts.landing')
-
 @section('content')
     <div class="container mt-4">
         <center class="center">

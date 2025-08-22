@@ -100,7 +100,7 @@
                                                                                         </option>
                                                                                         @foreach ($storeData as $store)
                                                                                             <option
-                                                                                                value="{{ $store->id }}">
+                                                                                                value="{{ \Illuminate\Support\Facades\Crypt::encrypt(json_encode($store->id)) }}">
                                                                                                 {{ $store->store_name }}
                                                                                             </option>
                                                                                         @endforeach

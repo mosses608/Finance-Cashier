@@ -17,7 +17,7 @@
                 </div>
 
                 <div class="col-4">
-                    <input type="number" name="price[]" class="form-control custom-selling-price" placeholder="Price">
+                    <input type="number" name="price[]" class="form-control custom-selling-price" placeholder="price">
                 </div>
 
                 <input type="hidden" name="category_id" value="7">
@@ -27,7 +27,7 @@
                 </div>
 
                 <div class="col-4">
-                    <input type="text" name="discount[]" class="form-control" placeholder="Discount @ eg 2.5">
+                    <input type="text" name="discount[]" class="form-control" placeholder="discount @ eg 2.5">
                 </div>
             </div>
         </div>
@@ -55,22 +55,23 @@
         <div class="row">
             <div class="col-6" id="custom-name" style="display:none;">
                 <label class="input-label p-2"><strong>Customer Name</strong></label>
-                <input type="text" name="name" class="form-control" placeholder="Customer Name">
+                <input type="text" name="name" class="form-control" placeholder="full names">
             </div>
 
             <div class="col-6" id="custom-phone" style="display:none;">
-                <label class="input-label p-2"><strong>Phone Number</strong></label>
-                <input type="tel" name="phone" class="form-control" placeholder="Phone Number">
+                <label class="input-label p-2"><strong>Phone</strong></label>
+                <input type="tel" name="phone" class="form-control" placeholder="phone">
             </div>
 
             <div class="col-6" id="custom-tin" style="display:none;">
                 <label class="input-label p-2"><strong>TIN</strong></label>
-                <input type="text" name="TIN" class="form-control" placeholder="Tax Identification Number">
+                <input type="text" name="tin" id="tin" class="form-control"
+                    placeholder="tin (123-234-455 or 123-234-455-3)" maxlength="13" required>
             </div>
 
             <div class="col-6" id="custom-address" style="display:none;">
                 <label class="input-label p-2"><strong>Address</strong></label>
-                <input type="text" name="address" class="form-control" placeholder="Customer Address">
+                <input type="text" name="address" class="form-control" placeholder="customer address">
             </div>
         </div>
 
@@ -85,14 +86,14 @@
         </div>
 
         <div class="col-6 mt-3" id="custom-submit-container" style="display: none;">
-            <button type="submit" class="btn btn-success w-100 float-start">Save Data</button>
+            <button type="submit" class="btn btn-success w-100 float-start">Submit</button>
         </div>
     </div>
 
     <!-- Invoice Preview -->
     <div class="w-50">
         <div class="border p-2 bg-light rounded mt-4" id="custom-invoice-preview">
-            <p class="text-center p-5 blink">Invoice Preview </p>
+            <p class="text-center p-5 blink">Profoma Invoice Preview </p>
         </div>
     </div>
 </div>
@@ -111,11 +112,41 @@
             container.find('.custom-selling-price').val(sellingPrice);
         });
 
-        // Initialize select2
         $('.select2').select2({
             placeholder: '--select product--',
             width: '100%'
         });
+    });
+</script>
+
+<script>
+    document.getElementById('tin').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        let formatted = '';
+
+        if (value.length > 0) {
+            formatted = value.substring(0, 3);
+        }
+        if (value.length >= 4) {
+            formatted += '-' + value.substring(3, 6);
+        }
+        if (value.length >= 7) {
+            formatted += '-' + value.substring(6, 9);
+        }
+        if (value.length === 10) {
+            formatted += '-' + value.substring(9, 10);
+        }
+
+        e.target.value = formatted;
+    });
+
+    document.querySelector("form")?.addEventListener("submit", function(e) {
+        const tin = document.getElementById("tin").value;
+        const regex = /^\d{3}-\d{3}-\d{3}(-\d{1})?$/;
+        if (!regex.test(tin)) {
+            e.preventDefault();
+            alert("Please enter a valid TIN (9 or 10 digits).");
+        }
     });
 </script>
 
@@ -143,7 +174,7 @@
             </div>
             
                 <div class="col-4">
-                    <input type="number" name="price[]" class="form-control custom-selling-price" placeholder="Price"
+                    <input type="number" name="price[]" class="form-control custom-selling-price" placeholder="price"
                         >
                 </div>
 
@@ -155,7 +186,7 @@
 
                 <div class="col-4">
                     <input type="text" name="discount[]" class="form-control"
-                        placeholder="Discount @ eg 2.5">
+                        placeholder="discount @ eg 2.5">
                 </div>
         `;
         container.appendChild(newGroup);
@@ -194,20 +225,20 @@
 
             if (!select.value || !quantity) return;
 
-            const totalPrice = price;
-            const discountPrice = discount * price;
-            const finalTotal = totalPrice * quant - discountPrice;
+            const subtotal = price * quant;
+            const discountPrice = (discount * subtotal) / 100;
+            const finalTotal = subtotal - discountPrice;
             grandTotal += finalTotal;
 
             rowsHtml += `
-                <tr>
-                    <td>${serviceName}</td>
-                    <td>${totalPrice.toLocaleString()}</td>
-                    <td>${discount || '0'}</td>
-                    <td>${discountPrice.toLocaleString()}</td>
-                    <td>${quant.toLocaleString()}</td>
-                    <td>${finalTotal.toLocaleString()}</td>
-                </tr>`;
+                    <tr>
+                        <td>${serviceName}</td>
+                        <td>${price.toLocaleString()}</td>
+                        <td>${discount || '0'}%</td>
+                        <td>${discountPrice.toLocaleString()}</td>
+                        <td>${quant.toLocaleString()}</td>
+                        <td>${finalTotal.toLocaleString()}</td>
+                    </tr>`;
         });
 
         if (!rowsHtml) {
