@@ -25,6 +25,10 @@ class ViewServiceProvider extends ServiceProvider
         View::composer('partials.nav-bar', function ($view) {
             $companyId = Auth::user()->company_id;
 
+            if(!$companyId){
+                return redirect()->back()->with('error_msg','Company data not found!');
+            }
+
             $modules = DB::table('auth_user_modules AS AUM')
                 ->join('company_modules AS CM', 'AUM.id', '=', 'CM.parent_module_id')
                 ->select([

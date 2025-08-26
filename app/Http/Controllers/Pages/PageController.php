@@ -91,9 +91,11 @@ class PageController extends Controller
 
         // company exists
         $comapnyExists = DB::table('companies')
-            ->where('company_reg_no', $request->company_reg_no)
-            ->orWhere('tin', $request->tin)
-            ->orWhere('vrn', $request->vrn)
+            ->where(function ($query) use ($request) {
+                $query->where('company_reg_no', $request->company_reg_no)
+                    ->orWhere('tin', $request->tin)
+                    ->orWhere('vrn', $request->vrn);
+            })
             ->where('soft_delete', 0)
             ->exists();
 
@@ -102,11 +104,13 @@ class PageController extends Controller
         }
 
         $userExists = DB::table('administrators')
-            ->where('email', $request->personal_email)
-            ->orWhere('phone', $request->phone)
+            ->where(function ($query) use ($request) {
+                $query->where('email', $request->personal_email)
+                    ->orWhere('phone', $request->phone);
+            })
             ->exists();
 
-        if ($userExists == true) {
+        if ($userExists === true) {
             return redirect()->back()->with('error_msg', 'User with email and phone number' . ' ' . $request->personal_email . ' ' . $request->phone . ' ' . ' already exists in our databases!');
         }
 
@@ -391,16 +395,15 @@ class PageController extends Controller
             ->get();
 
         $salesTransactions = DB::table('sales AS ST')
-            ->join('invoice AS I', 'ST.invoice_id', '=', 'I.id')
+            // ->join('invoice AS I', 'ST.invoice_id', '=', 'I.id')
             ->select([
-                'I.customer_id AS customerId',
+                'ST.id AS ref',
                 'ST.created_at AS createdDate',
                 'ST.amount_paid AS amount',
                 'ST.is_paid AS isPaid',
                 'ST.status AS status',
             ])
             ->where('ST.company_id', $companyId)
-            ->where('I.soft_delete', 0)
             ->where('ST.soft_delete', 0)
             ->orderBy('ST.id', 'DESC')
             ->get();

@@ -31,11 +31,31 @@
                                     </form>
                                 </div> --}}
 
-                                <!-- Profoma Invoice Tab -->
                                 <div class="tab-pane fade show active" id="nav-profile" role="tabpanel"
                                     aria-labelledby="nav-profile-tab">
                                     <form action="{{ route('create.profoma.invoice') }}" method="POST">
                                         @include('partials.profoma')
+                                        {{-- <div class="row p-3 py-0">
+                                            <div class="col-md-8 py-0">
+                                                <h4 class="text-success">
+                                                    New
+                                                </h4>
+                                                <div class="row">
+                                                    <div class="col-2">
+                                                        Customer
+                                                    </div>
+                                                    <div class="col-8">
+                                                        <select name="customer_id" class="form-control select2" style="outline: none;">
+                                                            <option value="" selected disabled>--select--</option>
+                                                            @foreach ($customers as $custome)
+                                                                <option value="{{ $custome->id }}">{{ $custome->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div> --}}
                                     </form>
                                 </div>
 
@@ -114,5 +134,26 @@
             });
         });
     </script>
+
+    <style>
+        .select2-container--default .select2-selection--single {
+            border: none !important;
+            border-bottom: 2px solid #333 !important;
+            border-radius: 0 !important;
+            outline: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            height: 38px;
+            display: flex;
+            align-items: center;
+        }
+
+        .select2-container--default .select2-selection--single:focus,
+        .select2-container--default.select2-container--open .select2-selection--single {
+            border-bottom: 2px solid #007bff !important;
+            /* focus color */
+            outline: none !important;
+        }
+    </style>
 
 @stop

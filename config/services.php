@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    'azampay' => [
+    'env'            => env('AZAMPAY_ENV', 'sandbox'),
+    'app_name'       => env('AZAMPAY_APP_NAME'),
+    'client_id'      => env('AZAMPAY_CLIENT_ID'),
+    'client_secret'  => env('AZAMPAY_CLIENT_SECRET'),
+    // 'api_key'        => env('AZAMPAY_API_KEY'),
+    'token_url' => env('AZAMPAY_ENV') === 'production'
+        ? 'https://authenticator.azampay.co.tz/AppRegistration/GenerateToken'
+        : 'https://authenticator-sandbox.azampay.co.tz/AppRegistration/GenerateToken',
+    'ussd_push_url' => env('AZAMPAY_ENV') === 'production'
+        ? 'https://checkout.azampay.co.tz/api/v1/Payment/USSDPush'
+        : 'https://sandbox.azampay.co.tz/api/v1/Payment/USSDPush',
+],
+
 ];

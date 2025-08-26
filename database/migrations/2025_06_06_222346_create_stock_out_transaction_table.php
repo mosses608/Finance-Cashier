@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('stock_out_transaction', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
+            $table->integer('user_id')->nullable();
             $table->integer('product_id');
             $table->decimal('stockout_quantity', 15, 2);
             $table->integer('soft_delete')->default(0);

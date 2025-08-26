@@ -146,6 +146,7 @@
                                     'Storage Management' => 'primary',
                                     'System Access' => 'secondary',
                                     'Purchase Orders' => 'primary',
+                                    'POS' => 'success',
                                 ];
                             @endphp
 
@@ -169,7 +170,7 @@
                                                         </div>
                                                         <div class="col col-stats ms-3 ms-sm-0">
                                                             <div class="numbers">
-                                                                <p class="card-category">{{ $parent->module_name }}</p>
+                                                                <p class="card-category text-center">{{ $parent->module_name }}</p>
                                                                 <h4 class="card-title"></h4>
                                                             </div>
                                                         </div>

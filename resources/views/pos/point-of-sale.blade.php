@@ -9,7 +9,8 @@
             </div>
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
                 <div>
-                    <h3 class="fw-bold mb-3">Dashboard | <span class="text-primary">{{ $companyData->companyName }} </span>
+                    <h3 class="fw-bold mb-3">POS Dashboard | <span class="text-primary">{{ $companyData->companyName }}
+                        </span>
                     </h3>
                     <h6 class="op-7 mb-2">{{ \Carbon\Carbon::today()->format('M d, Y') }}</h6>
                 </div>
@@ -18,10 +19,8 @@
                         $encryptedId = \Illuminate\Support\Facades\Crypt::encrypt($companyData->companyId);
                     @endphp
                     <div class="ms-md-auto py-2 py-md-0">
-                        <a href="{{ route('users.management') }}" class="btn btn-label-info btn-round me-2"><i
-                                class="fa fa-plus"></i> Add Customer</a>
-                        <a href="{{ route('modules') }}" target="__blank"
-                            class="btn btn-primary btn-round"><i class="fa fa-plus"></i> Add Modules</a>
+                        <a href="{{ route('storage.manage') }}" target="__blank" class="btn btn-primary btn-round"><i
+                                class="fa fa-plus"></i> Add Products</a>
                         {{-- <a href="{{ route('view.website.builder', $encryptedId) }}" target="__blank"
                             class="btn btn-primary btn-round"><i class="fa fa-eye"></i> View Website</a> --}}
                     </div>
@@ -34,13 +33,13 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-primary bubble-shadow-small">
-                                        <i class="fas fa-handshake"></i>
+                                        <i class="fas fa-hand-holding-usd"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Stakeholders</p>
-                                        <h4 class="card-title">{{ number_format($totalCustomers) }}</h4>
+                                        <p class="card-category">Total Sales</p>
+                                        <h4 class="card-title">{{ $newIncome }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -53,12 +52,12 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-info bubble-shadow-small">
-                                        <i class="fas fa-money-bill-wave-alt"></i>
+                                        <i class="fas fa-dollar-sign"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Expenses</p>
+                                        <p class="card-category">Total Cost</p>
                                         <h4 class="card-title">{{ number_format($expensesCounter) }}</h4>
                                     </div>
                                 </div>
@@ -72,13 +71,13 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-success bubble-shadow-small">
-                                        <i class="fas fa-money-bill-wave"></i>
+                                        <i class="fas fa-box-open"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Income</p>
-                                        <h4 class="card-title">{{ $newIncome }}</h4>
+                                        <p class="card-category">Product Sold</p>
+                                        <h4 class="card-title">{{ $productsSold }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -91,13 +90,13 @@
                             <div class="row align-items-center">
                                 <div class="col-icon">
                                     <div class="icon-big text-center icon-secondary bubble-shadow-small">
-                                        <i class="fas fa-hand-holding-dollar"></i>
+                                        <i class="fas fa-receipt"></i>
                                     </div>
                                 </div>
                                 <div class="col col-stats ms-3 ms-sm-0">
                                     <div class="numbers">
-                                        <p class="card-category">Loans</p>
-                                        <h4 class="card-title">{{ number_format(0) }}</h4>
+                                        <p class="card-category">Total Orders</p>
+                                        <h4 class="card-title">{{ number_format($ordersCounter) }}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -111,7 +110,7 @@
                         <div class="card-header">
                             <div class="card-head-row">
                                 <div class="card-title">
-                                    Sales & Expenses Statistics
+                                    Sales & Orders Statistics
                                     <span class="text-primary">({{ $startOfWeek . ' ' . ' - ' . ' ' . $endOfWeek }})</span>
                                 </div>
                             </div>
@@ -153,7 +152,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card card-round">
+
+                    {{-- <div class="card card-round">
                         <div class="card-body pb-0">
                             <div class="h1 fw-bold float-end text-primary">
                                 {{ number_format(($onlineUsers / $authUsers) * 100) }}%</div>
@@ -163,7 +163,8 @@
                                 <div id="lineChart"></div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
+
                 </div>
             </div>
 
@@ -172,7 +173,7 @@
                     <div class="card card-round">
                         <div class="card-body">
                             <div class="card-head-row card-tools-still-right">
-                                <div class="card-title">Customers</div>
+                                <div class="card-title text-primary">Top Sold Items</div>
                                 <div class="card-tools">
                                     <div class="dropdown">
                                         <button class="btn btn-icon btn-clean me-0" type="button"
@@ -181,7 +182,7 @@
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                            <a class="dropdown-item" href="#">View All Customers</a>
+                                            <a class="dropdown-item" href="#">View All Items</a>
                                             {{-- <a class="dropdown-item" href="#">Another action</a>
                                             <a class="dropdown-item" href="#">Something else here</a> --}}
                                         </div>
@@ -190,24 +191,22 @@
                             </div>
                             <div class="card-list py-2">
 
-                                @foreach ($customers as $customer)
+                                @foreach ($topSoldProducts as $top)
                                     <div class="item-list">
-                                        <div class="avatar">
-                                            <span
-                                                class="avatar-title rounded-circle border border-white">{{ strtoupper(substr($customer->name, 0, 2)) }}</span>
+                                        <div class="card p-2 shadow-sm" style="border-radius: 12px;">
+                                            <img src="{{ asset('storage/' . $top->item_pic) }}" class="card-img-top"
+                                                alt="{{ $top->name }}"
+                                                style="height: 100px; width: 100px; object-fit: cover; border-radius: 10px;">
                                         </div>
                                         <div class="info-user ms-3">
-                                            <div class="username">{{ $customer->name }}</div>
-                                            <div class="status">{{ $customer->address }}</div>
+                                            <div class="username col-12">
+                                                <span class="float-end text-muted">{{ $top->name }}</span>
+                                            </div><br>
+                                            <div class="status float-end"><i class="fa fa-shopping-cart"></i>
+                                                <sup><strong
+                                                        class="text-primary">{{ number_format($top->total_orders) }}</strong></sup>
+                                            </div>
                                         </div>
-                                        <a href="mailto:{{ $customer->email }}" target="__blank"
-                                            class="btn btn-icon btn-link op-8 me-1">
-                                            <i class="far fa-envelope"></i>
-                                            </button>
-                                            <a href="tel:{{ $customer->phone }}" target="__blank"
-                                                class="btn btn-icon btn-link btn-primary op-8">
-                                                <i class="fas fa-phone"></i>
-                                            </a>
                                     </div>
                                 @endforeach
                             </div>
@@ -218,7 +217,7 @@
                     <div class="card card-round">
                         <div class="card-header">
                             <div class="card-head-row card-tools-still-right">
-                                <div class="card-title">Transactions</div>
+                                <div class="card-title text-success">Top Products</div>
                                 <div class="card-tools">
                                     <div class="dropdown">
                                         <button class="btn btn-icon btn-clean me-0" type="button"
@@ -227,7 +226,8 @@
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                            <a class="dropdown-item" href="#">View All Transactions</a>
+                                            <a class="dropdown-item" href="{{ route('pos.sales') }}">View All
+                                                products</a>
                                         </div>
                                     </div>
                                 </div>
@@ -235,38 +235,28 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <!-- Projects table -->
-                                <table class="table align-items-center mb-0">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th scope="col" class="text-nowrap">Ref Number</th>
-                                            <th scope="col" class="text-end text-nowrap">Date & Time</th>
-                                            <th scope="col" class="text-end text-nowrap">Amount (TZS)</th>
-                                            <th scope="col" class="text-end text-nowrap">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($salesTransactions as $transaction)
-                                            <tr>
-                                                <th scope="row">
-                                                    <button class="btn btn-icon btn-round btn-success btn-sm me-2">
-                                                        <i class="fa fa-check"></i>
-                                                    </button>
-                                                    Ref # {{ str_pad($transaction->ref, 4, '0', STR_PAD_LEFT) }}
-                                                </th>
-                                                <td class="text-end">
-                                                    {{ \Carbon\Carbon::parse($transaction->createdDate)->format('M d, Y H:i A') }}
-                                                </td>
-                                                <td class="text-end text-primary fw-600">
-                                                    {{ number_format($transaction->amount, 2) }}</td>
-                                                <td class="text-end">
-                                                    <span class="badge badge-primary"><i class="fas fa-circle-check"></i>
-                                                        Paid</span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                <div class="row p-2">
+                                    @foreach ($topProducts as $product)
+                                        <div class="col-md-4">
+                                            <div class="card p-2 shadow-sm" style="border-radius: 12px;">
+                                                <img src="{{ asset('storage/' . $product->picture) }}"
+                                                    class="card-img-top" alt="{{ $product->productName }}"
+                                                    style="height: 100px; object-fit: cover; border-radius: 10px;">
+
+                                                <div class="card-body text-start">
+                                                    <h6 class="card-title mb-1 text-primary fs-6 text-capitalize d-flex">
+                                                        {{ $product->productName }}</h6>
+                                                    <p class="text-muted mb-1">
+                                                        <strong>
+                                                            {{ number_format($product->sellingPrice, 2) }} tsh</strong>
+                                                    </p>
+                                                    <p class="text-muted mb-0 btn btn-warning btn-sm border text-white">
+                                                        {{ $product->availableQuantity }} items</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>

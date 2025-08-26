@@ -244,10 +244,10 @@
         </div>
 
         <div class="bank-info">
-            <p><strong>Account Name:</strong style="text-transform: uppercase;"> {{ $bankInformation->account_name }}
+            <p><strong>Account Name:</strong style="text-transform: uppercase;"> {{ $bankInformation->account_name ?? '' }}
             </p>
-            <p><strong>Bank Name:</strong> {{ $bankInformation->bank_name }}</p>
-            <p><strong>Account Number:</strong> {{ $bankInformation->account_number }}</p>
+            <p><strong>Bank Name:</strong> {{ $bankInformation->bank_name ?? '' }}</p>
+            <p><strong>Account Number:</strong> {{ $bankInformation->account_number ?? '' }}</p>
             <p><strong>Bank Code:</strong> {{ $bankInformation->bank_code ?? ' ' }}</p>
             <p><strong>Swift Code:</strong> {{ $bankInformation->bank_code ?? ' ' }}</p>
         </div>

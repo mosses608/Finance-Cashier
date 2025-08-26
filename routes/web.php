@@ -3,6 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Products\ProductController;
 
+// Route::get('/storage-link', function(){
+//     $targeTFolder = storage_path('app/public');
+//     $linkFolder = public_path('storage');
+//     symlink($targeTFolder,$linkFolder);
+// });
+
 // PAGES
 Route::get('/', [App\Http\Controllers\Pages\PageController::class, 'index'])->name('home');
 Route::get('/login', [App\Http\Controllers\Pages\PageController::class, 'welcome'])->name('login');
@@ -211,6 +217,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/upload-logo', [App\Http\Controllers\Pages\PageController::class, 'uploadLogo'])->name('upload.logo');
     Route::post('/logo-upload', [App\Http\Controllers\Pages\PageController::class, 'saveLogoUpload'])->name('upload.logo.image');
 
+    // POST
+    Route::get('/pos-dashboard', [App\Http\Controllers\POS\PointOfSaleController::class, 'pointOfSale'])->name('pos');
+    Route::get('/pos-sales-management', [App\Http\Controllers\POS\PointOfSaleController::class, 'posSales'])->name('pos.sales');
+    Route::get('/view-pos-product/{productId}', [App\Http\Controllers\POS\PointOfSaleController::class, 'posProductView'])->name('view-pos-product');
+    Route::get('/products-list', [App\Http\Controllers\POS\PointOfSaleController::class, 'productLists'])->name('pos.product.list');
+    Route::post('/doqnload-qrcode', [App\Http\Controllers\POS\PointOfSaleController::class, 'downloadQrCode'])->name('download.qrcode');
+    Route::get('/pos-sales-report', [App\Http\Controllers\POS\PointOfSaleController::class, 'posSalesReport'])->name('pos.sales.report');
+    Route::get('/pos-stock-report', [App\Http\Controllers\POS\PointOfSaleController::class, 'posStockReport'])->name('pos.stock.report');
+
     // WEBSITE BUILDER
     Route::get('/website/{encryptedId}', [App\Http\Controllers\Website\WebsiteBuilderController::class, 'websiteBuilder'])->name('view.website.builder');
 });
+
+Route::get('/check-pos-order/{productId}', [App\Http\Controllers\POS\PointOfSaleController::class, 'checkOrder'])->name('check-pos-order');
+Route::post('/ussd-push', [App\Http\Controllers\POS\PointOfSaleController::class, 'ussdPush'])->name('ussd.push');

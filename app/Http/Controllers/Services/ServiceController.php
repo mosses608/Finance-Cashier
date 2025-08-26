@@ -220,7 +220,7 @@ class ServiceController extends Controller
                 'PI.created_at AS dateDue',
                 'PI.invoice_id AS invoiceId',
             ])
-            ->where('I.company_id', $companyId)
+            ->where('INV.company_id', $companyId)
             ->where('INV.is_profoma', 1)
             ->where('PI.soft_delete', 0)
             ->where('STK.soft_delete', 0)
@@ -238,7 +238,7 @@ class ServiceController extends Controller
                 'PI.created_at AS dateDue',
                 'PI.invoice_id AS invoiceId',
             ])
-            ->where('I.company_id', $companyId)
+            ->where('INV.company_id', $companyId)
             ->where('INV.is_profoma', 1)
             ->where('PI.soft_delete', 0)
             ->where('STK.soft_delete', 0)

@@ -319,7 +319,7 @@
                                 @php
                                     $company = DB::table('companies')
                                         ->where('id', Auth::user()->company_id)
-                                        ->first();
+                                        ->first() ?? null;
                                 @endphp
 
                                 <li class="nav-item topbar-user dropdown hidden-caret">

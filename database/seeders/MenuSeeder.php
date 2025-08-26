@@ -13,7 +13,54 @@ class MenuSeeder extends Seeder
      */
     public function run(): void
     {
-        // stock management
+        // POS
+        $pos = DB::table('auth_user_modules')->insertGetId([
+            'module_name' => 'POS',
+            'module_label' => 'pos',
+            'module_path' => '#pos',
+            'module_parent_id' => null,
+            'module_icon' => '<i class="fas fa-cash-register"></i>',
+        ]);
+        DB::table('auth_user_modules')->insert([
+            'module_name' => 'POS Dashboard',
+            'module_label' => 'pos dashboard',
+            'module_path' => 'pos-dashboard',
+            'module_parent_id' => $pos,
+            'module_icon' => '',
+        ]);
+
+        DB::table('auth_user_modules')->insert([
+            'module_name' => 'Sales Panel',
+            'module_label' => 'stock in',
+            'module_path' => 'pos-sales-management',
+            'module_parent_id' => $pos,
+            'module_icon' => '',
+        ]);
+
+         DB::table('auth_user_modules')->insert([
+            'module_name' => 'Products List',
+            'module_label' => 'product list',
+            'module_path' => 'products-list',
+            'module_parent_id' => $pos,
+            'module_icon' => '',
+        ]);
+
+         DB::table('auth_user_modules')->insert([
+            'module_name' => 'Sales Report',
+            'module_label' => 'pos-sale-report',
+            'module_path' => 'pos-sales-report',
+            'module_parent_id' => $pos,
+            'module_icon' => '',
+        ]);
+
+         DB::table('auth_user_modules')->insert([
+            'module_name' => 'Stock Report',
+            'module_label' => 'pos-stock-report',
+            'module_path' => 'pos-stock-report',
+            'module_parent_id' => $pos,
+            'module_icon' => '',
+        ]);
+
         $parentId = DB::table('auth_user_modules')->insertGetId([
             'module_name' => 'Inventory Management',
             'module_label' => 'inventory management',
@@ -61,16 +108,6 @@ class MenuSeeder extends Seeder
             'module_parent_id' => $parentId,
             'module_icon' => '',
         ]);
-
-        // Invoice
-
-        // $parentIdInvoice = DB::table('auth_user_modules')->insertGetId([
-        //     'module_name' => 'Invoices',
-        //     'module_label' => 'invoices',
-        //     'module_path' => '#invoice',
-        //     'module_parent_id' => null,
-        //     'module_icon' => '<i class="fa-solid fa-file-invoice"></i>',
-        // ]);
 
         $parentIdStore = DB::table('auth_user_modules')->insertGetId([
             'module_name' => 'Storage Management',
@@ -225,8 +262,8 @@ class MenuSeeder extends Seeder
         ]);
 
         DB::table('auth_user_modules')->insert([
-            'module_name' => 'Accept Profoma Invoice',
-            'module_label' => 'accept profoma invoice',
+            'module_name' => 'Generate Invoice',
+            'module_label' => 'generate invoice',
             'module_path' => 'accept-profoma',
             'module_parent_id' => $parentIdSales,
             'module_icon' => '',
