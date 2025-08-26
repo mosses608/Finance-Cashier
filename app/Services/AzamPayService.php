@@ -3,44 +3,57 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Exception;
 
 class AzamPayService
 {
-    private $baseUrl;
+    private $appName;
     private $clientId;
     private $clientSecret;
+    private $tokenUrl;
+    private $ussdUrl;
 
     public function __construct()
     {
-        $this->baseUrl = config('azampay.base_url');
-        $this->clientId = config('azampay.client_id');
-        $this->clientSecret = config('azampay.client_secret');
+        $this->appName     = config('services.azampay.app_name');
+        $this->clientId    = config('services.azampay.client_id');
+        $this->clientSecret= config('services.azampay.client_secret');
+        $this->tokenUrl    = config('services.azampay.token_url');
+        $this->ussdUrl     = config('services.azampay.ussd_url');
     }
 
-    // 1. Get Access Token
+    /**
+     * Get Access Token from AzamPay
+     */
     public function getAccessToken()
     {
-        $response = Http::post(env('AZAMPAY_TOKEN_URL'), [
-            'appName'      => env('AZAMPAY_APP_NAME'),
-            'clientId'     => env('AZAMPAY_CLIENT_ID'),
-            'clientSecret' => env('AZAMPAY_CLIENT_SECRET'),
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post($this->tokenUrl, [
+            'appName'      => $this->appName,
+            'clientId'     => $this->clientId,
+            'clientSecret' => $this->clientSecret,
         ]);
 
-        if ($response->successful() && isset($response->json()['data']['accessToken'])) {
-            return $response->json()['data']['accessToken'];
+        if ($response->successful()) {
+            $data = $response->json();
+            if (isset($data['data']['accessToken'])) {
+                return $data['data']['accessToken'];
+            }
         }
 
-        throw new \Exception('Unable to fetch access token: ' . $response->body());
+        throw new Exception('Unable to fetch access token: ' . $response->body());
     }
 
-
-    // 2. Send USSD Push
+    /**
+     * Send USSD Push Payment Request
+     */
     public function ussdPush($msisdn, $amount, $reference, $description)
     {
         $token = $this->getAccessToken();
 
         $payload = [
-            "accountNumber" => $msisdn,
+            "accountNumber" => (string)$msisdn,
             "amount"        => (int)$amount,
             "externalId"    => (string)$reference,
             "narration"     => $description,
@@ -49,8 +62,12 @@ class AzamPayService
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $token,
             'Content-Type'  => 'application/json',
-        ])->post(config('services.azampay.ussd_url'), $payload);
+        ])->post($this->ussdUrl, $payload);
 
-        return $response->json();
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        throw new Exception('USSD Push failed: ' . $response->body());
     }
 }

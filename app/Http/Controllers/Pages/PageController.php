@@ -91,11 +91,9 @@ class PageController extends Controller
 
         // company exists
         $comapnyExists = DB::table('companies')
-            ->where(function ($query) use ($request) {
-                $query->where('company_reg_no', $request->company_reg_no)
-                    ->orWhere('tin', $request->tin)
-                    ->orWhere('vrn', $request->vrn);
-            })
+            ->where('company_reg_no', $request->company_reg_no)
+            ->where('tin', $request->tin)
+            ->where('vrn', $request->vrn)
             ->where('soft_delete', 0)
             ->exists();
 

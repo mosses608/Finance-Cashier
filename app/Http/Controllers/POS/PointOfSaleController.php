@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PointOfSaleController extends Controller
 {
@@ -472,6 +473,91 @@ class PointOfSaleController extends Controller
         ]));
     }
 
+    public function downloadPOSReportSales($range)
+    {
+        $range = Crypt::decrypt($range);
+        $range = json_decode($range, true);
+        $from = $range['from'];
+        $to = $range['to'];
+        $companyId = Auth::user()->company_id;
+
+        $orders = DB::table('orders AS O')
+            ->leftJoin('products AS PR', function ($join) {
+                $join->on('O.product_id', '=', 'PR.id')
+                    ->on('O.company_id', '=', 'PR.company_id');
+            })
+            ->select([
+                'O.id AS saleId',
+                'O.ref AS referenceId',
+                'O.created_at AS saleDate',
+                'O.amount AS amount',
+                'PR.name AS productName',
+                'PR.serial_no AS serialNo',
+                'O.phone AS customerPhone',
+            ])
+            ->whereBetween('O.created_at', [$from, $to])
+            ->where('O.company_id', $companyId)
+            ->orderBy('O.created_at', 'DESC')
+            ->get();
+
+        $companyName = DB::table('companies')
+            ->select('company_name')
+            ->where('id', $companyId)
+            ->value('company_name');
+
+        $totalAmount = 0;
+
+        $response = new StreamedResponse(function () use ($orders, $companyName, $from, $to, $totalAmount) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['Company Name:', $companyName ?? '']);
+
+            fputcsv($handle, ['Sales Report:', Carbon::parse($from)->format('M d, Y') . ' - ' . Carbon::parse($to)->format('M d, Y') ?? '']);
+
+            fputcsv($handle, []);
+
+            fputcsv($handle, ['Ref ID', 'Product SN', 'Prdoduct Name', 'Customer Phone', 'Due Date', 'Amount']);
+
+            foreach ($orders as $row) {
+                $totalAmount += $row->amount;
+                fputcsv($handle, [
+                    $row->referenceId,
+                    $row->serialNo,
+                    $row->productName,
+                    $row->customerPhone,
+                    Carbon::parse($row->saleDate)->format('M d, Y'),
+                    number_format($row->amount, 2),
+                ]);
+            }
+
+            fputcsv($handle, [
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+            ]);
+
+            fputcsv($handle, [
+                'Total Amount',
+                '',
+                '',
+                '',
+                '',
+                number_format($totalAmount, 2),
+            ]);
+
+            fclose($handle);
+        });
+
+        $filename = $companyName . ' ' . ' - ' . ' ' . Carbon::now()->format('Y_m_d_His') . '.csv';
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', "attachment; filename={$filename}");
+
+        return $response;
+    }
+
     public function posStockReport()
     {
         return redirect()->back();
@@ -539,7 +625,6 @@ class PointOfSaleController extends Controller
         }
 
         if ($request->has('pay') && $request->pay === "mobile") {
-            return redirect()->back()->with('error_msg', 'This payment method is not available for now!');
             $response = $azamPay->ussdPush(
                 $msisdn,
                 $amount,
@@ -547,7 +632,57 @@ class PointOfSaleController extends Controller
                 $description
             );
 
-            return response()->json($response);
+            // Check if AzamPay accepted the request
+            if (isset($response['status']) && $response['status'] == 200) {
+                $productId = json_decode(Crypt::decrypt($request->productId), true);
+
+                // save stock transaction
+                DB::table('stock_out_transaction')->insert([
+                    'product_id'        => $productId,
+                    'stockout_quantity' => $request->quantity,
+                    'comments'          => $description,
+                ]);
+
+                $stockData = DB::table('stocks')->where('storage_item_id', $productId)->first();
+                $product   = DB::table('products')->where('id', $productId)->first();
+
+                DB::table('stocks')->where('storage_item_id', $productId)->update([
+                    'quantity_out'   => $request->quantity,
+                    'quantity_total' => $stockData->quantity_total - $request->quantity,
+                ]);
+
+                DB::table('orders')->insert([
+                    'product_id' => $productId,
+                    'ref'        => $reference,
+                    'phone'      => $msisdn,
+                    'amount'     => $amount,
+                    'company_id' => $product->company_id,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+
+                DB::table('sales')->insert([
+                    'amount_paid'   => $amount,
+                    'payment_method' => 'mobile',
+                    'is_paid'       => 0,
+                    'status'        => 0,
+                    'notes'         => $description,
+                    'balance'       => $amount,
+                    'company_id'    => $product->company_id,
+                    'created_at'    => Carbon::now(),
+                    'updated_at'    => Carbon::now(),
+                ]);
+
+                return response()->json([
+                    'message'  => 'Mobile payment initiated, waiting for customer confirmation.',
+                    'azampay'  => $response,
+                ]);
+            }
+
+            return response()->json([
+                'error' => 'USSD Push failed',
+                'azampay_response' => $response,
+            ], 400);
         }
     }
 

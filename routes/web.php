@@ -224,6 +224,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/products-list', [App\Http\Controllers\POS\PointOfSaleController::class, 'productLists'])->name('pos.product.list');
     Route::post('/doqnload-qrcode', [App\Http\Controllers\POS\PointOfSaleController::class, 'downloadQrCode'])->name('download.qrcode');
     Route::get('/pos-sales-report', [App\Http\Controllers\POS\PointOfSaleController::class, 'posSalesReport'])->name('pos.sales.report');
+    Route::get('/download-pos-sales-report/{range}', [App\Http\Controllers\POS\PointOfSaleController::class, 'downloadPOSReportSales'])->name('download.pos.sales.report');
     Route::get('/pos-stock-report', [App\Http\Controllers\POS\PointOfSaleController::class, 'posStockReport'])->name('pos.stock.report');
 
     // WEBSITE BUILDER

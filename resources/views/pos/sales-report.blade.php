@@ -37,9 +37,18 @@
                                 <div class="col-6">
                                     <button type="submit" class="btn btn-primary float-start">Search</button>
                                     @php
+                                        $dateRange = [
+                                            'from' => $from,
+                                            'to' => $to,
+                                        ];
 
+                                        $range = \Illuminate\Support\Facades\Crypt::encrypt(
+                                            json_encode($dateRange),
+                                        );
                                     @endphp
-                                    <a role="button" href="#" class="btn btn-secondary float-end"> Download</a>
+                                    <a role="button"
+                                        href="{{ route('download.pos.sales.report', $range) }}"
+                                        class="btn btn-secondary float-end"><i class="fa fa-download"></i> Download</a>
                                 </div>
                             </form>
                             <div class="tab-content mt-3" id="nav-tabContent">
@@ -63,10 +72,14 @@
                                                 </tr>
                                             </thead>
                                             @php
+                                            $totalAmt = 0;
                                                 $n = 1;
                                             @endphp
                                             <tbody>
                                                 @foreach ($orders as $sale)
+                                                @php
+                                                    $totalAmt += $sale->amount;
+                                                @endphp
                                                     <tr>
                                                         <td>{{ $n++ }}</td>
                                                         <td>{{ $sale->referenceId }}</td>
@@ -85,12 +98,12 @@
                                                         <td colspan="6" class="text-primary"><strong> Total Amount
                                                                 (TZS)</strong>
                                                         </td>
-                                                        <td><strong>{{ number_format(0, 2) }}</strong></td>
+                                                        <td><strong>{{ number_format($totalAmt, 2) }}</strong></td>
                                                     </tr>
                                                 </tfoot>
                                             @endif
                                         </table>
-                                        @if ($orders->isEmpty() )
+                                        @if ($orders->isEmpty())
                                             <span class="text-danger mt-3 mb-3">No data found!</span>
                                         @endif
                                     </div>
