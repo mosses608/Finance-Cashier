@@ -563,28 +563,154 @@ class PointOfSaleController extends Controller
         return redirect()->back();
     }
 
+    // public function ussdPush(Request $request)
+    // {
+    //     $request->validate([
+    //         'phone'   => 'required|string',
+    //         'amount'  => 'required|numeric',
+    //         'quantity' => 'required|numeric',
+    //         'pay' => 'required|string',
+    //         'productId' => 'required|string',
+    //     ]);
+
+    //     $azamPay = new AzamPayService();
+
+    //     $phone = ltrim($request->phone, '0');
+    //     $msisdn = "+255" . $phone;
+
+    //     $amount = $request->amount;
+    //     $reference = rand(100, 999999);
+    //     $description = "Payment for #{$reference}";
+
+    //     if ($request->has('pay') && $request->pay === "cash") {
+    //         $productId = json_decode(Crypt::decrypt($request->productId), true);
+
+    //         DB::table('stock_out_transaction')->insert([
+    //             'product_id' => $productId,
+    //             'stockout_quantity' => $request->quantity,
+    //             'comments' => $description,
+    //         ]);
+
+    //         $stockData = DB::table('stocks')->where('storage_item_id', $productId)->first();
+    //         $product = DB::table('products')->where('id', $productId)->first();
+
+    //         DB::table('stocks')->where('storage_item_id', $productId)->update([
+    //             'quantity_out' => $request->quantity,
+    //             'quantity_total' => $stockData->quantity_total - $request->quantity,
+    //         ]);
+
+    //         DB::table('orders')->insert([
+    //             'product_id' => $productId,
+    //             'ref' => $reference,
+    //             'phone' => $msisdn,
+    //             'amount' => $amount,
+    //             'company_id' => $product->company_id,
+    //             'created_at' => Carbon::now(),
+    //             'updated_at' => Carbon::now(),
+    //         ]);
+
+    //         DB::table('sales')->insert([
+    //             'amount_paid' => $amount,
+    //             'payment_method' => 'cash',
+    //             'is_paid' => 1,
+    //             'status' => 1,
+    //             'notes' => $description,
+    //             'balance' => $amount,
+    //             'company_id' => $product->company_id,
+    //             'created_at' => Carbon::now(),
+    //             'updated_at' => Carbon::now(),
+    //         ]);
+
+    //         return redirect()->back()->with('success_msg', 'Payment successfully!');
+    //     }
+
+    //     if ($request->has('pay') && $request->pay === "mobile") {
+    //         $response = $azamPay->ussdPush(
+    //             $msisdn,
+    //             $amount,
+    //             $reference,
+    //             $description
+    //         );
+
+    //         // Check if AzamPay accepted the request
+    //         if (isset($response['status']) && $response['status'] == 200) {
+    //             $productId = json_decode(Crypt::decrypt($request->productId), true);
+
+    //             // save stock transaction
+    //             DB::table('stock_out_transaction')->insert([
+    //                 'product_id'        => $productId,
+    //                 'stockout_quantity' => $request->quantity,
+    //                 'comments'          => $description,
+    //             ]);
+
+    //             $stockData = DB::table('stocks')->where('storage_item_id', $productId)->first();
+    //             $product   = DB::table('products')->where('id', $productId)->first();
+
+    //             DB::table('stocks')->where('storage_item_id', $productId)->update([
+    //                 'quantity_out'   => $request->quantity,
+    //                 'quantity_total' => $stockData->quantity_total - $request->quantity,
+    //             ]);
+
+    //             DB::table('orders')->insert([
+    //                 'product_id' => $productId,
+    //                 'ref'        => $reference,
+    //                 'phone'      => $msisdn,
+    //                 'amount'     => $amount,
+    //                 'company_id' => $product->company_id,
+    //                 'created_at' => Carbon::now(),
+    //                 'updated_at' => Carbon::now(),
+    //             ]);
+
+    //             DB::table('sales')->insert([
+    //                 'amount_paid'   => $amount,
+    //                 'payment_method' => 'mobile',
+    //                 'is_paid'       => 0,
+    //                 'status'        => 0,
+    //                 'notes'         => $description,
+    //                 'balance'       => $amount,
+    //                 'company_id'    => $product->company_id,
+    //                 'created_at'    => Carbon::now(),
+    //                 'updated_at'    => Carbon::now(),
+    //             ]);
+
+    //             return response()->json([
+    //                 'message'  => 'Mobile payment initiated, waiting for customer confirmation.',
+    //                 'azampay'  => $response,
+    //             ]);
+    //         }
+
+    //         return response()->json([
+    //             'error' => 'USSD Push failed',
+    //             'azampay_response' => $response,
+    //         ], 400);
+    //     }
+    // }
+
     public function ussdPush(Request $request)
     {
         $request->validate([
-            'phone'   => 'required|string',
-            'amount'  => 'required|numeric',
+            'phone'    => 'required|string',
+            'amount'   => 'required|numeric',
             'quantity' => 'required|numeric',
-            'pay' => 'required|string',
+            'pay'      => 'required|string',
             'productId' => 'required|string',
         ]);
 
         $azamPay = new AzamPayService();
 
+        // Format phone
         $phone = ltrim($request->phone, '0');
-        $msisdn = "+255" . $phone;
+        $msisdn = "255" . $phone; // no +, as required by AzamPay
 
         $amount = $request->amount;
         $reference = rand(100, 999999);
         $description = "Payment for #{$reference}";
 
-        if ($request->has('pay') && $request->pay === "cash") {
+        // ----------------- CASH PAYMENT -----------------
+        if ($request->pay === "cash") {
             $productId = json_decode(Crypt::decrypt($request->productId), true);
 
+            // Insert stock transaction
             DB::table('stock_out_transaction')->insert([
                 'product_id' => $productId,
                 'stockout_quantity' => $request->quantity,
@@ -592,7 +718,7 @@ class PointOfSaleController extends Controller
             ]);
 
             $stockData = DB::table('stocks')->where('storage_item_id', $productId)->first();
-            $product = DB::table('products')->where('id', $productId)->first();
+            $product   = DB::table('products')->where('id', $productId)->first();
 
             DB::table('stocks')->where('storage_item_id', $productId)->update([
                 'quantity_out' => $request->quantity,
@@ -624,67 +750,84 @@ class PointOfSaleController extends Controller
             return redirect()->back()->with('success_msg', 'Payment successfully!');
         }
 
-        if ($request->has('pay') && $request->pay === "mobile") {
-            $response = $azamPay->ussdPush(
-                $msisdn,
-                $amount,
-                $reference,
-                $description
-            );
+        // ----------------- MOBILE PAYMENT -----------------
+        if ($request->pay === "mobile") {
 
-            // Check if AzamPay accepted the request
-            if (isset($response['status']) && $response['status'] == 200) {
+            // ---------- SANDBOX VALIDATION ----------
+            $sandboxNumbers = ['255700000000', '255712345678']; // Example sandbox numbers
+            $sandboxMaxAmount = 10000; // e.g., 10,000 TZS limit
+
+            if (!in_array($msisdn, $sandboxNumbers)) {
+                return response()->json([
+                    'error' => 'Invalid sandbox phone number. Use one of: ' . implode(', ', $sandboxNumbers)
+                ], 400);
+            }
+
+            if ($amount > $sandboxMaxAmount) {
+                return response()->json([
+                    'error' => "Sandbox max amount is {$sandboxMaxAmount} TZS. Reduce your payment amount."
+                ], 400);
+            }
+
+            // Send USSD push
+            $response = $azamPay->ussdPush($msisdn, $amount, $reference, $description);
+
+            if (
+                isset($response['status'], $response['json']['success']) &&
+                $response['status'] === 200 &&
+                $response['json']['success'] === true
+            ) {
                 $productId = json_decode(Crypt::decrypt($request->productId), true);
 
-                // save stock transaction
                 DB::table('stock_out_transaction')->insert([
-                    'product_id'        => $productId,
+                    'product_id' => $productId,
                     'stockout_quantity' => $request->quantity,
-                    'comments'          => $description,
+                    'comments' => $description,
                 ]);
 
                 $stockData = DB::table('stocks')->where('storage_item_id', $productId)->first();
                 $product   = DB::table('products')->where('id', $productId)->first();
 
                 DB::table('stocks')->where('storage_item_id', $productId)->update([
-                    'quantity_out'   => $request->quantity,
+                    'quantity_out' => $request->quantity,
                     'quantity_total' => $stockData->quantity_total - $request->quantity,
                 ]);
 
                 DB::table('orders')->insert([
                     'product_id' => $productId,
-                    'ref'        => $reference,
-                    'phone'      => $msisdn,
-                    'amount'     => $amount,
+                    'ref' => $reference,
+                    'phone' => $msisdn,
+                    'amount' => $amount,
                     'company_id' => $product->company_id,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
 
                 DB::table('sales')->insert([
-                    'amount_paid'   => $amount,
+                    'amount_paid' => $amount,
                     'payment_method' => 'mobile',
-                    'is_paid'       => 0,
-                    'status'        => 0,
-                    'notes'         => $description,
-                    'balance'       => $amount,
-                    'company_id'    => $product->company_id,
-                    'created_at'    => Carbon::now(),
-                    'updated_at'    => Carbon::now(),
+                    'is_paid' => 0, // pending
+                    'status' => 0,  // pending
+                    'notes' => $description,
+                    'balance' => $amount,
+                    'company_id' => $product->company_id,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
                 ]);
 
                 return response()->json([
-                    'message'  => 'Mobile payment initiated, waiting for customer confirmation.',
-                    'azampay'  => $response,
+                    'message' => 'Mobile payment initiated, waiting for customer confirmation.',
+                    'azampay' => $response,
                 ]);
+            } else {
+                return response()->json([
+                    'error' => 'USSD Push failed',
+                    'azampay_response' => $response,
+                ], 400);
             }
-
-            return response()->json([
-                'error' => 'USSD Push failed',
-                'azampay_response' => $response,
-            ], 400);
         }
     }
+
 
     public function handleCallback(Request $request)
     {

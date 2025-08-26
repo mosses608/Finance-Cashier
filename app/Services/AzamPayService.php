@@ -17,7 +17,7 @@ class AzamPayService
     {
         $this->appName     = config('services.azampay.app_name');
         $this->clientId    = config('services.azampay.client_id');
-        $this->clientSecret= config('services.azampay.client_secret');
+        $this->clientSecret = config('services.azampay.client_secret');
         $this->tokenUrl    = config('services.azampay.token_url');
         $this->ussdUrl     = config('services.azampay.ussd_url');
     }
@@ -45,29 +45,62 @@ class AzamPayService
         throw new Exception('Unable to fetch access token: ' . $response->body());
     }
 
-    /**
-     * Send USSD Push Payment Request
-     */
     public function ussdPush($msisdn, $amount, $reference, $description)
     {
         $token = $this->getAccessToken();
 
         $payload = [
-            "accountNumber" => (string)$msisdn,
+            "accountNumber" => preg_replace('/^\+/', '', $msisdn), // remove + for AzamPay
             "amount"        => (int)$amount,
             "externalId"    => (string)$reference,
-            "narration"     => $description,
+            "narration"     => substr($description, 0, 50), // max 50 chars
         ];
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type'  => 'application/json',
-        ])->post($this->ussdUrl, $payload);
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type'  => 'application/json',
+            ])->post($this->ussdUrl, $payload);
 
-        if ($response->successful()) {
-            return $response->json();
+            return [
+                'status'  => $response->status(),
+                'json'    => $response->json(),
+                'body'    => $response->body(),
+                'payload' => $payload,
+            ];
+        } catch (\Exception $e) {
+            // Return the exception message instead of null
+            return [
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+                'payload' => $payload,
+            ];
         }
-
-        throw new Exception('USSD Push failed: ' . $response->body());
     }
+
+    /**
+     * Send USSD Push Payment Request
+     */
+    // public function ussdPush($msisdn, $amount, $reference, $description)
+    // {
+    //     $token = $this->getAccessToken();
+
+    //     $payload = [
+    //         "accountNumber" => (string)$msisdn,
+    //         "amount"        => (int)$amount,
+    //         "externalId"    => (string)$reference,
+    //         "narration"     => $description,
+    //     ];
+
+    //     $response = Http::withHeaders([
+    //         'Authorization' => 'Bearer ' . $token,
+    //         'Content-Type'  => 'application/json',
+    //     ])->post($this->ussdUrl, $payload);
+
+    //     if ($response->successful()) {
+    //         return $response->json();
+    //     }
+
+    //     throw new Exception('USSD Push failed: ' . $response->body());
+    // }
 }
