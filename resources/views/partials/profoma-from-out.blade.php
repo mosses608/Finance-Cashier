@@ -1,236 +1,252 @@
-<div class="d-flex gap-3" id="order-invoice-section">
-    <div class="w-50 border p-2 rounded">
-        @csrf
-        <div id="order-product-container">
-            <!-- First Product Entry -->
-            <div class="row g-2 mb-3 order-product-group">
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Product Name</strong></label>
-                    <input type="text" class="form-control order-product-select" name="product_name[]"
-                        placeholder="product name">
-                </div>
+<div class="container-fluid" id="service-invoice-section">
+    @csrf
 
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Item Price</strong></label>
-                    <input type="text" name="amountPay[]" class="form-control order-selling-price"
-                        placeholder="item price">
-                </div>
-
-                <input type="hidden" name="order_status" value="pending">
-
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Quantity</strong></label>
-                    <input type="number" name="quantity[]" class="form-control" placeholder="quantity">
-                </div>
-
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Item Discount</strong></label>
-                    <input type="text" name="discount[]" class="form-control" placeholder="discount @ eg 0.5">
-                </div>
+    <!-- ================= CUSTOMER SECTION ================= -->
+    <div class="card p-3 mb-3 shadow-sm">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label"><strong>Customer Type</strong></label>
+                <select class="form-control" id="service-customer-selector">
+                    <option value="" selected disabled>--select--</option>
+                    <option value="1">Existing Customer</option>
+                    <option value="2">New Customer</option>
+                </select>
             </div>
-        </div>
+            <div class="col-md-6" id="service-existing-customer" style="display:none;">
+                <label class="form-label"><strong>Customer Name (Company)</strong></label>
+                <select name="customer_id" class="form-control select2">
+                    <option value="" selected disabled>--select--</option>
+                    @foreach ($customers as $custome)
+                        <option value="{{ $custome->id }}">{{ $custome->name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-        <!-- Customer Section -->
-        <div class="col-12 mb-2">
-            <label class="input-label p-2"><strong>Customer Section</strong></label>
-            <select class="form-control" id="order-customer-selector">
-                <option value="" selected disabled>--select--</option>
-                <option value="1">Existing Customer</option>
-                <option value="2">New Customer</option>
-            </select>
-        </div>
-
-        <div class="col-12 mb-2" id="order-existing-customer" style="display:none;">
-            <label class="input-label p-2"><strong>Customer Name (Company Name)</strong></label>
-            <select name="customer_id" class="form-control select2">
-                <option value="" selected disabled>--select--</option>
-                @foreach ($customers as $custome)
-                    <option value="{{ $custome->id }}">{{ $custome->name }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="col-6" id="order-name" style="display:none;">
-            <label class="input-label p-2"><strong>Customer Name</strong></label>
-            <input type="text" name="order_name" class="form-control" placeholder="Customer Name">
-        </div>
-
-        <div class="col-6" id="order-phone" style="display:none;">
-            <label class="input-label p-2"><strong>Phone Number</strong></label>
-            <input type="tel" name="order_phone" class="form-control" placeholder="Phone Number">
-        </div>
-
-        <div class="col-6" id="order-tin" style="display:none;">
-            <label class="input-label p-2"><strong>TIN</strong></label>
-            <input type="text" name="order_TIN" class="form-control" placeholder="Tax Identification Number">
-        </div>
-
-        <div class="col-6" id="order-address" style="display:none;">
-            <label class="input-label p-2"><strong>Address</strong></label>
-            <input type="text" name="order_address" class="form-control" placeholder="Customer Address">
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="col-6 mt-3 w-100">
-            <button type="button" id="order-preview-btn" class="btn btn-warning">Preview Order</button>
-            <button type="button" class="btn btn-primary float-end" id="order-add-btn">
-                <i class="fa fa-plus"></i>
-            </button>
-        </div>
-
-        <div class="col-6 mt-3" id="order-submit-container" style="display: none;">
-            <button type="submit" class="btn btn-success w-100 float-start">Save Order</button>
+            <div class="col-md-6" id="service-name" style="display:none;">
+                <label class="form-label"><strong>Customer Name</strong></label>
+                <input type="text" name="service_name" class="form-control" placeholder="Customer Name">
+            </div>
+            <div class="col-md-6" id="service-phone" style="display:none;">
+                <label class="form-label"><strong>Phone Number</strong></label>
+                <input type="tel" name="service_phone" class="form-control" placeholder="Phone Number">
+            </div>
+            <div class="col-md-6" id="service-tin" style="display:none;">
+                <label class="form-label"><strong>TIN</strong></label>
+                <input type="text" name="service_TIN" class="form-control" placeholder="Tax Identification Number">
+            </div>
+            <div class="col-md-6" id="service-address" style="display:none;">
+                <label class="form-label"><strong>Address</strong></label>
+                <input type="text" name="service_address" class="form-control" placeholder="Customer Address">
+            </div>
         </div>
     </div>
 
-    <!-- Order Preview -->
-    <div class="w-50">
-        <div class="border p-2 bg-light rounded mt-4" id="order-invoice-preview">
-            <p class="text-center p-5 blink">Order Preview will appear here!</p>
+    <!-- ================= SERVICES TABLE ================= -->
+    <div class="card p-3 mb-3 shadow-sm">
+        <h5 class="mb-3">Product Lines</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Discount (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="service-product-container">
+                    <tr class="service-product-group">
+                        <td><input type="text" name="product_name[]" class="form-control" placeholder="Product Name"></td>
+                        <td><input type="number" step="0.01" name="amountPay[]" class="form-control" placeholder="Price"></td>
+                        <td><input type="number" name="quantity[]" class="form-control" placeholder="Qty"></td>
+                        <td><input type="number" step="0.01" name="discount[]" class="form-control" placeholder="0"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-danger btn-sm mt-2 float-start" id="service-remove-btn">
+                    <i class="fa fa-minus"></i> Remove Row
+                </button>
+            </div>
+            <div class="col-md-6">
+                <button type="button" class="btn btn-primary btn-sm mt-2 float-end" id="service-add-btn">
+                    <i class="fa fa-plus"></i> Add Row
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PREVIEW + SAVE ================= -->
+    <div class="card p-3 shadow-sm">
+        <div id="service-invoice-preview" class="empty">
+            <p class="text-center text-muted p-4">Product Invoice Preview will appear here!</p>
+        </div>
+        <div class="mt-3 d-flex justify-content-between">
+            <button type="button" id="service-preview-btn" class="btn btn-warning">Preview Invoice</button>
+            <div id="service-submit-container" style="display:none;">
+                <button type="submit" class="btn btn-success">Save Invoice</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Customer selector behavior
-        document.getElementById('order-customer-selector').addEventListener('change', function() {
-            const selected = this.value;
-            const show = id => document.getElementById(id).style.display = 'block';
-            const hide = id => document.getElementById(id).style.display = 'none';
-
-            if (selected === '1') {
-                show('order-existing-customer');
-                hide('order-name');
-                hide('order-phone');
-                hide('order-tin');
-                hide('order-address');
-            } else if (selected === '2') {
-                hide('order-existing-customer');
-                show('order-name');
-                show('order-phone');
-                show('order-tin');
-                show('order-address');
-            } else {
-                hide('order-existing-customer');
-                hide('order-name');
-                hide('order-phone');
-                hide('order-tin');
-                hide('order-address');
-            }
-        });
-
-        // Add new product row
-        document.getElementById('order-add-btn').addEventListener('click', function() {
-            const container = document.getElementById('order-product-container');
-            const newGroup = document.createElement('div');
-            newGroup.classList.add('row', 'g-2', 'mb-3', 'order-product-group');
-            newGroup.innerHTML = `
-                <hr class="mt-3" style="width: 95%; margin-left:2.5%;">
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Product Name</strong></label>
-                    <input type="text" class="form-control order-product-select" name="product_name[]" placeholder="product name">
-                </div>
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Item Price</strong></label>
-                    <input type="text" name="amountPay[]" class="form-control order-selling-price" placeholder="item price">
-                </div>
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Quantity</strong></label>
-                    <input type="number" name="quantity[]" class="form-control" placeholder="quantity">
-                </div>
-                <div class="col-6">
-                    <label class="input-label p-2"><strong>Item Discount</strong></label>
-                    <input type="text" name="discount[]" class="form-control" placeholder="discount @ eg 0.5">
-                </div>
-            `;
-            container.appendChild(newGroup);
-        });
-
-        // Preview invoice
-        document.getElementById('order-preview-btn').addEventListener('click', function() {
-            const productGroups = document.querySelectorAll('.order-product-group');
-            const customerSelect = document.querySelector('[name="order_customer_id"]');
-            const customerInput = document.querySelector('[name="order_name"]');
-            let customerName = 'N/A';
-
-            if (customerSelect && customerSelect.value) {
-                customerName = customerSelect.options[customerSelect.selectedIndex].text;
-            } else if (customerInput && customerInput.value.trim() !== '') {
-                customerName = customerInput.value;
-            }
-
-            let rowsHtml = '';
-            let grandTotal = 0;
-
-            productGroups.forEach(group => {
-                const product = group.querySelector('[name="product_name[]"]')?.value || '';
-                const qty = parseFloat(group.querySelector('[name="quantity[]"]')?.value || 0);
-                const price = parseFloat(group.querySelector('[name="amountPay[]"]')?.value ||
-                    0);
-                const discount = parseFloat(group.querySelector('[name="discount[]"]')?.value ||
-                    0);
-
-                if (!product || qty === 0) return;
-
-                const total = price * qty;
-                const discountTotal = discount * price * qty;
-                const final = total - discountTotal;
-                grandTotal += final;
-
-                rowsHtml += `
-                    <tr>
-                        <td>${product}</td>
-                        <td>${qty}</td>
-                        <td>${price.toLocaleString()}</td>
-                        <td>${total.toLocaleString()}</td>
-                        <td>${discount.toLocaleString()}</td>
-                        <td>${discountTotal.toLocaleString()}</td>
-                        <td>${final.toLocaleString()}</td>
-                    </tr>`;
-            });
-
-            const previewHTML = `
-                <div class="border rounded bg-white shadow-sm">
-                    <div class="bg-primary text-white p-2 rounded-top">
-                        <h5 class="mb-0">Customer: ${customerName}</h5>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-bordered mb-0">
-                            <thead class="table-secondary">
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Price</th>
-                                    <th>Total Price</th>
-                                    <th>Discount Unit</th>
-                                    <th>Discount Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rowsHtml}</tbody>
-                            <tfoot>
-                                <tr class="table-success">
-                                    <th colspan="6" class="text-end">Total Amount</th>
-                                    <th>
-                                        <input type="hidden" name="amount" value="${grandTotal}">
-                                        ${grandTotal.toLocaleString()}
-                                    </th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>`;
-
-            document.getElementById('order-invoice-preview').innerHTML = previewHTML;
-            document.getElementById('order-submit-container').style.display = 'block';
-            document.getElementById('order-add-btn').style.display = 'none';
-            document.getElementById('order-preview-btn').style.display = 'none';
-
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
+$(function() {
+    // Toggle customer fields
+    $('#service-customer-selector').change(function() {
+        if (this.value === '1') {
+            $('#service-existing-customer').show();
+            $('#service-name,#service-phone,#service-tin,#service-address').hide();
+        } else if (this.value === '2') {
+            $('#service-existing-customer').hide();
+            $('#service-name,#service-phone,#service-tin,#service-address').show();
+        } else {
+            $('#service-existing-customer,#service-name,#service-phone,#service-tin,#service-address').hide();
+        }
     });
+
+    // Add row
+    $('#service-add-btn').click(function() {
+        let row = $('#service-product-container .service-product-group:first').clone();
+        row.find('input').val('');
+        $('#service-product-container').append(row);
+    });
+
+    // Remove row
+    $('#service-remove-btn').click(function() {
+        let rows = $('#service-product-container .service-product-group');
+        if (rows.length > 1) rows.last().remove();
+    });
+
+    // Preview
+    $('#service-preview-btn').click(function() {
+        let previewDiv = $('#service-invoice-preview');
+        previewDiv.removeClass('empty').addClass('show-preview').empty();
+
+        let customerName = 'N/A';
+        if ($('select[name="customer_id"]').val()) {
+            customerName = $('select[name="customer_id"] option:selected').text();
+        } else if ($('input[name="service_name"]').val()) {
+            customerName = $('input[name="service_name"]').val();
+        }
+
+        let rowsHtml = '';
+        let grandTotal = 0;
+
+        $('#service-product-container .service-product-group').each(function(index) {
+            let name = $(this).find('input[name="product_name[]"]').val();
+            let price = parseFloat($(this).find('input[name="amountPay[]"]').val()) || 0;
+            let qty = parseFloat($(this).find('input[name="quantity[]"]').val()) || 0;
+            let disc = parseFloat($(this).find('input[name="discount[]"]').val()) || 0;
+            if (!name || qty === 0) return;
+
+            let total = price * qty;
+            let discAmt = total * (disc/100);
+            let final = total - discAmt;
+            grandTotal += final;
+
+            rowsHtml += `
+                <tr data-row-index="${index}">
+                    <td>${name}</td>
+                    <td>${price.toFixed(2)}</td>
+                    <td>${qty}</td>
+                    <td>${disc}%</td>
+                    <td>${discAmt.toFixed(2)}</td>
+                    <td>${final.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger service-delete-btn">&times;</button></td>
+                </tr>`;
+        });
+
+        let tableHtml = `
+            <h5 class="mb-3 text-primary">Product Invoice Preview</h5>
+            <p><strong>Customer:</strong> ${customerName}</p>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Unit Price</th>
+                        <th>Qty</th>
+                        <th>Discount %</th>
+                        <th>Discount Amt</th>
+                        <th>Final</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="5" class="text-end">Grand Total:</th>
+                        <th colspan="2">
+                            <input type="hidden" name="amount" value="${grandTotal}">
+                            ${grandTotal.toFixed(2)}
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>`;
+        previewDiv.html(tableHtml);
+        $('#service-submit-container').show();
+    });
+
+    // Delete row from preview + original
+    $(document).on('click','.service-delete-btn',function(){
+        let index = $(this).closest('tr').data('row-index');
+        $(this).closest('tr').remove();
+        $('#service-product-container .service-product-group').eq(index).remove();
+
+        let total=0;
+        $('#service-invoice-preview tbody tr').each(function(){
+            total += parseFloat($(this).find('td:nth-child(6)').text()) || 0;
+        });
+        $('#service-invoice-preview tfoot th:last').html(`<input type="hidden" name="amount" value="${total}">${total.toFixed(2)}`);
+        if ($('#service-invoice-preview tbody tr').length===0){
+            $('#service-submit-container').hide();
+            $('#service-invoice-preview').removeClass('show-preview').addClass('empty')
+            .html('<p class="text-center text-muted p-4">Product Invoice Preview will appear here!</p>');
+        }
+    });
+});
 </script>
+
+<style>
+#service-invoice-preview.empty {
+    min-height: 150px;
+    background: #f9f9f9;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888;
+    font-style: italic;
+    transition: all .5s ease;
+    position: relative;
+    overflow: hidden;
+}
+#service-invoice-preview.empty::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(120deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.3) 50%,rgba(255,255,255,0) 70%);
+    animation: shimmer 2s infinite;
+}
+@keyframes shimmer {
+    0%{transform: rotate(25deg) translateX(-100%);}
+    100%{transform: rotate(25deg) translateX(100%);}
+}
+#service-invoice-preview.show-preview {
+    background: #fff;
+    border: 2px solid #0d6efd;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(13,110,253,.3);
+    padding: 15px;
+}
+#service-invoice-preview table {
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: fadeInTable .5s forwards;
+}
+@keyframes fadeInTable {to{opacity:1;transform:translateY(0);}}
+</style>

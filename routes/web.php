@@ -121,7 +121,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/services', [App\Http\Controllers\Services\ServiceController::class, 'servicePage'])->name('service.page');
     Route::post('/store-services', [App\Http\Controllers\Services\ServiceController::class, 'storeServices'])->name('store.service');
     Route::post('/service-profoma', [App\Http\Controllers\Services\ServiceController::class, 'serviceProfomaInvoice'])->name('service.profoma.invoice');
-    Route::get('/accept-profoma', [App\Http\Controllers\Services\ServiceController::class, 'acceptProfoma'])->name('accept.profoma');
+    Route::get('/generate-invoice', [App\Http\Controllers\Services\ServiceController::class, 'acceptProfoma'])->name('accept.profoma');
     Route::put('/accept-profoma-invoice', [App\Http\Controllers\Services\ServiceController::class, 'approveProfomaInvoice'])->name('accept.profoma.invoice');
     Route::put('/accept-profoma-outstore', [App\Http\Controllers\Services\ServiceController::class, 'acceptProfomaOutStore'])->name('accept.profoma.outstore.invoice');
 

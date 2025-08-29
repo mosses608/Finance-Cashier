@@ -380,95 +380,83 @@ class InvoiceController extends Controller
     {
         try {
             $validated = $request->validate([
-                'product_name' => 'required|array',
+                'product_name'   => 'required|array',
                 'product_name.*' => 'required|string|max:255',
 
-                'order_status' => 'required|string',
-                // 'order_status.*' => 'required|string|max:255',
+                'quantity'       => 'required|array',
+                'quantity.*'     => 'required|integer',
 
-                'quantity' => 'required|array',
-                'quantity.*' => 'required|integer',
+                'amountPay'      => 'required|array',
+                'amountPay.*'    => 'required|numeric',
 
-                'amountPay' => 'required|array',
-                'amountPay.*' => 'required|numeric',
+                'discount'       => 'nullable|array',
+                'discount.*'     => 'nullable|numeric|min:0',
 
-                'discount' => 'nullable|array',
-                'discount.*' => 'nullable|numeric|min:0',
+                'customer_id'    => 'nullable|integer',
 
-                'customer_id' => 'nullable|integer',
+                // new customer fields from service form
+                'service_TIN'    => 'nullable|string',
+                'service_name'   => 'nullable|string|max:255',
+                'service_phone'  => 'nullable|string',
+                'service_address' => 'nullable|string',
 
-                'TIN' => 'nullable|string',
-                'name' => 'nullable|string|max:255',
-                'phone' => 'nullable|string',
-                'address' => 'nullable|string',
-
-                'amount' => 'required|numeric|min:0',
+                'amount'         => 'required|numeric|min:0',
             ]);
-
-            // dd($validated);
-
         } catch (ValidationException $e) {
-            dd($e->errors());
+            return back()->withErrors($e->errors())->withInput();
         }
 
-        $amount = str_replace(',', '', $request->amount);
+        $amount     = str_replace(',', '', $request->amount);
         $customerId = $request->customer_id;
-
-        // dd($customerId);
 
         DB::beginTransaction();
 
         try {
-            if ($request->filled('TIN')) {
-                $existingCustomer = DB::table('customer')->where('TIN', $request->TIN)->first();
+            if ($request->filled('service_TIN')) {
+                $existingCustomer = DB::table('customer')->where('TIN', $request->service_TIN)->first();
                 if ($existingCustomer) {
                     return back()->with('error_msg', 'Customer information already exists!');
                 }
 
                 $customerId = DB::table('customer')->insertGetId([
-                    'name' => $request->name,
-                    'phone' => $request->phone,
-                    'TIN' => $request->TIN,
-                    'address' => $request->address,
+                    'name'    => $request->service_name,
+                    'phone'   => $request->service_phone,
+                    'TIN'     => $request->service_TIN,
+                    'address' => $request->service_address,
                 ]);
             }
+
+            $lineAmount = 0;
 
             $companyId = Auth::user()->company_id;
 
             $invoiceId = DB::table('invoice')->insertGetId([
                 'customer_id' => $customerId,
-                'billId' => null,
-                'amount' => $amount,
-                'company_id' => $companyId,
-                'is_profoma' => 1,
+                'billId'      => null,
+                'amount'      => 0,
+                'company_id'  => $companyId,
+                'is_profoma'  => 1,
             ]);
 
-            // dd($invoiceId);
-
+            // Insert each service line
             foreach ($request->product_name as $index => $productName) {
-
-                // $itemId = DB::table('invoice_items')->insertGetId([
-                //     'invoice_id' => $invoiceId,
-                //     'item_id' => $productId,
-                //     'amount' => $request->selling_price[$index] * $quantitySell,
-                //     'quantity' => $quantitySell,
-                //     'discount' => $request->discount[$index] ?? 0,
-                // ]);
-
+                $lineAmount += $request->amountPay[$index];
                 DB::table('profoma_out_store')->insert([
-                    'invoice_id' => $invoiceId,
-                    'product_name' => $request->product_name[$index],
-                    'order_status' => $request->order_status,
-                    'customer_id' => $customerId,
-                    'amountPay' => $request->amountPay[$index],
-                    'discount' => $request->discount[$index],
-                    'quantity' => $request->quantity[$index],
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'invoice_id'   => $invoiceId,
+                    'product_name' => $productName,
+                    'order_status' => 1,
+                    'customer_id'  => $customerId,
+                    'amountPay'    => $request->amountPay[$index],
+                    'discount'     => $request->discount[$index] ?? 0,
+                    'quantity'     => $request->quantity[$index],
+                    'created_at'   => Carbon::now(),
+                    'updated_at'   => Carbon::now(),
                 ]);
             }
-            // dd('Mohammed is genius!');
 
+            DB::table('invoice')->where('id', $invoiceId)->update([
+                'amount' => $lineAmount,
+            ]);
 
             DB::commit();
             return redirect()->route('profoma.invoice')->with('success_msg', 'Profoma Invoice created successfully!');
@@ -477,6 +465,7 @@ class InvoiceController extends Controller
             return back()->with('error_msg', 'Failed to create invoice: ' . $e->getMessage());
         }
     }
+
 
     public function profomaInvoice()
     {
