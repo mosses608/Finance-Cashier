@@ -46,7 +46,7 @@
                             <div class="col-md-6">
                                 <h6><strong>Sold To:</strong></h6>
                                 <div class="border rounded p-2 bg-light">
-                                    <p class="mb-0">Customer: {{ $customerData->name }}</p>
+                                    <p class="mb-0">Customer: {{ $customerData->name ?? '' }}</p>
                                     <p class="mb-0">Region: {{ $customerData->address ?? '-' }}</p>
                                     <p class="mb-0">Nation: Tanzania</p>
                                     <p class="mb-0">Phone: {{ $customerData->phone ?? '-' }}</p>

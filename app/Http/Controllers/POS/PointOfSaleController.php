@@ -277,9 +277,15 @@ class PointOfSaleController extends Controller
             ->orderBy('PR.name', 'ASC')
             ->first();
 
+        $hasVRN = DB::table('companies')
+            ->select('vrn')
+            ->where('id', $companyId)
+            ->exists();
+
         return view('pos.order', compact([
             'product',
-            'productId'
+            'productId',
+            'hasVRN'
         ]));
     }
 

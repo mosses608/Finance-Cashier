@@ -11,7 +11,7 @@
                             <div class="nav nav-tabs" id="nav-tab" role="tablist">
                                 <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab"
                                     data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home"
-                                    aria-selected="true">Accept Profoma Invoice</button>
+                                    aria-selected="true">Generate Invoice From Profoma Invoice</button>
                             </div>
                         </div>
                         <div class="card-body">
@@ -54,7 +54,7 @@
                                                         <td>
                                                             <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
                                                                 data-bs-target="#exampleModal-{{ $invoice->invoiceProfomaId }}"><i
-                                                                    class="fas fa-check"></i></button>
+                                                                    class="fa fa-file-invoice-dollar"></i> Generate</button>
 
                                                             <div class="modal fade"
                                                                 id="exampleModal-{{ $invoice->invoiceProfomaId }}"
@@ -67,7 +67,7 @@
                                                                         @csrf
                                                                         <div class="modal-header">
                                                                             <h1 class="modal-title fs-5"
-                                                                                id="exampleModalLabel">Accept Invoice
+                                                                                id="exampleModalLabel">Geenerate Invoice
                                                                                 <strong
                                                                                     class="text-primary">#{{ str_pad($invoice->invoiceProfomaId, 4, '0', STR_PAD_LEFT) }}</strong>
                                                                             </h1>
@@ -88,14 +88,15 @@
                                                                                     id="checkDefault">
                                                                                 <label class="form-check-label"
                                                                                     for="checkDefault">
-                                                                                    please check this box to accept this
+                                                                                    please check this box to generate an
+                                                                                    invoice from this
                                                                                     profoma invoice...
                                                                                 </label>
                                                                             </div>
                                                                         </div>
                                                                         <div class="modal-footer">
                                                                             <button type="submit"
-                                                                                class="btn btn-primary btn-sm">Accept
+                                                                                class="btn btn-primary btn-sm">Generate
                                                                             </button>
                                                                         </div>
                                                                     </form>
@@ -132,7 +133,8 @@
                                                                 tabindex="-1" aria-labelledby="exampleModalLabel"
                                                                 aria-hidden="true">
                                                                 <div class="modal-dialog">
-                                                                    <form action="{{ route('accept.profoma.outstore.invoice') }}"
+                                                                    <form
+                                                                        action="{{ route('accept.profoma.outstore.invoice') }}"
                                                                         method="POST" class="modal-content">
                                                                         @method('PUT')
                                                                         @csrf
@@ -155,8 +157,8 @@
                                                                                 value="{{ \Illuminate\Support\Facades\Crypt::encrypt($invoice->invoiceProfomaId) }}">
                                                                             <div class="form-check">
                                                                                 <input class="form-check-input"
-                                                                                    type="checkbox" value="1" required
-                                                                                    id="checkDefault">
+                                                                                    type="checkbox" value="1"
+                                                                                    required id="checkDefault">
                                                                                 <label class="form-check-label"
                                                                                     for="checkDefault">
                                                                                     please check this box to accept this

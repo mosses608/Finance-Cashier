@@ -53,6 +53,21 @@
                                 <span class="text-success">TZS <strong
                                         id="subtotal">{{ number_format($subtotal, 2) }}</strong></span>
                             </div>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax {{ $hasVRN == true ? '(18%)' : '(0%)' }}</span>
+                                @php
+                                    $subtotal = $product->sellingPrice;
+                                    $vat = 0;
+                                    $total = 0;
+                                @endphp
+                                @if ($hasVRN == true)
+                                    <span class="text-success">TZS <strong>
+                                            {{ number_format($subtotal * 0.18, 2) }}
+                                        </strong></span>
+                                @endif
+                            </div>
+
                             <div class="d-flex justify-content-between mb-3">
                                 <strong>Total</strong>
                                 @php
@@ -64,7 +79,7 @@
 
                             <div class="mb-3">
                                 <input type="tel" maxlength="10" class="form-control mb-2" name="phone"
-                                    placeholder="Phone number..." required>
+                                    placeholder="Phone number..." value="{{ old('phone') }}" required>
                                 <input type="hidden" name="productId" value="{{ $productId }}" id="">
                                 {{-- <button type="button" class="btn btn-teal w-100">Apply</button> --}}
                             </div>
@@ -135,11 +150,11 @@
     </style>
 
     <script>
-    document.getElementById('checkoutForm').addEventListener('submit', function() {
-        const loader = document.getElementById('loader');
-        loader.style.display = 'flex';
-    });
-</script>
+        document.getElementById('checkoutForm').addEventListener('submit', function() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+        });
+    </script>
 
     <script>
         // Store original base values on page load

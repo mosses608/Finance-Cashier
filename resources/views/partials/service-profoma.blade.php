@@ -1,315 +1,273 @@
-<div class="d-flex gap-3" id="custom-invoice-section">
-    <div class="w-50 border p-2 rounded">
-        @csrf
-        <div id="custom-product-container">
-            <!-- First Product Entry -->
-            <div class="row g-2 mb-3 custom-product-group">
-                <div class="col-12 mb-2">
-                    <label class="input-label p-2"><strong>Service Name</strong></label>
-                    <select class="form-control select2 custom-product-select" name="service_id[]" style="width: 100%;">
-                        <option value="" selected disabled>--select service--</option>
-                        @foreach ($services as $service)
-                            <option value="{{ $service->id }}" data-selling-price="{{ $service->price }}">
-                                {{ $service->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+<div class="container-fluid" id="custom-service-section">
+    @csrf
 
-                <div class="col-4">
-                    <input type="number" name="price[]" class="form-control custom-selling-price" placeholder="price">
-                </div>
-
-                <input type="hidden" name="category_id" value="7">
-
-                <div class="col-4">
-                    <input type="number" name="quantity[]" class="form-control" placeholder="quantity">
-                </div>
-
-                <div class="col-4">
-                    <input type="text" name="discount[]" class="form-control" placeholder="discount @ eg 2.5">
-                </div>
+    <!-- ================= CUSTOMER + INVOICE DATE ================= -->
+    <div class="card p-3 mb-3 shadow-sm">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label"><strong>Customer Name (Company)</strong></label>
+                <select name="customer_id" class="form-control select2">
+                    <option value="" selected disabled></option>
+                    @foreach ($customers as $custome)
+                        <option value="{{ $custome->id }}">{{ $custome->name }}</option>
+                    @endforeach
+                </select>
             </div>
-        </div>
-
-        <!-- Customer Section -->
-        <div class="col-12 mb-2">
-            <label class="input-label p-2"><strong>Customer Section</strong></label>
-            <select class="form-control" id="custom-customer-selector">
-                <option value="" selected disabled>--select--</option>
-                <option value="1">Existing Customer</option>
-                <option value="2">New Customer</option>
-            </select>
-        </div>
-
-        <div class="col-12 mb-2" id="custom-existing-customer" style="display:none;">
-            <label class="input-label p-2"><strong>Customer Name (Company Name)</strong></label>
-            <select name="customer_id" class="form-control select2">
-                <option value="" selected disabled>--select--</option>
-                @foreach ($customers as $custome)
-                    <option value="{{ $custome->id }}">{{ $custome->name }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="row">
-            <div class="col-6" id="custom-name" style="display:none;">
-                <label class="input-label p-2"><strong>Customer Name</strong></label>
-                <input type="text" name="name" class="form-control" placeholder="full names">
+            <div class="col-md-6">
+                <label class="form-label"><strong>Invoice Date</strong></label>
+                <input type="date" name="invoice_date" class="form-control" value="{{ now()->toDateString() }}">
             </div>
-
-            <div class="col-6" id="custom-phone" style="display:none;">
-                <label class="input-label p-2"><strong>Phone</strong></label>
-                <input type="tel" name="phone" class="form-control" placeholder="phone">
-            </div>
-
-            <div class="col-6" id="custom-tin" style="display:none;">
-                <label class="input-label p-2"><strong>TIN</strong></label>
-                <input type="text" name="tin" id="tin" class="form-control"
-                    placeholder="tin (123-234-455 or 123-234-455-3)" maxlength="13" required>
-            </div>
-
-            <div class="col-6" id="custom-address" style="display:none;">
-                <label class="input-label p-2"><strong>Address</strong></label>
-                <input type="text" name="address" class="form-control" placeholder="customer address">
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="col-6 mt-3 w-100">
-            <button type="button" id="custom-preview-btn" class="btn btn-warning">
-                Preview Data
-            </button>
-            <button type="button" class="btn btn-primary float-end" id="custom-add-btn">
-                <i class="fa fa-plus"></i>
-            </button>
-        </div>
-
-        <div class="col-6 mt-3" id="custom-submit-container" style="display: none;">
-            <button type="submit" class="btn btn-success w-100 float-start">Submit</button>
         </div>
     </div>
 
-    <!-- Invoice Preview -->
-    <div class="w-50">
-        <div class="border p-2 bg-light rounded mt-4" id="custom-invoice-preview">
-            <p class="text-center p-5 blink">Profoma Invoice Preview </p>
+    <!-- ================= SERVICES TABLE ================= -->
+    <div class="card p-3 mb-3 shadow-sm">
+        <h5 class="mb-3">Service Lines</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Service</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Discount (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="custom-service-container">
+                    <tr class="custom-service-group">
+                        <td style="min-width:200px;">
+                            <select class="form-control select2 custom-service-select" name="service_id[]">
+                                <option value="" selected disabled>--select service--</option>
+                                @foreach ($services as $service)
+                                    <option value="{{ $service->id }}" data-selling-price="{{ $service->price }}">
+                                        {{ $service->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td><input type="number" name="price[]" class="form-control custom-selling-price"></td>
+                        <td><input type="number" name="quantity[]" class="form-control" placeholder="Qty"></td>
+                        <td><input type="text" name="discount[]" class="form-control" placeholder="0"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <button type="button" class="btn btn-danger btn-sm mt-2 float-start" id="custom-remove-btn">
+                    <i class="fa fa-minus"></i> Remove Row
+                </button>
+            </div>
+            <div class="col-md-6">
+                <button type="button" class="btn btn-primary btn-sm mt-2 float-end" id="custom-add-btn">
+                    <i class="fa fa-plus"></i> Add Row
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PREVIEW + SAVE ================= -->
+    <div class="card p-3 shadow-sm">
+        <div id="custom-invoice-preview" class="empty">
+            <p class="text-center text-muted p-4">Profoma Invoice Preview will appear here!</p>
+        </div>
+        <div class="mt-3 d-flex justify-content-between">
+            <button type="button" id="custom-preview-btn" class="btn btn-warning">Preview Profoma</button>
+            <div id="custom-submit-container" style="display:none;">
+                <button type="submit" class="btn btn-success">Save Invoice</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        $(document).on('change', '.custom-product-select', function() {
-            const selectedOption = $(this).find('option:selected');
-
-            const availableQuantity = selectedOption.data('available-quantity');
-            const sellingPrice = selectedOption.data('selling-price');
-
-            const container = $(this).closest('.row');
-
-            container.find('.custom-available-quantity').val(availableQuantity);
-            container.find('.custom-selling-price').val(sellingPrice);
-        });
-
+    $(document).ready(function() {
+        // Initialize Select2
         $('.select2').select2({
-            placeholder: '--select product--',
+            theme: 'bootstrap-5',
             width: '100%'
         });
-    });
-</script>
 
-<script>
-    document.getElementById('tin').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        let formatted = '';
+        // Add new service row
+        $('#custom-add-btn').click(function() {
+            let firstRow = $('#custom-service-container .custom-service-group:first');
+            firstRow.find('select').select2('destroy');
+            let newRow = firstRow.clone();
+            newRow.find('select').val('');
+            newRow.find('input').val('');
+            $('#custom-service-container').append(newRow);
+            firstRow.find('select').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+            newRow.find('select').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        });
 
-        if (value.length > 0) {
-            formatted = value.substring(0, 3);
-        }
-        if (value.length >= 4) {
-            formatted += '-' + value.substring(3, 6);
-        }
-        if (value.length >= 7) {
-            formatted += '-' + value.substring(6, 9);
-        }
-        if (value.length === 10) {
-            formatted += '-' + value.substring(9, 10);
-        }
+        // Remove last row
+        $('#custom-remove-btn').click(function() {
+            let rows = $('#custom-service-container .custom-service-group');
+            if (rows.length > 1) rows.last().remove();
+            else alert("You need at least one service row.");
+        });
 
-        e.target.value = formatted;
-    });
+        // Fill price on service select
+        $(document).on('change', '.custom-service-select', function() {
+            let price = $(this).find('option:selected').data('selling-price') || 0;
+            $(this).closest('tr').find('.custom-selling-price').val(price);
+        });
 
-    document.querySelector("form")?.addEventListener("submit", function(e) {
-        const tin = document.getElementById("tin").value;
-        const regex = /^\d{3}-\d{3}-\d{3}(-\d{1})?$/;
-        if (!regex.test(tin)) {
-            e.preventDefault();
-            alert("Please enter a valid TIN (9 or 10 digits).");
-        }
-    });
-</script>
+        // Preview invoice
+        $('#custom-preview-btn').click(function() {
+            let previewDiv = $('#custom-invoice-preview');
+            previewDiv.removeClass('empty').addClass('show-preview').empty();
 
+            let customerName = $('select[name="customer_id"] option:selected').text();
+            let invoiceDate = $('input[name="invoice_date"]').val();
+            if (!customerName) {
+                alert("Please select a customer.");
+                return;
+            }
 
-<script>
-    document.getElementById('custom-add-btn').addEventListener('click', function() {
-        const container = document.getElementById('custom-product-container');
-
-        const productOptions = `@foreach ($services as $service)
-                            <option value="{{ $service->id }}" data-selling-price="{{ $service->price }}">
-                                {{ $service->name }}
-                            </option>
-                        @endforeach`;
-
-        const newGroup = document.createElement('div');
-        newGroup.classList.add('row', 'g-2', 'mb-3', 'custom-product-group');
-        newGroup.innerHTML = `
-            <hr class="mt-3" style="width: 95%; margin-left:2.5%;">
-            <div class="col-12 mb-2">
-                <label class="input-label p-2"><strong>Service Name</strong></label>
-                <select class="form-control select2 custom-product-select" name="servce_id[]" style="width: 100%;">
-                    <option value="" selected disabled>--select service--</option>
-                    ${productOptions}
-                </select>
-            </div>
-            
-                <div class="col-4">
-                    <input type="number" name="price[]" class="form-control custom-selling-price" placeholder="price"
-                        >
-                </div>
-
-                <input type="hidden" name="category_id" value="7">
-
-                <div class="col-4">
-                    <input type="number" name="quantity[]" class="form-control" placeholder="quantity">
-                </div>
-
-                <div class="col-4">
-                    <input type="text" name="discount[]" class="form-control"
-                        placeholder="discount @ eg 2.5">
-                </div>
-        `;
-        container.appendChild(newGroup);
-        $('.select2').select2();
-    });
-
-    document.getElementById('custom-preview-btn').addEventListener('click', function() {
-        const productGroups = document.querySelectorAll('#custom-product-container .custom-product-group');
-        const customerSelect = document.querySelector('[name="customer_id"]');
-        const customerDataName = document.querySelector('[name="name"]');
-        let customerName = 'N/A';
-
-        if (customerSelect && customerSelect.value) {
-            customerName = customerSelect.options[customerSelect.selectedIndex].text;
-        } else if (customerDataName && customerDataName.value.trim() !== '') {
-            customerName = customerDataName.value;
-        }
-
-        let rowsHtml = '';
-        let grandTotal = 0;
-
-        productGroups.forEach(group => {
-            const select = group.querySelector('.custom-product-select');
-            const quantityInput = group.querySelector('[name="price[]"]');
-            const priceInput = group.querySelector('.custom-selling-price');
-            const discountInput = group.querySelector('[name="discount[]"]');
-            const qtyInput = group.querySelector('[name="quantity[]"]');
-
-            if (!select || !priceInput || !discountInput) return;
-
-            const serviceName = select.options[select.selectedIndex]?.text || '';
-            const quantity = parseFloat(quantityInput.value || 0);
-            const price = parseFloat(priceInput.value || 0);
-            const discount = parseFloat(discountInput.value || 0);
-            const quant = parseFloat(qtyInput.value || 0);
-
-            if (!select.value || !quantity) return;
-
-            const subtotal = price * quant;
-            const discountPrice = (discount * subtotal) / 100;
-            const finalTotal = subtotal - discountPrice;
-            grandTotal += finalTotal;
-
-            rowsHtml += `
+            let previewHtml = `<h5 class="mb-3 text-primary">Service Proforma Preview</h5>
+            <p><strong>Customer:</strong> ${customerName}</p>
+            <p><strong>Invoice Date:</strong> ${invoiceDate}</p>
+            <table class="table table-bordered">
+                <thead>
                     <tr>
-                        <td>${serviceName}</td>
-                        <td>${price.toLocaleString()}</td>
-                        <td>${discount || '0'}%</td>
-                        <td>${discountPrice.toLocaleString()}</td>
-                        <td>${quant.toLocaleString()}</td>
-                        <td>${finalTotal.toLocaleString()}</td>
-                    </tr>`;
-        });
+                        <th>Service</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Discount (%)</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4" class="text-end">Grand Total:</th>
+                        <th>0.00</th>
+                    </tr>
+                </tfoot>
+            </table>`;
 
-        if (!rowsHtml) {
-            alert("Please select at least one service before preview.");
-            return;
+            previewDiv.html(previewHtml);
+
+            let totalAmount = 0;
+            $('#custom-service-container .custom-service-group').each(function(index) {
+                let service = $(this).find('.custom-service-select option:selected').text();
+                let unitPrice = parseFloat($(this).find('.custom-selling-price').val()) || 0;
+                let qty = parseFloat($(this).find('input[name="quantity[]"]').val()) || 0;
+                let discount = parseFloat($(this).find('input[name="discount[]"]').val()) || 0;
+                if (!service) return;
+
+                let lineTotal = (unitPrice * qty) * (1 - discount / 100);
+                totalAmount += lineTotal;
+
+                previewDiv.find('tbody').append(`<tr>
+                <td>${service}</td>
+                <td>${unitPrice.toFixed(2)}</td>
+                <td>${qty}</td>
+                <td>${discount}</td>
+                <td>${lineTotal.toFixed(2)}</td>
+            </tr>`);
+            });
+
+            previewDiv.find('tfoot th:last').text(totalAmount.toFixed(2));
+            $('#custom-submit-container').show();
+        });
+    });
+</script>
+
+
+<style>
+    /* Empty state */
+    #custom-invoice-preview.empty {
+        min-height: 150px;
+        background: #f9f9f9;
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #888;
+        font-style: italic;
+        font-size: 1.1rem;
+        transition: all 0.5s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Shimmer effect for empty state */
+    #custom-invoice-preview.empty::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 70%);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            transform: rotate(25deg) translateX(-100%);
         }
 
-        const previewHTML = `
-            <div class="border rounded bg-white shadow-sm">
-                <div class="bg-primary text-white p-2 rounded-top">
-                    <h5 class="mb-0">Customer: ${customerName}</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered mb-0">
-                        <thead class="table-secondary">
-                            <tr>
-                                <th>Service Name</th>
-                                <th>Price</th>
-                                <th>Discount Unit</th>
-                                <th>Discount Price</th>
-                                <th>Quantity</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-success">
-                                <td colspan="5" class="text-start">Total Amount</td>
-                                <td>
-                                    <input type="hidden" value="${grandTotal}" name="amountTotal">
-                                    ${grandTotal.toLocaleString()}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
+        100% {
+            transform: rotate(25deg) translateX(100%);
+        }
+    }
 
-        document.getElementById('custom-invoice-preview').innerHTML = previewHTML;
-        document.getElementById('custom-submit-container').style.display = 'block';
-        document.getElementById('custom-add-btn').style.display = 'none';
-        document.getElementById('custom-preview-btn').style.display = 'none';
+    /* Preview state */
+    #custom-invoice-preview.show-preview {
+        min-height: auto;
+        background: #fff;
+        border: 2px solid #0d6efd;
+        border-radius: 8px;
+        color: #000;
+        font-style: normal;
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
+        padding: 15px;
+        transition: all 0.5s ease;
+        display: block;
+        /* allow table to render properly */
+    }
 
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    });
+    /* Table fade-in */
+    #custom-invoice-preview table {
+        opacity: 0;
+        transform: translateY(-10px);
+        animation: fadeInTable 0.5s forwards;
+    }
 
-    document.getElementById('custom-customer-selector').addEventListener('change', function() {
-        const val = this.value;
-        document.getElementById('custom-existing-customer').style.display = val == '1' ? 'block' : 'none';
-        document.getElementById('custom-name').style.display = val == '2' ? 'block' : 'none';
-        document.getElementById('custom-phone').style.display = val == '2' ? 'block' : 'none';
-        document.getElementById('custom-tin').style.display = val == '2' ? 'block' : 'none';
-        document.getElementById('custom-address').style.display = val == '2' ? 'block' : 'none';
-    });
+    @keyframes fadeInTable {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 
-    // Update selling price and available quantity based on selected product
-    // document.addEventListener('change', function(e) {
-    //     if (e.target.classList.contains('custom-product-select')) {
-    //         const option = e.target.selectedOptions[0];
-    //         const group = e.target.closest('.custom-product-group');
-    //         if (group) {
-    //             group.querySelector('.custom-available-quantity').value = option.getAttribute(
-    //                 'data-available-quantity');
-    //             group.querySelector('.custom-selling-price').value = option.getAttribute('data-selling-price');
-    //         }
-    //     }
-    // });
-</script>
+<style>
+    /* Make Select2 match original select exactly */
+    .select2-container--bootstrap-5 .select2-selection {
+        height: calc(2.25rem + 2px);
+        /* matches .form-control */
+        padding: 0.375rem 0.75rem;
+        /* matches .form-control */
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        line-height: 1.5;
+        padding-left: 0;
+        padding-right: 0;
+    }
+</style>

@@ -69,7 +69,11 @@ class ServiceController extends Controller
         $companyId = Auth::user()->company_id;
 
         foreach ($request->service_name as $key => $serviceName) {
-            $existingService = DB::table('service')->where('name', $request->service_name[$key])->exists();
+
+            $existingService = DB::table('service')
+                ->where('name', $request->service_name[$key])
+                ->where('company_id', $companyId)
+                ->exists();
 
             if ($existingService == true) {
                 return redirect()->back()->with('error_msg', 'Service already exists!');
@@ -97,7 +101,7 @@ class ServiceController extends Controller
             'service_id' => 'required|array',
             'service_id.*' => 'required|integer',
 
-            'category_id' => 'required|integer',
+            'invoice_date' => 'required|date',
 
             'discount' => 'nullable|array',
             'discount.*' => 'nullable|numeric',
@@ -106,104 +110,68 @@ class ServiceController extends Controller
             'price.*' => 'required|numeric',
 
             'quantity' => 'nullable|array',
-            'quantity.*' => 'nullable|integer',
+            'quantity.*' => 'nullable|integer|min:1',
 
             'customer_id' => 'nullable|integer',
-
-            'name' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'tin' => 'nullable|string',
-            'address' => 'nullable|string',
-
-            'amountTotal' => 'required|numeric',
         ]);
 
-        $companyId = Auth::user()->company_id;
+        DB::beginTransaction();
 
-        if ($request->filled('tin')) {
-            $existingCustomer = DB::table('stakeholders')
-                ->where('tin', $request->tin)
-                ->exists();
-
-            if ($existingCustomer == true) {
-                return redirect()->back()->with('error_msg', 'Customer you are trying to add already exists!');
-            }
-
-            $customerId = DB::table('stakeholders')->insertGetId([
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'tin' => $request->tin,
-                'address' => $request->address,
-            ]);
+        try {
+            $companyId = Auth::user()->company_id;
 
             $invoiceId = DB::table('invoice')->insertGetId([
-                'customer_id' => $customerId,
-                'amount' => $request->amountTotal,
-                'created_at' => Carbon::now(),
-                'company_id' => $companyId,
+                'customer_id' => $request->customer_id,
+                'amount' => 0,
+                'created_at' => $request->invoice_date,
                 'updated_at' => Carbon::now(),
+                'company_id' => $companyId,
                 'is_profoma' => 1,
             ]);
 
-            foreach ($request->service_id as $key => $serviceId) {
+            $grandTotal = 0;
 
-                $invoiceItmId = DB::table('invoive_service_items')->insertGetId([
+            foreach ($request->service_id as $key => $serviceId) {
+                $unitPrice = $request->price[$key] ?? 0;
+                $qty = $request->quantity[$key] ?? 1;
+                $discount = $request->discount[$key] ?? 0;
+
+                $lineAmount = ($unitPrice * $qty) * (1 - ($discount / 100));
+
+                $grandTotal += $lineAmount;
+
+                $invoiceItemId = DB::table('invoive_service_items')->insertGetId([
                     'invoice_id' => $invoiceId,
                     'service_id' => $serviceId,
-                    'amount' => $request->price[$key],
-                    'discount' => $request->discount[$key],
-                    'quantity' => $request->quantity[$key] ?? 0,
+                    'amount' => $lineAmount,
+                    'quantity' => $qty,
+                    'discount' => $discount,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
 
                 DB::table('profoma_invoice')->insert([
                     'invoice_id' => $invoiceId,
-                    'category_id' => $request->category_id,
-                    'invoice_item_id' => $invoiceItmId,
-                    'customer_id' => $customerId,
-                    'amount' => $request->price[$key],
+                    'category_id' => 2,
+                    'invoice_item_id' => $invoiceItemId,
+                    'customer_id' => $request->customer_id,
+                    'amount' => $lineAmount,
+                    'profoma_status' => 'pending',
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
             }
-        }
 
-        // dd($request->all());
-
-        $invoiceId = DB::table('invoice')->insertGetId([
-            'customer_id' => $request->customer_id,
-            'amount' => $request->amountTotal,
-            'created_at' => Carbon::now(),
-            'company_id' => $companyId,
-            'updated_at' => Carbon::now(),
-            'is_profoma' => 1,
-        ]);
-
-        foreach ($request->service_id as $key => $serviceId) {
-
-            $invoiceItmId = DB::table('invoive_service_items')->insertGetId([
-                'invoice_id' => $invoiceId,
-                'service_id' => $serviceId,
-                'amount' => $request->price[$key],
-                'quantity' => $request->quantity[$key] ?? 0,
-                'discount' => $request->discount[$key] ?? 0,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
+            DB::table('invoice')->where('id', $invoiceId)->update([
+                'amount' => $grandTotal,
             ]);
 
-            DB::table('profoma_invoice')->insert([
-                'invoice_id' => $invoiceId,
-                'category_id' => $request->category_id,
-                'invoice_item_id' => $invoiceItmId,
-                'customer_id' => $request->customer_id,
-                'amount' => $request->price[$key],
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+            DB::commit();
+            return redirect()->back()->with('success_msg', 'Service Proforma Invoice created successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error_msg', 'Failed to create service proforma: ' . $e->getMessage());
         }
-
-        return redirect()->route('profoma.invoice')->with('success_msg', 'Profoma invoice created successfully!');
     }
 
     public function acceptProfoma()

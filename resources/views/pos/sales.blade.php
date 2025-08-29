@@ -22,9 +22,23 @@
                     </div>
                 @endif
             </div>
-            <div class="row">
-
-            </div>
+            
+            {{-- <div class="row">
+                <div class="modal fade" id="staticBackdrop" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true"
+                    data-bs-backdrop="false" data-bs-keyboard="false">
+                    <div class="modal-dialog modal-xl" style="margin-top: 5px;">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">My Floating Modal</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>This modal opens without covering the background 👌</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
 
             <div class="row">
                 <div class="col-md-12">
@@ -42,17 +56,19 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <div class="row col-12 p-1" id="productContainer">
+                                <div class="row col-12 p-1">
                                     @foreach ($availableProducts as $product)
                                         @php
                                             $productId = \Illuminate\Support\Facades\Crypt::encrypt(
                                                 json_encode($product->productId),
                                             );
                                         @endphp
-                                        <div class="col-md-3 product-card">
+                                        <div class="col-md-3 product-card" id="product-card-{{ $product->productId }}">
                                             <div class="card p-2 shadow-sm card-hover position-relative">
                                                 <img src="{{ asset('storage/' . $product->picture) }}" class="card-img-top"
-                                                    alt="{{ $product->productName }}"
+                                                    id="productContainer" data-bs-toggle="modal"
+                                                    data-bs-target="#staticBackdrop" data-bs-backdrop="false"
+                                                    data-bs-keyboard="false" alt="{{ $product->productName }}"
                                                     style="height: 150px; object-fit: cover; border-radius: 10px;">
 
                                                 <div class="card-body text-start">
@@ -74,12 +90,16 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Hidden action section -->
-                                                <div class="card-actions position-absolute bottom-0 start-0 end-0 p-2 d-flex justify-content-between align-items-center"
-                                                    style="display: none;">
-                                                    <a href="{{ route('view-pos-product', $productId) }}"
-                                                        target="__blank"class="text-primary"><i class="fa fa-eye"></i></a>
-                                                    <input type="checkbox" class="form-check-input" />
+                                                <div class="card-actions" style="display: none;">
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <a href="{{ route('view-pos-product', $productId) }}"
+                                                                target="__blank"
+                                                                class="btn btn-success btn-sm w-100 rounded">
+                                                                <i class="fa fa-shopping-cart"></i> sale this item</i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -93,9 +113,10 @@
         </div>
     </div>
 
+
     <style>
         .card-hover:hover .card-actions {
-            display: flex !important;
+            display: block !important;
         }
 
         .card-hover {

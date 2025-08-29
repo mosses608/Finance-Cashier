@@ -34,6 +34,7 @@
                                 <div class="tab-pane fade show active" id="nav-profile" role="tabpanel"
                                     aria-labelledby="nav-profile-tab">
                                     <form action="{{ route('create.profoma.invoice') }}" method="POST">
+                                        @csrf
                                         @include('partials.profoma')
                                         {{-- <div class="row p-3 py-0">
                                             <div class="col-md-8 py-0">

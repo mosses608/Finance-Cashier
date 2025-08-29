@@ -35,10 +35,6 @@ class InvoiceController extends Controller
             'discount.*' => 'nullable|numeric',
 
             'customer_id' => 'nullable|integer',
-            'TIN' => 'nullable|string',
-            'name' => 'nullable|string|max:255',
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
             'amount' => 'required',
         ]);
         // dd($request->all());
@@ -284,100 +280,90 @@ class InvoiceController extends Controller
 
     public function createProfomaInvoice(Request $request)
     {
-        // dd($request->all());
-
         try {
             $validated = $request->validate([
+                'customer_id' => 'required|integer',
+                'invoice_date' => 'required|date',
+
                 'product_id' => 'required|array',
-                'product_id.*' => 'required|integer',
+                'product_id.*' => 'required|integer|exists:products,id',
 
                 'available_quantity' => 'required|array',
                 'available_quantity.*' => 'required|numeric|min:0',
 
-                'selling_price' => 'required|array',
-                'selling_price.*' => 'required|numeric|min:0',
-
                 'quantity_sell' => 'required|array',
                 'quantity_sell.*' => 'required|integer|min:1',
+
+                'selling_price' => 'required|array',
+                'selling_price.*' => 'required|numeric|min:0',
 
                 'discount' => 'nullable|array',
                 'discount.*' => 'nullable|numeric|min:0',
 
                 'category_id' => 'nullable|integer',
                 'profoma_status' => 'nullable|string',
-
-                'customer_id' => 'nullable|integer',
-
-                'TIN' => 'nullable|string',
-                'name' => 'nullable|string|max:255',
-                'phone' => 'nullable|string',
-                'address' => 'nullable|string',
-
-                'amount' => 'required|numeric|min:0',
             ]);
-
-            // dd($validated);
-
         } catch (ValidationException $e) {
-            dd($e->errors());
+            return redirect()->back()->with('error_msg', $e->getMessage());
         }
 
-        $amount = str_replace(',', '', $request->amount);
         $customerId = $request->customer_id;
 
         DB::beginTransaction();
 
         try {
-            if ($request->filled('TIN')) {
-                $existingCustomer = DB::table('customer')->where('TIN', $request->TIN)->first();
-                if ($existingCustomer) {
-                    return back()->with('error_msg', 'Customer information already exists!');
-                }
-
-                $customerId = DB::table('customer')->insertGetId([
-                    'name' => $request->name,
-                    'phone' => $request->phone,
-                    'TIN' => $request->TIN,
-                    'address' => $request->address,
-                ]);
-            }
-
             $companyId = Auth::user()->company_id;
 
             $invoiceId = DB::table('invoice')->insertGetId([
                 'customer_id' => $customerId,
                 'billId' => null,
-                'amount' => $amount,
+                'amount' => 0,
                 'is_profoma' => 1,
                 'company_id' => $companyId,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
             ]);
+
+            $grandTotal = 0;
+            $lastItemId = null;
 
             foreach ($request->product_id as $index => $productId) {
                 $quantitySell = $request->quantity_sell[$index] ?? 0;
                 $availableQty = $request->available_quantity[$index] ?? 0;
+                $unitPrice = $request->selling_price[$index] ?? 0;
+                $discount = $request->discount[$index] ?? 0;
 
                 $existingStock = DB::table('stocks')->where('storage_item_id', $productId)->first();
-
                 if (!$existingStock || $quantitySell > $existingStock->quantity_total) {
+                    DB::rollBack();
                     return back()->with('error_msg', "Quantity for product ID $productId is greater than available.");
                 }
 
-                $itemId = DB::table('invoice_items')->insertGetId([
+                $lineTotal = ($unitPrice * $quantitySell) * (1 - $discount / 100);
+                $grandTotal += $lineTotal;
+
+                $lastItemId = DB::table('invoice_items')->insertGetId([
                     'invoice_id' => $invoiceId,
                     'item_id' => $productId,
-                    'amount' => $request->selling_price[$index] * $quantitySell,
+                    'amount' => $lineTotal,
                     'quantity' => $quantitySell,
-                    'discount' => $request->discount[$index] ?? 0,
+                    'discount' => $discount,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
                 ]);
             }
 
+            DB::table('invoice')->where('id', $invoiceId)->update([
+                'amount' => $grandTotal,
+            ]);
+
             DB::table('profoma_invoice')->insert([
                 'invoice_id' => $invoiceId,
-                'category_id' => $request->category_id,
-                'invoice_item_id' => $itemId,
-                'profoma_status' => $request->profoma_status,
+                'category_id' => $request->category_id ?? 1,
+                'invoice_item_id' => $lastItemId,
+                'profoma_status' => $request->profoma_status ?? 1,
                 'customer_id' => $customerId,
-                'amount' => $amount,
+                'amount' => $grandTotal,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
