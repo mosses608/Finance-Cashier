@@ -360,7 +360,7 @@ class StockController extends Controller
         $updated = false;
 
         foreach ($csvData as $entry) {
-            if (!empty($entry['quantityIn']) && is_numeric($entry['quantityIn'])) {
+            if (!empty($entry['quantityIn']) && is_numeric($entry['quantityIn']) && $entry['quantityIn'] >= 0) {
                 $stock = DB::table('stocks')
                     ->where('storage_item_id', $entry['storageId'])
                     ->where('soft_delete', 0)

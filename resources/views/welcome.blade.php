@@ -1,5 +1,6 @@
 @extends('layouts.landing')
 @section('content')
+        <x-messages />
     <div class="container mt-4">
         <center class="center">
             <span><i class="fa fa-area-chart" style="color: gold;"></i></span>
@@ -31,7 +32,8 @@
                     </div>
 
                     <div class="col-12">
-                        <button type="submit" class="btn btn-success p-3 col-12">Sign In <i class="fa fa-sign-in"></i></button>
+                        <button type="submit" class="btn btn-success p-3 col-12">Sign In <i
+                                class="fa fa-sign-in"></i></button>
                     </div>
                     <div class="row py-3">
                         <div class="col-md-6">
@@ -44,6 +46,5 @@
                 </form>
             </div>
         </div>
-        <x-messages />
     </div>
 @stop

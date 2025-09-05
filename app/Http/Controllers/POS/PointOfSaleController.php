@@ -564,6 +564,44 @@ class PointOfSaleController extends Controller
         return $response;
     }
 
+    public function orderPreview($productIds)
+    {
+        $encryptedIds = explode(',', $productIds);
+        $productIds = [];
+        $decodedproductIds = [];
+        foreach ($encryptedIds as $product) {
+            $productIds[] = Crypt::decrypt($product);
+        }
+
+        foreach ($productIds as $id) {
+            $decodedproductIds[] = json_decode($id);
+        }
+
+        $companyId = Auth::user()->company_id;
+
+        $orderItems = DB::table('products AS P')
+            ->join('stocks AS S', 'P.id', '=', 'S.storage_item_id')
+            ->select([
+                'P.id AS productId',
+                'P.name AS productName',
+                'P.selling_price AS sellingPrice',
+                'P.item_pic AS picture',
+                'S.quantity_total AS availableQty',
+            ])
+            ->whereIn('P.id', $decodedproductIds)
+            ->get();
+
+        $hasVRN = DB::table('companies')
+            ->select('vrn')
+            ->where('id', $companyId)
+            ->exists();
+
+        return view('pos.order-view', compact([
+            'orderItems',
+            'hasVRN'
+        ]));
+    }
+
     public function posStockReport()
     {
         return redirect()->back();
@@ -845,5 +883,100 @@ class PointOfSaleController extends Controller
         }
 
         return response()->json(['message' => 'Payment not successful'], 400);
+    }
+
+    public function orderPayment(Request $request)
+    {
+        // Validate the form
+        $request->validate([
+            'phone'          => 'required|string',
+            'amount'         => 'required|numeric',
+            'pay'            => 'required|string',
+
+            'quantity'       => 'required|array|min:1',
+            'quantity.*'     => 'required|integer|min:1',
+
+            'seling_price'   => 'required|array|min:1',
+            'seling_price.*' => 'required|numeric|min:0',
+
+            'product_id'     => 'required|array|min:1',
+            'product_id.*'   => 'required|integer',
+        ]);
+
+        // Format phone
+        $phone = ltrim($request->phone, '0');
+        $msisdn = "255" . $phone;
+
+        $amount = $request->amount;
+        $reference = rand(100, 999999);
+        $description = "Payment for #{$reference}";
+
+        // Check payment method
+        if ($request->pay === "mobile") {
+            return redirect()->back()->with('error_msg', 'This payment method is not available for now!');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($request->product_id as $key => $productId) {
+
+                $qty = $request->quantity[$key];
+                $price = $request->seling_price[$key];
+                $productAmount = $qty * $price;
+
+                // Insert stock transaction
+                DB::table('stock_out_transaction')->insert([
+                    'product_id' => $productId,
+                    'stockout_quantity' => $qty,
+                    'comments' => $description,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+
+                // Update stock (cumulative)
+                $stockData = DB::table('stocks')->where('storage_item_id', $productId)->first();
+                if ($stockData) {
+                    DB::table('stocks')->where('storage_item_id', $productId)->update([
+                        'quantity_out'   => $stockData->quantity_out + $qty,
+                        'quantity_total' => $stockData->quantity_total - $qty,
+                        'updated_at'     => Carbon::now(),
+                    ]);
+                }
+
+                // Get product info
+                $product = DB::table('products')->where('id', $productId)->first();
+
+                // Insert order
+                DB::table('orders')->insert([
+                    'product_id' => $productId,
+                    'ref' => $reference,
+                    'phone' => $msisdn,
+                    'amount' => $productAmount,
+                    'company_id' => $product->company_id,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+
+                // Insert sale
+                DB::table('sales')->insert([
+                    'amount_paid' => $productAmount,
+                    'payment_method' => 'cash',
+                    'is_paid' => 1,
+                    'status' => 1,
+                    'notes' => $description,
+                    'balance' => $productAmount,
+                    'company_id' => $product->company_id,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success_msg', 'Payment successfully!');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return redirect()->back()->with('error_msg', 'Payment failed: ' . $th->getMessage());
+        }
     }
 }

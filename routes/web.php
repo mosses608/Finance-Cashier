@@ -226,6 +226,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/pos-sales-report', [App\Http\Controllers\POS\PointOfSaleController::class, 'posSalesReport'])->name('pos.sales.report');
     Route::get('/download-pos-sales-report/{range}', [App\Http\Controllers\POS\PointOfSaleController::class, 'downloadPOSReportSales'])->name('download.pos.sales.report');
     Route::get('/pos-stock-report', [App\Http\Controllers\POS\PointOfSaleController::class, 'posStockReport'])->name('pos.stock.report');
+    Route::get('/order-preview/{productIds}', [App\Http\Controllers\POS\PointOfSaleController::class, 'orderPreview'])->name('preview.order');
+    Route::post('/order-payment', [App\Http\Controllers\POS\PointOfSaleController::class, 'orderPayment'])->name('order.payment');
 
     // WEBSITE BUILDER
     Route::get('/website/{encryptedId}', [App\Http\Controllers\Website\WebsiteBuilderController::class, 'websiteBuilder'])->name('view.website.builder');

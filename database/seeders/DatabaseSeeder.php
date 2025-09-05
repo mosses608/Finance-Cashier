@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
         // $this->call(ExpensesTypeSeeder::class);
         // $this->call(RolesAndPermissionsSeeder::class);
         // $this->call(CitySeeder::class);
-        $this->call(MenuSeeder::class);
+        // $this->call(MenuSeeder::class);
         // $this->call(AdminSeeder::class);
     }
 }

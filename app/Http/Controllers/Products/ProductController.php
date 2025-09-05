@@ -20,27 +20,32 @@ class ProductController extends Controller
     //
     public function storeProduct(Request $request)
     {
-        $request->validate([
-            // ALL TYPES VALIDATION
-            'product_type' => 'required|string',
+        try {
+            $request->validate([
+                // ALL TYPES VALIDATION
+                'product_type' => 'required|string',
 
-            // SERVICE VALIDATION
-            'service_name' => 'nullable|string',
-            'amount_service' => 'nullable|numeric',
-            'quantity_service' => 'nullable|integer',
-            'category_service' => 'nullable|string',
-            'description_service' => 'nullable|string',
+                // SERVICE VALIDATION
+                'service_name' => 'nullable|string',
+                'amount_service' => 'nullable|numeric',
+                'quantity_service' => 'nullable|integer',
+                'category_service' => 'nullable|string',
+                'description_service' => 'nullable|string',
 
-            // GOODS VALIDATION
-            'name' => 'nullable|string|max:255',
-            'sku' => 'nullable|string',
-            'description' => 'nullable|string|max:255',
-            'cost_price' => 'nullable|integer',
-            'selling_price' => 'nullable|integer',
-            'store_id' => 'nullable|integer',
-            'item_pic' => 'nullable|image|max:2048',
-            'serial_no' => 'nullable|string',
-        ]);
+                // GOODS VALIDATION
+                'name' => 'nullable|string',
+                'sku' => 'nullable|string',
+                'description' => 'nullable|string',
+                'cost_price' => 'nullable|integer',
+                'selling_price' => 'nullable|integer',
+                'store_id' => 'nullable|integer',
+                'item_pic' => 'nullable|file',
+                'serial_no' => 'nullable|string',
+            ]);
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+        }
+
 
         $companyId = Auth::user()->company_id;
 
