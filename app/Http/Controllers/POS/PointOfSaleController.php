@@ -90,6 +90,9 @@ class PointOfSaleController extends Controller
 
         $todaySales = $this->shortNumberFormat($shortSales);
 
+        $startofWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+
         $topSoldProducts = DB::table('products as p')
             ->join('orders as o', 'p.id', '=', 'o.product_id')
             ->select([
@@ -98,6 +101,8 @@ class PointOfSaleController extends Controller
                 'p.item_pic',
                 DB::raw('COUNT(o.id) as total_orders')
             ])
+            ->where('o.company_id', $companyId)
+            ->whereBetween('o.created_at', [$startofWeek, $endOfWeek])
             ->groupBy('p.id', 'p.name', 'p.item_pic')
             ->orderByDesc('total_orders')
             ->limit(5)
@@ -207,8 +212,7 @@ class PointOfSaleController extends Controller
             ])
             // ->whereIn('PR.id', $productsInTransactionsIds)
             ->where('PR.company_id', $companyId)
-            ->where('PR.company_id', $companyId)
-            ->orderBy('PR.name', 'ASC')
+            ->orderBy('availableQuantity', 'DESC')
             ->limit(6)
             ->get();
 

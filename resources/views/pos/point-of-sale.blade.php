@@ -202,7 +202,7 @@
                                             <div class="username col-12">
                                                 <span class="float-end text-muted">{{ $top->name }}</span>
                                             </div><br>
-                                            <div class="status float-end"><i class="fa fa-shopping-cart"></i>
+                                            <div class="status float-end"><i class="fa fa-shopping-cart text-warning"></i>
                                                 <sup><strong
                                                         class="text-primary">{{ number_format($top->total_orders) }}</strong></sup>
                                             </div>
@@ -246,12 +246,20 @@
                                                 <div class="card-body text-start">
                                                     <h6 class="card-title mb-1 text-primary fs-6 text-capitalize d-flex">
                                                         {{ $product->productName }}</h6>
-                                                    <p class="text-muted mb-1">
-                                                        <strong>
-                                                            {{ number_format($product->sellingPrice, 2) }} tsh</strong>
-                                                    </p>
-                                                    <p class="text-muted mb-0 btn btn-warning btn-sm border text-white">
-                                                        {{ $product->availableQuantity }} items</p>
+                                                    <div class="row mt-3">
+                                                        <div class="col-md-6">
+                                                            <p class="text-muted mb-1 text-success float-start">
+                                                                <strong>
+                                                                    {{ number_format($product->sellingPrice) . ' /=' }}
+                                                                    </strong>
+                                                            </p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p
+                                                                class="float-end">
+                                                                <i class="fa fa-shopping-cart text-warning"></i><sup style="font-size: 12px;">{{ $product->availableQuantity }} items</sup></p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

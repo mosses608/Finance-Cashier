@@ -15,7 +15,7 @@ class MenuSeeder extends Seeder
     {
         // POS
         $pos = DB::table('auth_user_modules')->insertGetId([
-            'module_name' => 'POS',
+            'module_name' => 'Point of Sales (POS)',
             'module_label' => 'pos',
             'module_path' => '#pos',
             'module_parent_id' => null,
@@ -46,7 +46,7 @@ class MenuSeeder extends Seeder
         ]);
 
          DB::table('auth_user_modules')->insert([
-            'module_name' => 'Sales Report',
+            'module_name' => 'Sales Analysis',
             'module_label' => 'pos-sale-report',
             'module_path' => 'pos-sales-report',
             'module_parent_id' => $pos,
@@ -54,7 +54,7 @@ class MenuSeeder extends Seeder
         ]);
 
          DB::table('auth_user_modules')->insert([
-            'module_name' => 'Stock Report',
+            'module_name' => 'Stock Analysis',
             'module_label' => 'pos-stock-report',
             'module_path' => 'pos-stock-report',
             'module_parent_id' => $pos,
