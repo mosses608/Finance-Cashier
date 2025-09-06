@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\SessionTimeout;
 use App\Http\Controllers\Products\ProductController;
 
 // Route::get('/storage-link', function(){
@@ -31,8 +32,7 @@ Route::post('/subscribe', [App\Http\Controllers\Pages\PageController::class, 'su
 
 Route::get('/availabe-features', [App\Http\Controllers\Pages\PageController::class, 'availableFeatures'])->name('available.features');
 
-Route::middleware('auth')->group(function () {
-
+Route::middleware([SessionTimeout::class ,'auth'])->group(function () {
     // ADMIN
     Route::get('/admin', [App\Http\Controllers\Admin\AdminController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::get('/view-accounts', [App\Http\Controllers\Admin\AdminController::class, 'viewAccounts'])->name('view-accounts');
@@ -40,7 +40,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/suspend-account', [App\Http\Controllers\Admin\AdminController::class, 'suspendAccount'])->name('suspend.account');
     Route::post('/activate-account', [App\Http\Controllers\Admin\AdminController::class, 'activateAccount'])->name('activate.account');
     Route::get('/logs', [App\Http\Controllers\Admin\AdminController::class, 'logs'])->name('user.logs');
-
 
     // USERS
     Route::get('/users', [App\Http\Controllers\Users\UsersController::class, 'users'])->name('users')->middleware('auth');

@@ -403,6 +403,7 @@ class PageController extends Controller
             ])
             ->where('ST.company_id', $companyId)
             ->where('ST.soft_delete', 0)
+            ->limit(10)
             ->orderBy('ST.id', 'DESC')
             ->get();
 

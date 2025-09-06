@@ -30,7 +30,7 @@ class MenuSeeder extends Seeder
         ]);
 
         DB::table('auth_user_modules')->insert([
-            'module_name' => 'Sales Panel',
+            'module_name' => 'Sales Dashboard',
             'module_label' => 'stock in',
             'module_path' => 'pos-sales-management',
             'module_parent_id' => $pos,

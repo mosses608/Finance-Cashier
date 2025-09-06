@@ -449,8 +449,8 @@ class PointOfSaleController extends Controller
             ->get();
 
         if ($request->has('from') && $request->has('to') && $request->from != null && $request->to != null) {
-            $from = $request->from;
-            $to = $request->to;
+            $from = Carbon::parse($request->from)->startOfDay();
+            $to = Carbon::parse($request->to)->endOfDay();
 
             $orders = DB::table('orders AS O')
                 ->leftJoin('products AS PR', function ($join) {
@@ -483,8 +483,8 @@ class PointOfSaleController extends Controller
     {
         $range = Crypt::decrypt($range);
         $range = json_decode($range, true);
-        $from = $range['from'];
-        $to = $range['to'];
+        $from = carbon::parse($range['from'])->startOfDay();
+        $to = Carbon::parse($range['to'])->endOfDay();
         $companyId = Auth::user()->company_id;
 
         $orders = DB::table('orders AS O')

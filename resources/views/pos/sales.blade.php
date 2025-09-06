@@ -28,23 +28,6 @@
                 @endif
             </div>
 
-            {{-- <div class="row">
-                <div class="modal fade" id="staticBackdrop" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true"
-                    data-bs-backdrop="false" data-bs-keyboard="false">
-                    <div class="modal-dialog modal-xl" style="margin-top: 5px;">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">My Floating Modal</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>This modal opens without covering the background 👌</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
-
             <div class="row">
                 <div class="col-md-12">
                     <div class="card card-round">
@@ -74,10 +57,11 @@
                                                 data-encrypted-id="{{ $encryptedId }}">
                                                 <div class="card p-2 shadow-sm card-hover position-relative">
                                                     <img src="{{ asset('storage/' . $product->picture) }}"
+                                                    height="100%"
                                                         class="card-img-top" data-bs-toggle="modal"
                                                         data-bs-target="#staticBackdrop" data-bs-backdrop="false"
                                                         data-bs-keyboard="false" alt="{{ $product->productName }}"
-                                                        style="height: 150px; object-fit: cover; border-radius: 10px;">
+                                                        style="height: 100%; object-fit: cover; border-radius: 10px;">
 
                                                     <div class="card-body text-start">
                                                         <h6
@@ -162,6 +146,7 @@
         }
 
         .card-hover {
+            /* height: 250px !important; */
             border-radius: 12px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
